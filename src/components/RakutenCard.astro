@@ -1,0 +1,90 @@
+---
+interface Props {
+	itemCode: string;
+	title: string;
+	imageUrl?: string;
+	price?: string;
+	affiliateId?: string;
+}
+
+const { itemCode, title, imageUrl, price, affiliateId } = Astro.props;
+const rakutenUrl = `https://item.rakuten.co.jp/${itemCode}`;
+---
+
+<div class="rakuten-card">
+	{
+		imageUrl && (
+			<div class="rakuten-card-image">
+				<img src={imageUrl} alt={title} loading="lazy" width="120" height="120" />
+			</div>
+		)
+	}
+	<div class="rakuten-card-body">
+		<p class="rakuten-card-title">{title}</p>
+		{price && <p class="rakuten-card-price">{price}</p>}
+		<a href={rakutenUrl} target="_blank" rel="nofollow noopener" class="rakuten-card-btn">
+			楽天で見る
+		</a>
+	</div>
+</div>
+
+<style>
+	.rakuten-card {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+		background-color: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: 8px;
+		padding: 1rem;
+		margin: 1.5rem 0;
+	}
+
+	.rakuten-card-image img {
+		border-radius: 4px;
+		object-fit: contain;
+	}
+
+	.rakuten-card-body {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.rakuten-card-title {
+		font-weight: 700;
+		font-size: 0.925rem;
+		color: var(--color-text-heading);
+		margin-bottom: 0.25rem;
+	}
+
+	.rakuten-card-price {
+		color: var(--color-danger);
+		font-weight: 700;
+		font-size: 0.875rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.rakuten-card-btn {
+		display: inline-block;
+		padding: 0.4em 1em;
+		background-color: #bf0000;
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 700;
+		border-radius: 4px;
+		text-decoration: none;
+		transition: opacity 0.2s;
+	}
+
+	.rakuten-card-btn:hover {
+		opacity: 0.85;
+		text-decoration: none;
+	}
+
+	@media (max-width: 768px) {
+		.rakuten-card {
+			flex-direction: column;
+			text-align: center;
+		}
+	}
+</style>

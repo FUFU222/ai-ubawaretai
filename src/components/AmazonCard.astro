@@ -1,0 +1,90 @@
+---
+interface Props {
+	asin: string;
+	title: string;
+	imageUrl?: string;
+	price?: string;
+}
+
+const { asin, title, imageUrl, price } = Astro.props;
+const tag = import.meta.env.AMAZON_ASSOCIATE_TAG || 'your-tag-22';
+const amazonUrl = `https://www.amazon.co.jp/dp/${asin}?tag=${tag}`;
+---
+
+<div class="amazon-card">
+	{
+		imageUrl && (
+			<div class="amazon-card-image">
+				<img src={imageUrl} alt={title} loading="lazy" width="120" height="120" />
+			</div>
+		)
+	}
+	<div class="amazon-card-body">
+		<p class="amazon-card-title">{title}</p>
+		{price && <p class="amazon-card-price">{price}</p>}
+		<a href={amazonUrl} target="_blank" rel="nofollow noopener" class="amazon-card-btn">
+			Amazonで見る
+		</a>
+	</div>
+</div>
+
+<style>
+	.amazon-card {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+		background-color: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: 8px;
+		padding: 1rem;
+		margin: 1.5rem 0;
+	}
+
+	.amazon-card-image img {
+		border-radius: 4px;
+		object-fit: contain;
+	}
+
+	.amazon-card-body {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.amazon-card-title {
+		font-weight: 700;
+		font-size: 0.925rem;
+		color: var(--color-text-heading);
+		margin-bottom: 0.25rem;
+	}
+
+	.amazon-card-price {
+		color: var(--color-warning);
+		font-weight: 700;
+		font-size: 0.875rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.amazon-card-btn {
+		display: inline-block;
+		padding: 0.4em 1em;
+		background-color: #ff9900;
+		color: #000;
+		font-size: 0.8rem;
+		font-weight: 700;
+		border-radius: 4px;
+		text-decoration: none;
+		transition: opacity 0.2s;
+	}
+
+	.amazon-card-btn:hover {
+		opacity: 0.85;
+		text-decoration: none;
+	}
+
+	@media (max-width: 768px) {
+		.amazon-card {
+			flex-direction: column;
+			text-align: center;
+		}
+	}
+</style>

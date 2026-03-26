@@ -1,0 +1,154 @@
+---
+interface Product {
+	name: string;
+	price?: string;
+	rating?: string;
+	pros?: string[];
+	cons?: string[];
+	link?: string;
+	linkLabel?: string;
+}
+
+interface Props {
+	products: Product[];
+}
+
+const { products } = Astro.props;
+---
+
+<div class="compare-grid" style={`--cols: ${products.length}`}>
+	{
+		products.map((product) => (
+			<div class="compare-card">
+				<h4 class="compare-name">{product.name}</h4>
+				{product.price && <p class="compare-price">{product.price}</p>}
+				{product.rating && <p class="compare-rating">{product.rating}</p>}
+				{product.pros && product.pros.length > 0 && (
+					<div class="compare-section">
+						<span class="compare-label good">良い点</span>
+						<ul>
+							{product.pros.map((pro) => (
+								<li>{pro}</li>
+							))}
+						</ul>
+					</div>
+				)}
+				{product.cons && product.cons.length > 0 && (
+					<div class="compare-section">
+						<span class="compare-label bad">気になる点</span>
+						<ul>
+							{product.cons.map((con) => (
+								<li>{con}</li>
+							))}
+						</ul>
+					</div>
+				)}
+				{product.link && (
+					<a
+						href={product.link}
+						target="_blank"
+						rel="nofollow noopener"
+						class="compare-btn"
+					>
+						{product.linkLabel || '詳細を見る'}
+					</a>
+				)}
+			</div>
+		))
+	}
+</div>
+
+<style>
+	.compare-grid {
+		display: grid;
+		grid-template-columns: repeat(var(--cols, 2), 1fr);
+		gap: 1rem;
+		margin: 1.5rem 0;
+	}
+
+	.compare-card {
+		background-color: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: 8px;
+		padding: 1.25rem;
+	}
+
+	.compare-name {
+		font-size: 1rem;
+		font-weight: 700;
+		color: var(--color-text-heading);
+		margin-bottom: 0.5rem;
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.compare-price {
+		color: var(--color-warning);
+		font-weight: 700;
+		font-size: 0.9rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.compare-rating {
+		font-size: 0.875rem;
+		color: var(--color-text-muted);
+		margin-bottom: 0.75rem;
+	}
+
+	.compare-section {
+		margin-bottom: 0.75rem;
+	}
+
+	.compare-label {
+		display: inline-block;
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.15em 0.5em;
+		border-radius: 3px;
+		margin-bottom: 0.3rem;
+	}
+
+	.compare-label.good {
+		background-color: rgba(34, 197, 94, 0.15);
+		color: var(--color-success);
+	}
+
+	.compare-label.bad {
+		background-color: rgba(239, 68, 68, 0.15);
+		color: var(--color-danger);
+	}
+
+	.compare-section ul {
+		padding-left: 1.2em;
+		margin: 0.25rem 0 0;
+	}
+
+	.compare-section li {
+		font-size: 0.85rem;
+		margin-bottom: 0.2rem;
+	}
+
+	.compare-btn {
+		display: inline-block;
+		padding: 0.4em 1em;
+		background-color: var(--color-primary);
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 600;
+		border-radius: 4px;
+		text-decoration: none;
+		transition: opacity 0.2s;
+		margin-top: 0.5rem;
+	}
+
+	.compare-btn:hover {
+		opacity: 0.85;
+		text-decoration: none;
+	}
+
+	@media (max-width: 768px) {
+		.compare-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

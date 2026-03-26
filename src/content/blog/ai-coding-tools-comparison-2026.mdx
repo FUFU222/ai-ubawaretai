@@ -1,0 +1,87 @@
+---
+title: 'AIコーディングツール5つを使い比べた正直な感想'
+description: 'Claude Code、Cursor、GitHub Copilot、Codex、v0を実務で使い比べた結果。用途別のベストチョイスを解説。'
+pubDate: '2026-03-22'
+category: 'comparison'
+tags: ['Claude Code', 'Cursor', 'Copilot', 'Codex', 'v0', '比較']
+heroImage: '../../assets/blog-placeholder-2.jpg'
+---
+import Callout from '../../components/Callout.astro';
+import ProductCompare from '../../components/ProductCompare.astro';
+
+AIコーディングツールが多すぎる。Claude Code、Cursor、GitHub Copilot、OpenAI Codex、v0。全部「AIでコード書けます」って言ってるけど、実際のところ何が違うのか。
+
+5つとも実務で最低2週間は使った上での正直な感想を書く。
+
+## 比較の前提
+
+自分の開発環境はこうだ。メインはTypeScript/React/Node.js。バックエンドとフロントエンド両方やる。個人開発もあれば、チーム開発もある。
+
+だから「フロントだけ」「バックエンドだけ」という人とは評価が変わるかもしれない。その前提で読んでほしい。
+
+## 一覧比較
+
+<ProductCompare products={[
+  {
+    name: "Claude Code",
+    price: "月額$20〜",
+    rating: "総合: 4.2/5",
+    pros: ["コード理解力が最強", "ターミナルで完結", "リファクタリングが得意"],
+    cons: ["UIが地味", "速度はCopilotに劣る"],
+  },
+  {
+    name: "Cursor",
+    price: "月額$20",
+    rating: "総合: 4.0/5",
+    pros: ["エディタ統合が完璧", "UI実装に強い", "補完が自然"],
+    cons: ["VS Code依存", "大規模プロジェクトで重い"],
+  },
+  {
+    name: "GitHub Copilot",
+    price: "月額$10",
+    rating: "総合: 3.8/5",
+    pros: ["補完速度が最速", "コスパ最強", "エディタ選ばない"],
+    cons: ["文脈理解が浅い", "大きなリファクタリングは苦手"],
+  },
+  {
+    name: "OpenAI Codex",
+    price: "月額$20〜",
+    rating: "総合: 3.9/5",
+    pros: ["非同期で並列作業", "GitHub連携が強い", "PRレビューが得意"],
+    cons: ["リアルタイム補完なし", "待ち時間がある"],
+  },
+]} />
+
+## Claude Code: 設計とリファクタリングの相棒
+
+コードベース全体を理解した上で提案してくるのが強い。「この関数を分割したい」と言うと、依存関係まで考慮して提案してくれる。
+
+ただし、ターミナルUIなので見た目の華やかさはない。地味だけど実力者、という感じ。
+
+## Cursor: フロントエンド開発の最適解
+
+エディタに完全統合されてるから、書きながらAIに聞くという体験が自然すぎる。特にReactコンポーネントの実装では、UIの見た目を意識した提案が来るのが良い。
+
+ただ、VS Codeベースなのでエディタが固定される。Vimmerには辛い。
+
+## GitHub Copilot: コスパと速度の王
+
+月10ドルでこの品質は正直すごい。コード補完の速度は5つの中で最速。タイピングの延長線上でAIが動く感覚。
+
+ただ、補完は強いけど「考える」能力は弱い。既存コードの文脈をあまり読まない。
+
+## OpenAI Codex: 非同期開発という新しい選択肢
+
+Codexの面白いところは非同期で動くこと。タスクを投げておいて、自分は別の作業をする。終わったらPRが来る。
+
+リアルタイムの補完ツールとは根本的に思想が違う。チーム開発で「この修正やっといて」と投げるような使い方に向いてる。
+
+<Callout type="experience">
+自分はClaude Codeをメインにしつつ、素早い補完にはCopilotを併用してる。フロントのプロトタイプだけCursorを開く。全部を1つで済ませようとしない方がストレスが少ない。
+</Callout>
+
+## まとめ: 用途別ベストチョイス
+
+結局「最強のツール」は存在しない。自分の開発スタイルと合うかどうかが全て。
+
+迷ったらまずCopilotから入って、物足りなくなったらClaude CodeかCursorを試す、というのが一番リスクの少ないルートだと思う。

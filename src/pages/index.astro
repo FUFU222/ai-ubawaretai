@@ -1,0 +1,221 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Header from '../components/Header.astro';
+import { CATEGORIES, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { personJsonLd } from '../utils/jsonld';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 6);
+
+const personLd = personJsonLd();
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<script type="application/ld+json" set:html={JSON.stringify(personLd)} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section class="hero">
+				<h1>{SITE_TITLE}</h1>
+				<p class="hero-sub">{SITE_DESCRIPTION}</p>
+			</section>
+
+			<section class="latest">
+				<h2 class="section-title">最新の記事</h2>
+				<div class="post-grid">
+					{
+						posts.map((post) => (
+							<a href={`/blog/${post.id}/`} class="post-card">
+								{post.data.heroImage && (
+									<Image
+										width={720}
+										height={360}
+										src={post.data.heroImage}
+										alt={post.data.title}
+										class="post-image"
+									/>
+								)}
+								<div class="post-card-body">
+									<span class="post-category">
+										{CATEGORIES[post.data.category]}
+									</span>
+									<h3 class="post-title">{post.data.title}</h3>
+									<p class="post-date">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+								</div>
+							</a>
+						))
+					}
+				</div>
+				<div class="more-link">
+					<a href="/blog">すべての記事を見る &rarr;</a>
+				</div>
+			</section>
+
+			<section class="categories">
+				<h2 class="section-title">カテゴリ</h2>
+				<div class="category-grid">
+					{
+						Object.entries(CATEGORIES).map(([slug, label]) => (
+							<a href={`/category/${slug}/`} class="category-card">
+								{label}
+							</a>
+						))
+					}
+				</div>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.hero {
+		text-align: center;
+		padding: 3rem 0 2rem;
+	}
+
+	.hero h1 {
+		font-size: 2rem;
+		background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	.hero-sub {
+		color: var(--color-text-muted);
+		font-size: 1rem;
+		margin-top: 0.5rem;
+	}
+
+	.section-title {
+		font-size: 1.25rem;
+		margin-bottom: 1.25rem;
+		padding-bottom: 0.4rem;
+		border-bottom: 2px solid var(--color-border);
+	}
+
+	.post-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1.25rem;
+	}
+
+	.post-card {
+		display: block;
+		background-color: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: 8px;
+		overflow: hidden;
+		text-decoration: none;
+		transition: border-color 0.2s, transform 0.2s;
+	}
+
+	.post-card:hover {
+		border-color: var(--color-primary);
+		transform: translateY(-2px);
+		text-decoration: none;
+	}
+
+	.post-image {
+		width: 100%;
+		height: 180px;
+		object-fit: cover;
+		border-radius: 0;
+	}
+
+	.post-card-body {
+		padding: 1rem;
+	}
+
+	.post-category {
+		display: inline-block;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--color-primary-light);
+		background-color: rgba(59, 130, 246, 0.1);
+		padding: 0.15em 0.5em;
+		border-radius: 3px;
+		margin-bottom: 0.5rem;
+	}
+
+	.post-title {
+		font-size: 0.95rem;
+		line-height: 1.5;
+		color: var(--color-text-heading);
+		margin-bottom: 0.4rem;
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.post-date {
+		font-size: 0.8rem;
+		color: var(--color-text-muted);
+		margin: 0;
+	}
+
+	.more-link {
+		text-align: center;
+		margin-top: 1.5rem;
+	}
+
+	.more-link a {
+		color: var(--color-primary-light);
+		font-size: 0.9rem;
+	}
+
+	.categories {
+		margin-top: 3rem;
+	}
+
+	.category-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.75rem;
+	}
+
+	.category-card {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		background-color: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: 8px;
+		color: var(--color-text-heading);
+		font-weight: 600;
+		font-size: 0.9rem;
+		text-decoration: none;
+		transition: border-color 0.2s;
+	}
+
+	.category-card:hover {
+		border-color: var(--color-primary);
+		text-decoration: none;
+	}
+
+	@media (max-width: 768px) {
+		.post-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.category-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.hero h1 {
+			font-size: 1.5rem;
+		}
+	}
+</style>

@@ -1,0 +1,76 @@
+---
+interface Props {
+	headings: Array<{ depth: number; slug: string; text: string }>;
+}
+
+const { headings } = Astro.props;
+const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{
+	tocItems.length > 0 && (
+		<details class="toc" open>
+			<summary>目次</summary>
+			<nav>
+				<ol>
+					{tocItems.map((heading) => (
+						<li class:list={[{ 'toc-h3': heading.depth === 3 }]}>
+							<a href={`#${heading.slug}`}>{heading.text}</a>
+						</li>
+					))}
+				</ol>
+			</nav>
+		</details>
+	)
+}
+
+<style>
+	.toc {
+		background-color: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+		margin-bottom: 2rem;
+	}
+
+	summary {
+		cursor: pointer;
+		font-weight: 700;
+		font-size: 0.9rem;
+		color: var(--color-text-heading);
+		user-select: none;
+	}
+
+	summary::marker {
+		color: var(--color-primary-light);
+	}
+
+	nav {
+		margin-top: 0.75rem;
+	}
+
+	ol {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	li {
+		margin-bottom: 0.3rem;
+	}
+
+	li a {
+		color: var(--color-text-muted);
+		font-size: 0.875rem;
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+
+	li a:hover {
+		color: var(--color-primary-light);
+	}
+
+	.toc-h3 {
+		padding-left: 1.25rem;
+	}
+</style>

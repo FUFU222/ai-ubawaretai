@@ -1,0 +1,80 @@
+---
+interface Props {
+	type?: 'tip' | 'warning' | 'info' | 'experience';
+}
+
+const { type = 'info' } = Astro.props;
+
+const labels: Record<string, string> = {
+	tip: 'ポイント',
+	warning: '注意',
+	info: '情報',
+	experience: '体験談',
+};
+
+const icons: Record<string, string> = {
+	tip: '💡',
+	warning: '⚠️',
+	info: 'ℹ️',
+	experience: '🗣️',
+};
+---
+
+<div class:list={['callout', `callout-${type}`]}>
+	<div class="callout-header">
+		<span class="callout-icon">{icons[type]}</span>
+		<span class="callout-label">{labels[type]}</span>
+	</div>
+	<div class="callout-body">
+		<slot />
+	</div>
+</div>
+
+<style>
+	.callout {
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+		margin: 1.5rem 0;
+		border-left: 4px solid;
+		background-color: var(--color-bg-card);
+	}
+
+	.callout-tip {
+		border-left-color: var(--color-success);
+	}
+
+	.callout-warning {
+		border-left-color: var(--color-warning);
+	}
+
+	.callout-info {
+		border-left-color: var(--color-primary);
+	}
+
+	.callout-experience {
+		border-left-color: var(--color-experience);
+	}
+
+	.callout-header {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin-bottom: 0.5rem;
+		font-weight: 700;
+		font-size: 0.9rem;
+		color: var(--color-text-heading);
+	}
+
+	.callout-icon {
+		font-size: 1rem;
+	}
+
+	.callout-body {
+		font-size: 0.925rem;
+		line-height: 1.7;
+	}
+
+	.callout-body :global(p:last-child) {
+		margin-bottom: 0;
+	}
+</style>
