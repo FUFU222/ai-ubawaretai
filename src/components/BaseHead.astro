@@ -12,6 +12,7 @@ interface Props {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const { title, description, image = '/og-default.png', type = 'website' } = Astro.props;
 const ogImageURL = image.startsWith('http') ? image : new URL(image, Astro.site);
+const adsenseClientId = import.meta.env.ADSENSE_CLIENT_ID || '';
 ---
 
 <!-- Global Metadata -->
@@ -58,3 +59,13 @@ const ogImageURL = image.startsWith('http') ? image : new URL(image, Astro.site)
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={ogImageURL} />
+
+<!-- Google AdSense (審査通過後に ADSENSE_CLIENT_ID を設定) -->
+{adsenseClientId && (
+	<script
+		is:inline
+		async
+		src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+		crossorigin="anonymous"
+	/>
+)}
