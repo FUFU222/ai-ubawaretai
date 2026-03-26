@@ -5,7 +5,6 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
-import heroBanner from '../assets/hero-banner.png';
 import { CATEGORIES, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import { personJsonLd } from '../utils/jsonld';
 
@@ -27,12 +26,13 @@ const personLd = personJsonLd();
 		<main>
 			<section class="hero">
 				<div class="hero-banner">
-					<Image
-						src={heroBanner}
+					<img
+						src="/header_image.png"
 						alt="AIに仕事を奪われたい - エンジニアがAIツールを使いこなすイラスト"
-						width={600}
-						densities={[1, 2]}
+						width="1200"
+						height="670"
 						class="hero-banner-img"
+						loading="eager"
 					/>
 				</div>
 				<h1>{SITE_TITLE}</h1>
@@ -101,9 +101,9 @@ const personLd = personJsonLd();
 
 	.hero-banner-img {
 		width: 100%;
-		max-width: 600px;
+		max-width: 100%;
 		height: auto;
-		border-radius: 16px;
+		border-radius: 12px;
 		margin: 0 auto;
 		display: block;
 	}
