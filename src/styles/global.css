@@ -18,6 +18,19 @@
 	--font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 	--max-width: 768px;
 	--header-height: 60px;
+	--header-bg: rgba(15, 23, 42, 0.85);
+}
+
+:root[data-theme='light'] {
+	--color-bg: #f8fafc;
+	--color-bg-card: #ffffff;
+	--color-bg-elevated: #e2e8f0;
+	--color-text: #334155;
+	--color-text-muted: #64748b;
+	--color-text-heading: #0f172a;
+	--color-border: #cbd5e1;
+	--color-primary-light: #2563eb;
+	--header-bg: rgba(248, 250, 252, 0.85);
 }
 
 /* ===== Reset ===== */
@@ -186,7 +199,7 @@ th {
 }
 
 tr:nth-child(even) {
-	background-color: rgba(30, 41, 59, 0.5);
+	background-color: var(--color-bg-card);
 }
 
 /* ===== HR ===== */

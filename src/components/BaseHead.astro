@@ -15,6 +15,16 @@ const ogImageURL = image.startsWith('http') ? image : new URL(image, Astro.site)
 const adsenseClientId = import.meta.env.ADSENSE_CLIENT_ID || '';
 ---
 
+<!-- Theme (FOUC prevention) -->
+<script is:inline>
+(function(){
+	var t = localStorage.getItem('theme');
+	if (t === 'light' || (!t && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+		document.documentElement.setAttribute('data-theme', 'light');
+	}
+})();
+</script>
+
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
