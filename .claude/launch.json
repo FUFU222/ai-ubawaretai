@@ -4,14 +4,14 @@
     {
       "name": "Astro Dev Server",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 4321
+      "runtimeArgs": ["run", "dev", "--", "--port", "4322"],
+      "port": 4322
     },
     {
       "name": "Astro Preview (Production Build)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview"],
-      "port": 4321
+      "runtimeArgs": ["run", "preview", "--", "--port", "4322"],
+      "port": 4322
     }
   ]
 }

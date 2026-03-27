@@ -41,7 +41,7 @@ function detectCategory(title, summary) {
 
 // ---------- 記事生成プロンプト ----------
 function buildPrompt(newsItem, sourceContent) {
-  return `あなたはAIツール特化ブログ「AIに仕事を奪われたい」の記事を執筆するライターです。
+  return `あなたはAI業界ニュース分析ブログ「AIに仕事を奪われたい」の記事を執筆するライターです。
 
 ## ブログの人格・トーン
 - 一人称は「自分」または「僕」

@@ -1,7 +1,7 @@
 export const SITE_TITLE = 'AIに仕事を奪われたい';
-export const SITE_DESCRIPTION = 'AIツールの実体験レビューと活用ガイド';
+export const SITE_DESCRIPTION = 'AI業界の最新ニュースを現役エンジニアの視点で読み解く';
 export const SITE_AUTHOR = 'Akira';
-export const SITE_AUTHOR_DESCRIPTION = '元消防士（レスキュー隊）→ SNSマーケ会社のフルスタックエンジニア。Claude Code、Codex、各種AIツールを日常的に使い倒している実務者。';
+export const SITE_AUTHOR_DESCRIPTION = '元消防士 → エンジニア。海外のAIニュースを追いかけて、開発者目線であれこれ書いてます。';
 export const GITHUB_URL = 'https://github.com/FUFU222';
 
 export const CATEGORIES = {
