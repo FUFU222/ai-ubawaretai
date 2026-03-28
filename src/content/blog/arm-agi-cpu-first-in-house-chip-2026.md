@@ -4,7 +4,7 @@ description: 'IPライセンス専業だったArmが、TSMC 3nmプロセスで13
 pubDate: '2026-03-27'
 category: 'news'
 tags: ['Arm', 'CPU', 'AI インフラ', 'データセンター']
-heroImage: '../../assets/blog-placeholder-1.jpg'
+heroImage: '/blog-placeholder-1.jpg'
 ---
 
 Armがついに自分でチップを作った。35年間、設計図（IPライセンス）を売ることに徹してきた会社が、完成品のシリコンを出荷するのはこれが初めてだ。3月24日にサンフランシスコで発表された「AGI CPU」は、AI時代のデータセンターを狙い撃ちにした136コアのモンスターチップになっている。

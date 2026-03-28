@@ -4,7 +4,7 @@ description: 'Python開発者の必須ツールuv・ruff・tyを開発するAstr
 pubDate: '2026-03-27'
 category: 'news'
 tags: ['OpenAI', 'Astral', 'uv', 'ruff', 'Python', 'Codex']
-heroImage: '../../assets/blog-placeholder-3.jpg'
+heroImage: '/blog-placeholder-3.jpg'
 ---
 
 OpenAIがAstralを買収する。uvとruff、そしてtyを作っている、あのAstralだ。

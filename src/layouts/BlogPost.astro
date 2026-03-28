@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
@@ -52,7 +51,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 				{
 					heroImage && (
 						<div class="hero-image">
-							<Image width={1200} height={630} src={heroImage} alt={title} />
+							<img width="1200" height="630" src={heroImage} alt={title} loading="eager" />
 						</div>
 					)
 				}
