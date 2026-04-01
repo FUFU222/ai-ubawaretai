@@ -1,6 +1,7 @@
 /**
  * Generate Evangelion-style title card SVG from article title.
- * Pure black background + white bold serif text in asymmetric layout.
+ * Pure black background + white bold serif text.
+ * Short extracted keywords placed in dramatic asymmetric layouts.
  * Deterministic: same seed always produces the same image.
  */
 
@@ -25,10 +26,11 @@ function escapeXml(str: string): string {
 }
 
 /**
- * Extract key phrases from a Japanese article title.
- * Splits on punctuation, returns 2-4 meaningful chunks.
+ * Extract short, punchy keywords from article title.
+ * Returns { main: string (2-8 chars), sub: string (short phrase), accent?: string }
  */
-function extractKeyPhrases(title: string): string[] {
+function extractKeywords(title: string): { main: string; sub: string; accent?: string } {
+	// Split on dashes and punctuation first
 	const chunks = title
 		.replace(/[——–]/g, '|')
 		.replace(/[「」『』（）【】\[\]]/g, '')
@@ -36,329 +38,282 @@ function extractKeyPhrases(title: string): string[] {
 		.map((s) => s.trim())
 		.filter((s) => s.length > 0);
 
-	if (chunks.length >= 2) {
-		return chunks.slice(0, 4);
+	// Known brand/product names to prioritize as main keyword
+	const brands = [
+		'OpenAI', 'Claude', 'Gemini', 'GPT', 'Copilot', 'Sora', 'Codex',
+		'Anthropic', 'Google', 'Meta', 'Apple', 'Microsoft', 'GitHub',
+		'Shopify', 'Wikipedia', 'Mistral', 'Arm', 'Alibaba', 'Qwen',
+		'ChatGPT', 'Mythos', 'Lyria', 'Voxtral', 'Cursor', 'Jira',
+	];
+
+	// Action/impact words that make good main keywords
+	const impactWords = [
+		'発表', '公開', '登場', '開始', '終了', '撤退', '買収', '連携',
+		'革命', '衝撃', '転換', '進化', '崩壊', '対決', '決戦', '変革',
+		'禁止', '制限', '解禁', '参入', '独占', '統合', '分裂',
+		'誕生', '消滅', '復活', '挑戦', '突破', '逆転', '加速',
+	];
+
+	let main = '';
+	let sub = '';
+	let accent = '';
+
+	// Find the brand name that appears earliest in the title
+	let earliestPos = Infinity;
+	for (const brand of brands) {
+		const pos = title.indexOf(brand);
+		if (pos !== -1 && pos < earliestPos) {
+			earliestPos = pos;
+			main = brand;
+		}
 	}
 
-	// Fallback: split long title at roughly midpoint on a space or particle boundary
-	const t = title;
-	if (t.length > 15) {
-		const mid = Math.floor(t.length / 2);
-		// Try to find a natural break point near the middle
-		let breakAt = mid;
-		for (let i = mid; i >= mid - 8 && i >= 1; i--) {
-			const ch = t[i];
-			if ('のがをにはでと '.includes(ch)) {
-				breakAt = i + 1;
+	// Try to find an impact word for accent
+	for (const word of impactWords) {
+		if (title.includes(word) && word !== main) {
+			accent = word;
+			break;
+		}
+	}
+
+	// If no brand found, extract first short meaningful chunk
+	if (!main) {
+		// Take the shortest chunk that's 2-10 chars as main
+		const sorted = [...chunks].sort((a, b) => a.length - b.length);
+		for (const chunk of sorted) {
+			if (chunk.length >= 2 && chunk.length <= 10) {
+				main = chunk;
 				break;
 			}
 		}
-		return [t.slice(0, breakAt), t.slice(breakAt)];
-	}
-
-	return [title];
-}
-
-/**
- * Estimate text width in pixels. CJK chars ~= fontSize, latin ~= 0.6*fontSize
- */
-function estimateWidth(text: string, fontSize: number): number {
-	let w = 0;
-	for (const ch of text) {
-		w += ch.charCodeAt(0) > 127 ? fontSize * 0.95 : fontSize * 0.58;
-	}
-	return w;
-}
-
-/**
- * Auto-scale font size to fit text within maxWidth, with a floor.
- */
-function fitFontSize(text: string, idealSize: number, maxWidth: number, minSize: number = 24): number {
-	let size = idealSize;
-	while (size > minSize && estimateWidth(text, size) > maxWidth) {
-		size -= 2;
-	}
-	return size;
-}
-
-/**
- * Break text into lines fitting maxWidth at given fontSize.
- */
-function breakText(text: string, fontSize: number, maxWidth: number): string[] {
-	const lines: string[] = [];
-	let currentLine = '';
-	let currentWidth = 0;
-
-	for (const char of text) {
-		const charWidth = char.charCodeAt(0) > 127 ? fontSize * 0.95 : fontSize * 0.58;
-		if (currentWidth + charWidth > maxWidth && currentLine.length > 0) {
-			lines.push(currentLine);
-			currentLine = char;
-			currentWidth = charWidth;
-		} else {
-			currentLine += char;
-			currentWidth += charWidth;
+		if (!main && chunks[0]) {
+			// Take first few chars of first chunk
+			main = chunks[0].slice(0, 8);
 		}
 	}
-	if (currentLine) lines.push(currentLine);
-	return lines;
+
+	// Sub: use a different chunk from main, or derive from title
+	for (const chunk of chunks) {
+		if (chunk !== main && chunk.length > 0 && !chunk.includes(main)) {
+			sub = chunk.length > 20 ? chunk.slice(0, 18) : chunk;
+			break;
+		}
+	}
+	if (!sub && chunks.length > 1) {
+		sub = chunks[1].length > 20 ? chunks[1].slice(0, 18) : chunks[1];
+	}
+	if (!sub) {
+		sub = '';
+	}
+
+	// If accent is same as main, clear it
+	if (accent === main) accent = '';
+
+	return { main: main || title.slice(0, 6), sub, accent };
 }
 
-const FONT_FAMILY = `"Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif`;
+const FF = `'Noto Serif JP','Hiragino Mincho ProN','Yu Mincho','MS PMincho',serif`;
 
-// ---- Layout system ----
-// Each layout is a function that takes phrases + rand and returns SVG text elements.
-// This gives full control over positioning without overlap.
+function t(
+	text: string, x: number, y: number, size: number,
+	anchor: 'start' | 'middle' | 'end' = 'start',
+	opts: { opacity?: number; vertical?: boolean; letterSpacing?: number } = {},
+): string {
+	const op = opts.opacity && opts.opacity < 1 ? ` opacity="${opts.opacity}"` : '';
+	const ls = opts.letterSpacing ? ` letter-spacing="${opts.letterSpacing}"` : '';
+	return `<text x="${x}" y="${y}" font-family="${FF}" font-weight="900" font-size="${size}" fill="#fff" text-anchor="${anchor}"${op}${ls}>${escapeXml(text)}</text>`;
+}
 
-type LayoutFn = (phrases: string[], rand: () => number) => string;
+function vt(text: string, x: number, startY: number, size: number, opts: { opacity?: number } = {}): string {
+	let svg = '';
+	const chars = [...text];
+	const lh = size * 1.2;
+	chars.forEach((ch, i) => {
+		const y = startY + i * lh;
+		if (y < 620) svg += t(ch, x, y, size, 'middle', opts);
+	});
+	return svg;
+}
 
-const layouts: LayoutFn[] = [
-	// Layout 0: Large main phrase top-left, second phrase bottom-right (small)
-	(phrases, rand) => {
-		let svg = '';
-		if (phrases[0]) {
-			const size = fitFontSize(phrases[0], 80, 950);
-			const lines = breakText(phrases[0], size, 950);
-			const startY = 160 + Math.floor(rand() * 60);
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 70, startY + i * size * 1.25, size, 'start');
-			});
-		}
-		if (phrases[1]) {
-			const size = fitFontSize(phrases[1], 42, 550);
-			const lines = breakText(phrases[1], size, 550);
-			const startY = 480 - (lines.length - 1) * size * 1.2;
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 1130, startY + i * size * 1.2, size, 'end');
-			});
-		}
-		if (phrases[2]) {
-			const size = fitFontSize(phrases[2], 32, 400);
-			svg += txt(escapeXml(phrases[2]), 70, 560, size, 'start', 0.5);
-		}
-		return svg;
+// ---- 16 layout functions ----
+type LFn = (m: string, s: string, a: string, r: () => number) => string;
+
+const L: LFn[] = [
+	// 0: 「涙」style — single huge word, dead center
+	(m, s, _a, r) => {
+		const sz = m.length <= 3 ? 200 : m.length <= 5 ? 150 : 100;
+		let o = t(m, 600, 350 + Math.floor(r() * 30), sz, 'middle');
+		if (s) o += t(s, 1100, 580, 28, 'end', { opacity: 0.6 });
+		return o;
 	},
 
-	// Layout 1: Right-aligned large, left-aligned small top
-	(phrases, rand) => {
-		let svg = '';
-		if (phrases[0]) {
-			const size = fitFontSize(phrases[0], 85, 900);
-			const lines = breakText(phrases[0], size, 900);
-			const startY = 200 + Math.floor(rand() * 80);
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 1130, startY + i * size * 1.25, size, 'end');
-			});
-		}
-		if (phrases[1]) {
-			const size = fitFontSize(phrases[1], 40, 500);
-			svg += txt(escapeXml(phrases[1]), 70, 100 + Math.floor(rand() * 30), size, 'start');
-		}
-		if (phrases[2]) {
-			const size = fitFontSize(phrases[2], 34, 500);
-			svg += txt(escapeXml(phrases[2]), 70, 560, size, 'start', 0.5);
-		}
-		return svg;
+	// 1: 「決戦、第3新東京市」— large left, small scattered right+top
+	(m, s, a, r) => {
+		const sz = m.length <= 4 ? 160 : m.length <= 6 ? 120 : 90;
+		let o = t(m, 60, 380 + Math.floor(r() * 40), sz, 'start');
+		if (s) o += t(s, 750 + Math.floor(r() * 100), 140 + Math.floor(r() * 40), 40, 'start');
+		if (a) o += t(a, 900 + Math.floor(r() * 100), 520, 36, 'start', { opacity: 0.7 });
+		return o;
 	},
 
-	// Layout 2: Bottom-heavy — large text at bottom, small at top-right
-	(phrases, rand) => {
-		let svg = '';
-		if (phrases[0]) {
-			const size = fitFontSize(phrases[0], 78, 1000);
-			const lines = breakText(phrases[0], size, 1000);
-			const startY = 520 - (lines.length - 1) * size * 1.25;
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 70, startY + i * size * 1.25, size, 'start');
-			});
-		}
-		if (phrases[1]) {
-			const size = fitFontSize(phrases[1], 44, 500);
-			svg += txt(escapeXml(phrases[1]), 1130, 120 + Math.floor(rand() * 40), size, 'end');
-		}
-		if (phrases[2]) {
-			const size = fitFontSize(phrases[2], 30, 400);
-			svg += txt(escapeXml(phrases[2]), 1130, 200, size, 'end', 0.5);
-		}
-		return svg;
+	// 2: 「雨、逃げ出した後」— tiny main top-left, long sub bottom-right
+	(m, s, _a, r) => {
+		const sz = m.length <= 2 ? 180 : m.length <= 4 ? 130 : 90;
+		let o = t(m, 80, 200 + Math.floor(r() * 30), sz, 'start');
+		if (s) o += t(s, 1120, 520 + Math.floor(r() * 30), 42, 'end');
+		return o;
 	},
 
-	// Layout 3: Center dramatic — main phrase large centered, sub below
-	(phrases, rand) => {
-		let svg = '';
-		if (phrases[0]) {
-			const size = fitFontSize(phrases[0], 90, 1050);
-			const lines = breakText(phrases[0], size, 1050);
-			const totalH = lines.length * size * 1.25;
-			const startY = (630 - totalH) / 2 + size - 20 + Math.floor(rand() * 40) - 20;
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 600, startY + i * size * 1.25, size, 'middle');
-			});
-		}
-		if (phrases[1]) {
-			const size = fitFontSize(phrases[1], 38, 700);
-			svg += txt(escapeXml(phrases[1]), 600, 520 + Math.floor(rand() * 30), size, 'middle', 0.7);
-		}
-		if (phrases[2]) {
-			const size = fitFontSize(phrases[2], 28, 400);
-			svg += txt(escapeXml(phrases[2]), 1130, 590, size, 'end', 0.4);
-		}
-		return svg;
+	// 3: vertical main right + horizontal sub left
+	(m, s, a, r) => {
+		const sz = m.length <= 4 ? 90 : 65;
+		let o = vt(m, 1020 + Math.floor(r() * 60), 80 + Math.floor(r() * 30), sz);
+		if (s) o += t(s, 80, 400 + Math.floor(r() * 60), 44, 'start');
+		if (a) o += t(a, 80, 200, 32, 'start', { opacity: 0.5 });
+		return o;
 	},
 
-	// Layout 4: Vertical main text on right + horizontal sub on left
-	(phrases, rand) => {
-		let svg = '';
-		if (phrases[0]) {
-			// Vertical text
-			const charSize = Math.min(72, Math.floor(520 / Math.max(phrases[0].length, 1)));
-			const finalSize = Math.max(36, charSize);
-			const x = 1020 + Math.floor(rand() * 60);
-			const chars = [...phrases[0]];
-			const startY = Math.max(50, (630 - chars.length * finalSize * 1.15) / 2);
-			chars.forEach((ch, i) => {
-				const y = startY + i * finalSize * 1.15;
-				if (y < 610) {
-					svg += txt(escapeXml(ch), x, y, finalSize, 'middle');
-				}
-			});
-		}
-		if (phrases[1]) {
-			const size = fitFontSize(phrases[1], 56, 700);
-			const lines = breakText(phrases[1], size, 700);
-			const startY = 280 + Math.floor(rand() * 60);
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 70, startY + i * size * 1.25, size, 'start');
-			});
-		}
-		if (phrases[2]) {
-			const size = fitFontSize(phrases[2], 32, 500);
-			svg += txt(escapeXml(phrases[2]), 70, 520, size, 'start', 0.5);
-		}
-		return svg;
+	// 4: 「嘘と沈黙」— center-right, medium-large
+	(m, s, a, r) => {
+		const sz = m.length <= 5 ? 130 : 90;
+		let o = t(m, 700 + Math.floor(r() * 100), 340 + Math.floor(r() * 30), sz, 'start');
+		if (s) o += t(s, 100, 150 + Math.floor(r() * 40), 34, 'start', { opacity: 0.7 });
+		if (a) o += t(a, 100, 530, 30, 'start', { opacity: 0.5 });
+		return o;
 	},
 
-	// Layout 5: Split — left half large, right half stacked small
-	(phrases, rand) => {
-		let svg = '';
-		if (phrases[0]) {
-			const size = fitFontSize(phrases[0], 72, 550);
-			const lines = breakText(phrases[0], size, 550);
-			const startY = 250 + Math.floor(rand() * 60);
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 70, startY + i * size * 1.25, size, 'start');
-			});
-		}
-		if (phrases[1]) {
-			const size = fitFontSize(phrases[1], 42, 450);
-			const lines = breakText(phrases[1], size, 450);
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 700, 180 + i * size * 1.2, size, 'start');
-			});
-		}
-		if (phrases[2]) {
-			const size = fitFontSize(phrases[2], 36, 450);
-			const lines = breakText(phrases[2], size, 450);
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 700, 380 + i * size * 1.2, size, 'start', 0.6);
-			});
-		}
-		return svg;
+	// 5: 「死に至る病、そして」— large bottom, accent top-right
+	(m, s, a, r) => {
+		const sz = m.length <= 3 ? 170 : m.length <= 6 ? 120 : 85;
+		let o = t(m, 80 + Math.floor(r() * 40), 520, sz, 'start');
+		if (a) o += t(a, 1100, 100 + Math.floor(r() * 30), 50, 'end');
+		if (s) o += t(s, 1100, 180 + Math.floor(r() * 30), 30, 'end', { opacity: 0.5 });
+		return o;
 	},
 
-	// Layout 6: Top-heavy large with bottom-right accent
-	(phrases, rand) => {
-		let svg = '';
-		if (phrases[0]) {
-			const size = fitFontSize(phrases[0], 88, 1060);
-			const lines = breakText(phrases[0], size, 1060);
-			const startY = 130 + Math.floor(rand() * 50);
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 70, startY + i * size * 1.25, size, 'start');
-			});
-		}
-		if (phrases[1]) {
-			const size = fitFontSize(phrases[1], 44, 600);
-			const lines = breakText(phrases[1], size, 600);
-			const startY = 450;
-			lines.forEach((line, i) => {
-				svg += txt(escapeXml(line), 1130, startY + i * size * 1.2, size, 'end');
-			});
-		}
-		if (phrases[2]) {
-			const size = fitFontSize(phrases[2], 30, 400);
-			svg += txt(escapeXml(phrases[2]), 1130, 570, size, 'end', 0.4);
-		}
-		return svg;
+	// 6: two vertical columns (like 「レイ、心のむこうに」)
+	(m, s, _a, r) => {
+		const sz1 = m.length <= 4 ? 85 : 60;
+		const sz2 = s.length <= 6 ? 55 : 40;
+		let o = vt(m, 900 + Math.floor(r() * 80), 80 + Math.floor(r() * 20), sz1);
+		if (s) o += vt(s, 250 + Math.floor(r() * 100), 100 + Math.floor(r() * 40), sz2, { opacity: 0.7 });
+		return o;
 	},
 
-	// Layout 7: Two vertical columns
-	(phrases, rand) => {
-		let svg = '';
-		const renderVertical = (text: string, x: number, maxChars: number, size: number, opacity: number = 1) => {
-			const chars = [...text].slice(0, maxChars);
-			const startY = Math.max(60, (630 - chars.length * size * 1.15) / 2);
-			chars.forEach((ch, i) => {
-				const y = startY + i * size * 1.15;
-				if (y < 610) {
-					svg += txt(escapeXml(ch), x, y, size, 'middle', opacity);
-				}
-			});
-		};
+	// 7: 「マグマダイバー」— large right-aligned, sub small bottom-left
+	(m, s, a, r) => {
+		const sz = m.length <= 4 ? 150 : m.length <= 7 ? 110 : 80;
+		let o = t(m, 1120, 330 + Math.floor(r() * 50), sz, 'end');
+		if (s) o += t(s, 80, 560 + Math.floor(r() * 20), 32, 'start', { opacity: 0.6 });
+		if (a) o += t(a, 80, 120, 38, 'start', { opacity: 0.5 });
+		return o;
+	},
 
-		if (phrases[0]) {
-			const size = Math.min(68, Math.floor(500 / Math.max(phrases[0].length, 1)));
-			renderVertical(phrases[0], 800 + Math.floor(rand() * 100), 12, Math.max(40, size));
+	// 8: 「使徒、襲来」— two words stacked with comma feel
+	(m, s, _a, r) => {
+		const sz = m.length <= 4 ? 140 : 100;
+		const x = 150 + Math.floor(r() * 200);
+		let o = t(m, x, 260 + Math.floor(r() * 30), sz, 'start');
+		if (s) o += t(s, x + 30, 260 + sz + 30 + Math.floor(r() * 20), Math.floor(sz * 0.55), 'start');
+		return o;
+	},
+
+	// 9: huge single char or very short word + small sub far away
+	(m, s, a, r) => {
+		const short = m.slice(0, 3);
+		const sz = short.length <= 2 ? 240 : 160;
+		const x = 200 + Math.floor(r() * 600);
+		const y = 300 + Math.floor(r() * 100);
+		let o = t(short, x, y, sz, 'middle');
+		if (s) o += t(s, 1120, 590, 26, 'end', { opacity: 0.5 });
+		if (a) o += t(a, 80, 80, 30, 'start', { opacity: 0.4 });
+		return o;
+	},
+
+	// 10: 「心のかたち 人のかたち」— two horizontal lines, different sizes, centered
+	(m, s, _a, r) => {
+		const sz1 = m.length <= 5 ? 110 : 75;
+		const sz2 = s.length <= 8 ? 60 : 42;
+		const cx = 600 + Math.floor(r() * 100) - 50;
+		let o = t(m, cx, 250 + Math.floor(r() * 40), sz1, 'middle');
+		if (s) o += t(s, cx, 420 + Math.floor(r() * 30), sz2, 'middle');
+		return o;
+	},
+
+	// 11: vertical main left + horizontal sub bottom-right
+	(m, s, a, r) => {
+		const sz = m.length <= 5 ? 80 : 55;
+		let o = vt(m, 150 + Math.floor(r() * 60), 60 + Math.floor(r() * 20), sz);
+		if (s) o += t(s, 1120, 500 + Math.floor(r() * 40), 44, 'end');
+		if (a) o += t(a, 1120, 560 + Math.floor(r() * 20), 28, 'end', { opacity: 0.5 });
+		return o;
+	},
+
+	// 12: bottom-right corner dramatic (like 「せめて、人間らしく」)
+	(m, s, _a, r) => {
+		const sz = m.length <= 5 ? 120 : 85;
+		let o = t(m, 1120, 480 + Math.floor(r() * 30), sz, 'end');
+		if (s) o += t(s, 1120, 480 + sz * 0.3, 36, 'end', { opacity: 0.6 });
+		return o;
+	},
+
+	// 13: 「奇跡の価値は」— top-left large, nothing else prominent
+	(m, s, _a, r) => {
+		const sz = m.length <= 4 ? 140 : m.length <= 7 ? 100 : 75;
+		let o = t(m, 80 + Math.floor(r() * 30), 180 + Math.floor(r() * 40), sz, 'start');
+		if (s) o += t(s, 80, 520 + Math.floor(r() * 30), 30, 'start', { opacity: 0.4 });
+		return o;
+	},
+
+	// 14: scattered — main center, sub top-left, accent bottom-right
+	(m, s, a, r) => {
+		const sz = m.length <= 4 ? 130 : 90;
+		let o = t(m, 550 + Math.floor(r() * 100), 340 + Math.floor(r() * 30), sz, 'middle');
+		if (s) o += t(s, 80 + Math.floor(r() * 40), 100 + Math.floor(r() * 30), 36, 'start', { opacity: 0.6 });
+		if (a) o += t(a, 1100, 560, 32, 'end', { opacity: 0.5 });
+		return o;
+	},
+
+	// 15: mixed vertical + horizontal overlapping feel
+	(m, s, a, r) => {
+		const sz1 = m.length <= 4 ? 120 : 80;
+		let o = t(m, 500 + Math.floor(r() * 200), 350, sz1, 'start');
+		if (s) {
+			const vsz = s.length <= 6 ? 50 : 36;
+			o += vt(s, 160 + Math.floor(r() * 60), 100, vsz, { opacity: 0.7 });
 		}
-		if (phrases[1]) {
-			const size = Math.min(52, Math.floor(480 / Math.max(phrases[1].length, 1)));
-			renderVertical(phrases[1], 300 + Math.floor(rand() * 100), 14, Math.max(32, size), 0.7);
-		}
-		if (phrases[2]) {
-			const size = fitFontSize(phrases[2], 30, 500);
-			svg += txt(escapeXml(phrases[2]), 600, 590, size, 'middle', 0.4);
-		}
-		return svg;
+		if (a) o += t(a, 1100, 580, 28, 'end', { opacity: 0.4 });
+		return o;
 	},
 ];
-
-function txt(
-	content: string,
-	x: number,
-	y: number,
-	fontSize: number,
-	anchor: 'start' | 'middle' | 'end',
-	opacity: number = 1,
-): string {
-	const opStr = opacity < 1 ? ` opacity="${opacity}"` : '';
-	return `<text x="${x}" y="${y}" font-family='${FONT_FAMILY}' font-weight="900" font-size="${fontSize}" fill="#ffffff" text-anchor="${anchor}" dominant-baseline="auto"${opStr}>${content}</text>`;
-}
 
 export function generateHeroSvg(seed: string): string {
 	const hash = hashCode(seed);
 	const rand = seededRandom(hash);
 
-	const phrases = extractKeyPhrases(seed);
-	const layoutIndex = Math.floor(rand() * layouts.length);
-	const layoutFn = layouts[layoutIndex];
+	const { main, sub, accent } = extractKeywords(seed);
+	const layoutIndex = Math.floor(rand() * L.length);
 
 	let svg = '';
+	svg += `<rect width="1200" height="630" fill="#000"/>`;
 
-	// --- Pure black background ---
-	svg += `<rect width="1200" height="630" fill="#000000"/>`;
-
-	// --- Optional subtle accent line (30% chance) ---
-	if (rand() < 0.3) {
-		const ly = 50 + Math.floor(rand() * 530);
-		const lx = Math.floor(rand() * 300);
-		const lw = 200 + Math.floor(rand() * 500);
-		svg += `<line x1="${lx}" y1="${ly}" x2="${lx + lw}" y2="${ly}" stroke="#ffffff" stroke-width="0.8" opacity="0.12"/>`;
+	// Optional thin accent line (25% chance)
+	if (rand() < 0.25) {
+		if (rand() > 0.5) {
+			const y = 50 + Math.floor(rand() * 530);
+			const x1 = Math.floor(rand() * 400);
+			svg += `<line x1="${x1}" y1="${y}" x2="${x1 + 150 + Math.floor(rand() * 400)}" y2="${y}" stroke="#fff" stroke-width="0.7" opacity="0.1"/>`;
+		} else {
+			const x = 100 + Math.floor(rand() * 1000);
+			const y1 = Math.floor(rand() * 200);
+			svg += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y1 + 150 + Math.floor(rand() * 300)}" stroke="#fff" stroke-width="0.7" opacity="0.1"/>`;
+		}
 	}
 
-	// --- Text layout ---
-	svg += layoutFn(phrases, rand);
+	// Text layout
+	svg += L[layoutIndex](main, sub, accent || '', rand);
 
-	// --- Subtle noise for film grain ---
+	// Film grain
 	svg += `<defs><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter></defs>`;
 	svg += `<rect width="1200" height="630" filter="url(#n)" opacity="0.025"/>`;
 
