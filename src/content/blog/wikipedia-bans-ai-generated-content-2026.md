@@ -4,7 +4,6 @@ description: '英語版WikipediaがLLMによる記事生成・書き換えを禁
 pubDate: '2026-03-27'
 category: 'news'
 tags: ['Wikipedia', 'LLM', 'AI規制', 'オープンナレッジ']
-heroImage: '/blog-placeholder-1.jpg'
 ---
 
 Wikipediaが動いた。英語版Wikipediaが、LLM（大規模言語モデル）を使った記事コンテンツの生成・書き換えを正式に禁止した。賛成44票、反対わずか2票。ほぼ全会一致だ。

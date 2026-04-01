@@ -4,7 +4,6 @@ description: 'AlibabaのQwenチームがオムニモーダルモデルQwen3.5-Om
 pubDate: '2026-04-01'
 category: 'news'
 tags: ['Qwen', 'マルチモーダル', 'Alibaba', '音声AI', 'オープンソース']
-heroImage: '/blog-placeholder-1.jpg'
 ---
 
 AlibabaのQwenチームが、また面白いものを出してきた。3月30日にリリースされた**Qwen3.5-Omni**は、テキスト・画像・音声・映像をすべて単一のモデル推論で処理する「オムニモーダル」なAIモデルだ。

@@ -4,7 +4,6 @@ description: 'OpenAIがCodexにプラグイン機能を追加。Slack・Figma・
 pubDate: '2026-03-31'
 category: 'news'
 tags: ['OpenAI', 'Codex', 'AI エージェント', '開発ツール', 'MCP']
-heroImage: '/blog-placeholder-1.jpg'
 draft: false
 ---
 
