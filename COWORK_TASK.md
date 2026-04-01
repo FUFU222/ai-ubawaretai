@@ -6,6 +6,15 @@
 
 ---
 
+## 環境制約（重要）
+
+- Cowork サンドボックスには SSH 鍵が存在しない。`git push` はサンドボックス内では失敗する。
+- `git add` と `git commit` はサンドボックス内（マウントされたリポジトリ）で実行する。
+- `git push` は **必ず Desktop Commander（mcp__Desktop_Commander__start_process）を使い、ローカル Mac 上のリポジトリ `/Users/fufu/code/ai-ubawaretai` で実行する**。ローカル Mac には SSH 鍵が設定済み。
+- この手順を守らないと push が失敗するので、絶対にサンドボックスの Bash で `git push` しないこと。
+
+---
+
 ## 実行手順
 
 ### Step 1: ニュースソース調査
@@ -71,24 +80,54 @@
 **ファイルパス:** `src/content/blog/{スラッグ}.md`（**必ず `.md`。`.mdx` は使わない**）
 **スラッグ:** 英語のケバブケース（例: `openai-gpt5-release-2026`）
 
+#### frontmatter テンプレート（これを正確にコピーして使う）
+
 ```markdown
 ---
-title: "日本語タイトル（30〜40文字）"
+title: "日本語タイトル"
 description: "メタディスクリプション（80〜120文字）"
 pubDate: "YYYY-MM-DD"
 category: "news"
 tags: ["タグ1", "タグ2", "タグ3"]
 draft: false
 ---
-
-（本文）
 ```
 
-#### タイトルのルール
+**frontmatter の厳守ルール:**
+- 上記 6フィールドのみ記載する。**それ以外のフィールドを絶対に追加しない**
+- `heroImage` は書かない（サムネイル画像はタイトル文字列から自動生成される）
+- `updatedDate` は新規記事では不要
+- `amazonProducts` は新規記事では不要
+
+#### タイトルのルール（サムネイル品質に直結）
+
+サムネイル画像はタイトル文字列から自動生成される。
+タイトルの構造がサムネイルの見栄えを決めるため、以下のルールを厳守すること。
+
+**構造: 「ブランド名 + 要点」——「補足・問いかけ」**
+
+- タイトルの **冒頭付近にブランド名や製品名を必ず入れる**
+  （OpenAI, Claude, Google, GitHub, Copilot, Meta, Anthropic, Mistral 等）
+- 前半と後半を **全角ダッシュ「——」で区切る**
+- 前半: 何が起きたかの要点（短く）
+- 後半: 分析・考察の切り口や問いかけ
+
+**良い例（サムネ映えする）:**
+- ✅「OpenAI Codexがプラグイン機能を導入——コーディングツールから「開発プラットフォーム」への転換点か？」
+- ✅「Google Lyria 3 Pro公開——AI音楽生成は実用段階に入ったか？」
+- ✅「Anthropic Claude Mythosがリーク——Opus超えの新モデルが示す転換点」
+- ✅「GitHub CopilotがJiraと連携——チケットを渡すだけでPRが生成される時代に」
+
+**悪い例（サムネがぼやける）:**
+- ❌「AIコーディングツールの最新動向をまとめてみた」（ブランド名がない → サムネにインパクトが出ない）
+- ❌「最新ニュース: 大型アップデートが発表された件」（具体性ゼロ）
+- ❌「要注目！次世代AIの衝撃」（何の話かわからない）
+
+**その他のタイトルルール:**
 - **断定禁止**。分析・考察型にする
-- ❌「OpenAIがSoraを畳む」
+- 30〜50文字目安（短すぎるとサムネの情報量が足りない）
+- ❌「OpenAIがSoraを畳む」（断定）
 - ✅「OpenAIがSora終了を発表——その背景と今後の戦略を考察」
-- ✅「Google Lyria 3公開、AI音楽生成は実用段階に入ったか？」
 
 #### 記事の構造（必須）
 
@@ -150,6 +189,8 @@ draft: false
 - 出典セクションが3つ未満の記事
 - **`.mdx` 拡張子でのファイル作成（必ず `.md` を使う。import 文は書かない）**
 - **frontmatter に `heroImage` を書かない（サムネイル画像はタイトルから自動生成される）**
+- **frontmatter に定義外のフィールドを追加しない（title, description, pubDate, category, tags, draft の6つのみ）**
+- **ブランド名・製品名がタイトルに含まれない記事（サムネイルの品質が下がるため）**
 
 ### Step 5: セルフチェック
 
@@ -161,15 +202,38 @@ draft: false
 - [ ] 事実と考察が混在している文がないか
 - [ ] 「技術的なポイント」セクションに他のまとめ記事にはない深掘りがあるか
 - [ ] 一次情報（公式発表）を最低1つは参照しているか
+- [ ] frontmatter が6フィールドのみか（heroImage 等の余計なフィールドがないか）
+- [ ] ファイル拡張子が `.md` か（`.mdx` になっていないか）
+- [ ] タイトル冒頭付近にブランド名・製品名が含まれているか
+- [ ] タイトルが「——」で前半（事実）と後半（分析の切り口）に分かれているか
 
 **1つでも NG があれば、書き直す。**
 
 ### Step 6: コミット & プッシュ
-```
+
+**⚠️ push はサンドボックスの Bash ではなく、必ず Desktop Commander 経由でローカル Mac から実行すること。**
+
+#### 6-1. サンドボックス内でコミット（Bash ツールを使用）
+```bash
 git add src/content/blog/{作成したファイル}
 git commit -m "article: {記事タイトルの要約}"
-git push origin main
 ```
+
+#### 6-2. Desktop Commander でローカル Mac から push
+以下の手順を **mcp__Desktop_Commander__start_process** ツールで実行する:
+
+```
+コマンド: cd /Users/fufu/code/ai-ubawaretai && git push origin main
+timeout_ms: 30000
+```
+
+マウントされたフォルダはローカル Mac のリポジトリと同一なので、
+サンドボックスで作ったコミットはローカルにも即座に反映されている。
+Desktop Commander 経由なら SSH 鍵が使えるため push が成功する。
+
+#### 6-3. push 結果の確認
+Desktop Commander の出力に `main -> main` が含まれていれば成功。
+`Permission denied` や `rejected` が出た場合はエラーとして報告し、push をリトライしない。
 
 ---
 
