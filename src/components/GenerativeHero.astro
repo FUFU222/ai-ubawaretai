@@ -1,0 +1,25 @@
+---
+import { generateHeroSvg } from '../utils/generative-hero';
+
+interface Props {
+	seed: string;
+	alt: string;
+	width?: number;
+	height?: number;
+	class?: string;
+	loading?: 'eager' | 'lazy';
+}
+
+const { seed, alt, width = 1200, height = 630, class: className, loading = 'lazy' } = Astro.props;
+const svg = generateHeroSvg(seed);
+const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+---
+
+<img
+	src={dataUri}
+	alt={alt}
+	width={width}
+	height={height}
+	class={className}
+	loading={loading}
+/>

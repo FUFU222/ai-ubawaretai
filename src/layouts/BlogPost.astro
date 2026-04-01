@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import GenerativeHero from '../components/GenerativeHero.astro';
 import Header from '../components/Header.astro';
 import AdSense from '../components/AdSense.astro';
 import TOC from '../components/TOC.astro';
@@ -48,13 +49,9 @@ const breadcrumbLd = breadcrumbJsonLd([
 		<Header />
 		<main>
 			<article>
-				{
-					heroImage && (
-						<div class="hero-image">
-							<img width="1200" height="630" src={heroImage} alt={title} loading="eager" />
-						</div>
-					)
-				}
+				<div class="hero-image">
+					<GenerativeHero seed={title} alt={title} loading="eager" />
+				</div>
 				<div class="article-header">
 					<div class="meta">
 						<a href={`/category/${category}/`} class="category-badge">{categoryLabel}</a>

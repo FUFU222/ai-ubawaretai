@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
+import GenerativeHero from '../../components/GenerativeHero.astro';
 import Header from '../../components/Header.astro';
 import { CATEGORIES, type Category, SITE_TITLE } from '../../consts';
 
@@ -44,16 +45,13 @@ const { posts, label } = Astro.props;
 					<div class="post-list">
 						{posts.map((post) => (
 							<a href={`/blog/${post.id}/`} class="post-item">
-								{post.data.heroImage && (
-									<img
-										width="240"
-										height="120"
-										src={post.data.heroImage}
-										alt={post.data.title}
-										class="post-thumb"
-										loading="lazy"
-									/>
-								)}
+								<GenerativeHero
+									seed={post.data.title}
+									alt={post.data.title}
+									width={240}
+									height={120}
+									class="post-thumb"
+								/>
 								<div class="post-info">
 									<h2 class="post-title">{post.data.title}</h2>
 									<p class="post-desc">{post.data.description}</p>
