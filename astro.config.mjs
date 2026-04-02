@@ -6,7 +6,7 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://ai-ubawaretai.pages.dev',
+	site: 'https://ai-ubawaretai.com',
 	output: 'static',
 	integrations: [mdx(), sitemap()],
 	markdown: {
