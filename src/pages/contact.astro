@@ -1,0 +1,80 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { GITHUB_URL, SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead
+			title={`お問い合わせ | ${SITE_TITLE}`}
+			description="当サイトへのお問い合わせ方法について"
+		/>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<article class="contact">
+				<h1>お問い合わせ</h1>
+
+				<p>
+					当サイトに関するご質問・ご意見・ご要望がございましたら、以下の方法でお気軽にご連絡ください。
+				</p>
+
+				<section>
+					<h2>GitHub</h2>
+					<p>
+						<a href={`${GITHUB_URL}/ai-ubawaretai/issues`} target="_blank" rel="noopener">
+							GitHub Issues
+						</a>
+						からお問い合わせいただけます。アカウントをお持ちの方はこちらが最もスムーズです。
+					</p>
+				</section>
+
+				<section>
+					<h2>X (Twitter)</h2>
+					<p>
+						<a href="https://x.com/" target="_blank" rel="noopener">
+							X (旧Twitter)
+						</a>
+						の DM でもご連絡を受け付けています。
+					</p>
+				</section>
+
+				<section>
+					<h2>お問い合わせ内容について</h2>
+					<ul>
+						<li>記事の内容に関する修正・訂正のご指摘</li>
+						<li>サイトの不具合のご報告</li>
+						<li>広告掲載に関するお問い合わせ</li>
+						<li>その他のご質問・ご意見</li>
+					</ul>
+				</section>
+
+				<p class="note">
+					お問い合わせの内容によっては、返信にお時間をいただく場合がございます。あらかじめご了承ください。
+				</p>
+			</article>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.contact h2 {
+		font-size: 1.25rem;
+		margin-top: 2rem;
+	}
+
+	.contact ul {
+		padding-left: 1.5em;
+	}
+
+	.note {
+		margin-top: 3rem;
+		color: var(--color-text-muted);
+		font-size: 0.875rem;
+	}
+</style>
