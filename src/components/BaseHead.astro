@@ -37,6 +37,7 @@ const adsenseClientId = import.meta.env.ADSENSE_CLIENT_ID || '';
 	href={new URL('rss.xml', Astro.site)}
 />
 <meta name="generator" content={Astro.generator} />
+<meta name="google-site-verification" content="HAReWTLRUj-fhdtwtzgQmBP-_uqtRhS_JqLE-B0yXms" />
 
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -69,6 +70,15 @@ const adsenseClientId = import.meta.env.ADSENSE_CLIENT_ID || '';
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={ogImageURL} />
+
+<!-- Google Analytics -->
+<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-FWKCHFWLBK"></script>
+<script is:inline>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-FWKCHFWLBK');
+</script>
 
 <!-- Google AdSense (審査通過後に ADSENSE_CLIENT_ID を設定) -->
 {adsenseClientId && (
