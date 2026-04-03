@@ -1,0 +1,124 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+import GenerativeHero from './GenerativeHero.astro';
+
+interface Props {
+	currentId: string;
+	category: string;
+	tags: string[];
+}
+
+const { currentId, category, tags } = Astro.props;
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+
+// スコア計算: 同カテゴリ+2, 共通タグ1つにつき+1
+const scored = allPosts
+	.filter((p) => p.id !== currentId)
+	.map((post) => {
+		let score = 0;
+		if (post.data.category === category) score += 2;
+		const commonTags = post.data.tags.filter((t) => tags.includes(t));
+		score += commonTags.length;
+		return { post, score };
+	})
+	.filter((s) => s.score > 0)
+	.sort((a, b) => b.score - a.score || b.post.data.pubDate.getTime() - a.post.data.pubDate.getTime())
+	.slice(0, 3);
+---
+
+{
+	scored.length > 0 && (
+		<section class="related-posts">
+			<h2>あわせて読みたい</h2>
+			<div class="related-grid">
+				{scored.map(({ post }) => (
+					<a href={`/blog/${post.id}/`} class="related-card">
+						<div class="related-thumb">
+							<GenerativeHero seed={post.data.title} alt={post.data.title} loading="lazy" />
+						</div>
+						<div class="related-info">
+							<span class="related-date">
+								<FormattedDate date={post.data.pubDate} />
+							</span>
+							<h3>{post.data.title}</h3>
+						</div>
+					</a>
+				))}
+			</div>
+		</section>
+	)
+}
+
+<style>
+	.related-posts {
+		margin-top: 3rem;
+		padding-top: 2rem;
+		border-top: 1px solid var(--color-border);
+	}
+
+	.related-posts h2 {
+		font-size: 1.25rem;
+		margin-bottom: 1.25rem;
+	}
+
+	.related-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+	}
+
+	.related-card {
+		text-decoration: none;
+		color: inherit;
+		background: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: 8px;
+		overflow: hidden;
+		transition: transform 0.2s, border-color 0.2s;
+	}
+
+	.related-card:hover {
+		transform: translateY(-2px);
+		border-color: var(--color-primary-light);
+		text-decoration: none;
+	}
+
+	.related-thumb {
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+	}
+
+	.related-thumb img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.related-info {
+		padding: 0.75rem;
+	}
+
+	.related-date {
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
+	}
+
+	.related-info h3 {
+		font-size: 0.85rem;
+		line-height: 1.5;
+		margin-top: 0.25rem;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	@media (max-width: 768px) {
+		.related-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

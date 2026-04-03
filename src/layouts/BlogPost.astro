@@ -6,6 +6,9 @@ import FormattedDate from '../components/FormattedDate.astro';
 import GenerativeHero from '../components/GenerativeHero.astro';
 import Header from '../components/Header.astro';
 import AdSense from '../components/AdSense.astro';
+import BackToTop from '../components/BackToTop.astro';
+import ReadingTime from '../components/ReadingTime.astro';
+import RelatedPosts from '../components/RelatedPosts.astro';
 import TOC from '../components/TOC.astro';
 import { CATEGORIES, SITE_TITLE } from '../consts';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
@@ -13,9 +16,10 @@ import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
 type Props = CollectionEntry<'blog'>['data'] & {
 	id?: string;
 	headings?: Array<{ depth: number; slug: string; text: string }>;
+	rawContent?: string;
 };
 
-const { title, description, pubDate, updatedDate, heroImage, category, tags, id, headings } =
+const { title, description, pubDate, updatedDate, heroImage, category, tags, id, headings, rawContent } =
 	Astro.props;
 
 const siteUrl = Astro.site?.toString() ?? '';
@@ -63,6 +67,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 								</span>
 							)
 						}
+					{rawContent && <ReadingTime content={rawContent} />}
 					</div>
 					<h1>{title}</h1>
 					{
@@ -85,8 +90,11 @@ const breadcrumbLd = breadcrumbJsonLd([
 				</div>
 
 				<AdSense label="記事下" format="rectangle" />
+
+				<RelatedPosts currentId={id ?? ''} category={category} tags={tags ?? []} />
 			</article>
 		</main>
+		<BackToTop />
 		<Footer />
 	</body>
 </html>

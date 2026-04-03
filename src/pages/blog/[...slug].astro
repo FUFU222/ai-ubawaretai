@@ -13,8 +13,11 @@ type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
 const { Content, headings } = await render(post);
+
+// rawContentを取得（読了時間計算用）
+const rawContent = post.body ?? '';
 ---
 
-<BlogPost {...post.data} id={post.id} headings={headings}>
+<BlogPost {...post.data} id={post.id} headings={headings} rawContent={rawContent}>
 	<Content />
 </BlogPost>

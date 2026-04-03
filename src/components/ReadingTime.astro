@@ -1,0 +1,20 @@
+---
+interface Props {
+	content: string;
+}
+
+const { content } = Astro.props;
+
+// 日本語は1分あたり約500文字で計算
+const charCount = content.replace(/\s+/g, '').replace(/[#*\-\[\]()>|`]/g, '').length;
+const minutes = Math.max(1, Math.ceil(charCount / 500));
+---
+
+<span class="reading-time">{minutes}分で読める</span>
+
+<style>
+	.reading-time {
+		font-size: 0.8rem;
+		color: var(--color-text-muted);
+	}
+</style>
