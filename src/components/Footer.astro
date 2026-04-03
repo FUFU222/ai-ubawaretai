@@ -10,6 +10,7 @@ const year = new Date().getFullYear();
 			<a href="/privacy">プライバシーポリシー</a>
 			<a href="/terms">利用規約</a>
 		</div>
+		<p class="tagline">AIに仕事を奪われる日を、わりと楽しみにしているエンジニアのブログ。</p>
 		<p class="copyright">&copy; {year} AIに仕事を奪われたい. All rights reserved.</p>
 	</div>
 </footer>
@@ -41,6 +42,13 @@ const year = new Date().getFullYear();
 
 	.footer-links a:hover {
 		color: var(--color-primary-light);
+	}
+
+	.tagline {
+		color: var(--color-text-muted);
+		font-size: 0.8rem;
+		margin-bottom: 0.5rem;
+		font-style: italic;
 	}
 
 	.copyright {
