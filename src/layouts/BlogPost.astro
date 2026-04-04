@@ -11,20 +11,25 @@ import ReadingTime from '../components/ReadingTime.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
 import TOC from '../components/TOC.astro';
 import { CATEGORIES, SITE_TITLE } from '../consts';
+import ArticleLevelSwitcher from '../components/ArticleLevelSwitcher.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
+import { hasArticleLevelSwitcher, type ArticleLevelAvailability } from '../utils/articleLevels';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	id?: string;
 	headings?: Array<{ depth: number; slug: string; text: string }>;
 	rawContent?: string;
+	articleLevels?: ArticleLevelAvailability;
 };
 
 const { title, description, pubDate, updatedDate, heroImage, category, tags, id, headings, rawContent } =
 	Astro.props;
+const articleLevels = Astro.props.articleLevels ?? {};
 
 const siteUrl = Astro.site?.toString() ?? '';
 const articleUrl = `${siteUrl}blog/${id}/`;
 const categoryLabel = CATEGORIES[category];
+const showArticleLevelSwitcher = id ? hasArticleLevelSwitcher(articleLevels) : false;
 
 const articleLd = articleJsonLd({
 	title,
@@ -81,11 +86,13 @@ const breadcrumbLd = breadcrumbJsonLd([
 					}
 				</div>
 
+				{showArticleLevelSwitcher && id && <ArticleLevelSwitcher articleId={id} availability={articleLevels} />}
+
 				{headings && headings.length > 0 && <TOC headings={headings} />}
 
 				<AdSense label="記事上" format="horizontal" />
 
-				<div class="prose">
+				<div class="prose" data-article-level-target>
 					<slot />
 				</div>
 
@@ -171,6 +178,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 	.prose {
 		line-height: 1.9;
+		transition: opacity 0.18s ease, transform 0.24s ease;
 	}
 
 	.prose :global(h2) {
@@ -181,9 +189,39 @@ const breadcrumbLd = breadcrumbJsonLd([
 		margin: 1.5rem 0;
 	}
 
+	.prose.is-level-switching-out {
+		opacity: 0.24;
+		transform: translateY(-6px);
+	}
+
+	.prose.is-level-switching-in {
+		animation: article-level-prose-in 0.24s ease;
+	}
+
+	@keyframes article-level-prose-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
 	@media (max-width: 768px) {
 		h1 {
 			font-size: 1.4rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.prose {
+			transition: none;
+		}
+
+		.prose.is-level-switching-in {
+			animation: none;
 		}
 	}
 </style>

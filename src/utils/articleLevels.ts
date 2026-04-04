@@ -52,5 +52,5 @@ export function hasArticleLevelSwitcher(availability: ArticleLevelAvailability) 
 }
 
 export function getArticleLevelPath(articleId: string, level: ArticleLevelVariant) {
-	return `/__article-levels/${articleId}/${level}/`;
+	return `/article-levels/${articleId}/${level}/`;
 }

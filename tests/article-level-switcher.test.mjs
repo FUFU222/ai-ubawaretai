@@ -12,8 +12,8 @@ test('build exposes article level switcher only for supported articles', () => {
 
 	const supportedArticle = readFileSync(join(rootDir, 'dist', 'blog', 'chatgpt-workflow-guide', 'index.html'), 'utf8');
 	const unsupportedArticle = readFileSync(join(rootDir, 'dist', 'blog', 'openai-sora-shutdown-2026', 'index.html'), 'utf8');
-	const childFragmentPath = join(rootDir, 'dist', '__article-levels', 'chatgpt-workflow-guide', 'child', 'index.html');
-	const expertFragmentPath = join(rootDir, 'dist', '__article-levels', 'chatgpt-workflow-guide', 'expert', 'index.html');
+	const childFragmentPath = join(rootDir, 'dist', 'article-levels', 'chatgpt-workflow-guide', 'child', 'index.html');
+	const expertFragmentPath = join(rootDir, 'dist', 'article-levels', 'chatgpt-workflow-guide', 'expert', 'index.html');
 
 	assert.match(supportedArticle, /解説レベル/);
 	assert.match(supportedArticle, /data-article-level-switcher/);
