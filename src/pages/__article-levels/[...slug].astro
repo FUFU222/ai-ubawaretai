@@ -1,0 +1,25 @@
+---
+export const partial = true;
+
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+	const entries = await getCollection('blogLevels');
+
+	return entries.map((entry) => ({
+		params: {
+			slug: `${entry.data.article}/${entry.data.level}`,
+		},
+		props: { entry },
+	}));
+}
+
+type Props = {
+	entry: CollectionEntry<'blogLevels'>;
+};
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Content />
