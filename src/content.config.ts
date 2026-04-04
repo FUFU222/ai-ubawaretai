@@ -25,4 +25,13 @@ const blog = defineCollection({
 		}),
 });
 
-export const collections = { blog };
+const blogLevels = defineCollection({
+	loader: glob({ base: './src/content/blog-levels', pattern: '**/*.{md,mdx}' }),
+	schema: () =>
+		z.object({
+			article: z.string().min(1),
+			level: z.enum(['child', 'expert']),
+		}),
+});
+
+export const collections = { blog, blogLevels };
