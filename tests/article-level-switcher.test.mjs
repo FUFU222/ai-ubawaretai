@@ -23,6 +23,8 @@ test('build exposes article level switcher only for supported articles', () => {
 	assert.match(supportedArticle, /data-article-level-behavior="dock-on-read"/);
 	assert.match(supportedArticle, /data-article-level-target/);
 	assert.match(supportedArticle, /data-article-level-article/);
+	assert.match(supportedArticle, /document\.readyState === 'loading'/);
+	assert.match(supportedArticle, /DOMContentLoaded/);
 	assert.match(supportedNewsArticle, /解説レベル/);
 	assert.match(supportedNewsArticle, /data-article-level-switcher/);
 	assert.match(supportedNewsArticle, /data-article-level-behavior="dock-on-read"/);

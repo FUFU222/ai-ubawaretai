@@ -308,49 +308,50 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 <script is:inline>
 	(() => {
-		const root = document.querySelector('[data-article-level-switcher]');
-		const prose = document.querySelector('[data-article-level-target]');
+		const init = () => {
+			const root = document.querySelector('[data-article-level-switcher]');
+			const prose = document.querySelector('[data-article-level-target]');
 
-		if (!(root instanceof HTMLElement) || !(prose instanceof HTMLElement)) {
-			return;
-		}
+			if (!(root instanceof HTMLElement) || !(prose instanceof HTMLElement)) {
+				return;
+			}
 
-		const trigger = root.querySelector('[data-article-level-trigger]');
-		const current = root.querySelector('[data-article-level-current]');
-		const menu = root.querySelector('[data-article-level-menu]');
-		const options = Array.from(root.querySelectorAll('[data-article-level-option]'));
+			const trigger = root.querySelector('[data-article-level-trigger]');
+			const current = root.querySelector('[data-article-level-current]');
+			const menu = root.querySelector('[data-article-level-menu]');
+			const options = Array.from(root.querySelectorAll('[data-article-level-option]'));
 
-		if (
-			!(trigger instanceof HTMLButtonElement) ||
-			!(current instanceof HTMLElement) ||
-			!(menu instanceof HTMLElement) ||
-			options.length === 0
-		) {
-			return;
-		}
+			if (
+				!(trigger instanceof HTMLButtonElement) ||
+				!(current instanceof HTMLElement) ||
+				!(menu instanceof HTMLElement) ||
+				options.length === 0
+			) {
+				return;
+			}
 
-		const article = prose.closest('[data-article-level-article]');
+			const article = prose.closest('[data-article-level-article]');
 
-		const routes = JSON.parse(root.dataset.articleLevelRoutes || '{}');
-		const storageKey = root.dataset.articleLevelStorageKey || 'preferred-article-level';
-		const defaultLevel = root.dataset.articleDefaultLevel || 'standard';
-		const labels = Object.fromEntries(
-			options.map((option) => [option.getAttribute('data-level'), option.textContent?.trim() ?? '']),
-		);
-		const cache = {
-			standard: prose.innerHTML,
-		};
+			const routes = JSON.parse(root.dataset.articleLevelRoutes || '{}');
+			const storageKey = root.dataset.articleLevelStorageKey || 'preferred-article-level';
+			const defaultLevel = root.dataset.articleDefaultLevel || 'standard';
+			const labels = Object.fromEntries(
+				options.map((option) => [option.getAttribute('data-level'), option.textContent?.trim() ?? '']),
+			);
+			const cache = {
+				standard: prose.innerHTML,
+			};
 
-		let activeLevel = defaultLevel;
-		let requestToken = 0;
-		let isDockedRight = false;
-		let lastScrollY = window.scrollY;
+			let activeLevel = defaultLevel;
+			let requestToken = 0;
+			let isDockedRight = false;
+			let lastScrollY = window.scrollY;
 
-		const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		const dockWidth = 220;
-		const dockGap = 24;
-		const dockViewportPadding = 20;
-		const dockViewportMinWidth = 1200;
+			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			const dockWidth = 220;
+			const dockGap = 24;
+			const dockViewportPadding = 20;
+			const dockViewportMinWidth = 1200;
 
 		const getHeaderHeight = () =>
 			parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '60', 10);
@@ -574,44 +575,52 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			} catch {}
 		};
 
-		setActiveLevel(defaultLevel);
-		updatePlacement();
+			setActiveLevel(defaultLevel);
+			setOpen(false);
+			updatePlacement();
 
-		trigger.addEventListener('click', () => {
-			setOpen(!root.classList.contains('is-open'));
-		});
-
-		options.forEach((option) => {
-			option.addEventListener('click', () => {
-				const nextLevel = option.getAttribute('data-level');
-				if (!nextLevel) {
-					return;
-				}
-				void switchLevel(nextLevel);
+			trigger.addEventListener('click', () => {
+				setOpen(!root.classList.contains('is-open'));
 			});
-		});
 
-		document.addEventListener('click', (event) => {
-			if (!root.contains(event.target)) {
-				setOpen(false);
+			options.forEach((option) => {
+				option.addEventListener('click', () => {
+					const nextLevel = option.getAttribute('data-level');
+					if (!nextLevel) {
+						return;
+					}
+					void switchLevel(nextLevel);
+				});
+			});
+
+			document.addEventListener('click', (event) => {
+				if (!root.contains(event.target)) {
+					setOpen(false);
+				}
+			});
+
+			document.addEventListener('keydown', (event) => {
+				if (event.key === 'Escape') {
+					setOpen(false);
+				}
+			});
+
+			window.addEventListener('scroll', updatePlacement, { passive: true });
+			window.addEventListener('resize', updatePlacement);
+
+			if ('requestIdleCallback' in window) {
+				window.requestIdleCallback(prefetchAdditionalLevels, { timeout: 1600 });
+			} else {
+				window.setTimeout(prefetchAdditionalLevels, 250);
 			}
-		});
 
-		document.addEventListener('keydown', (event) => {
-			if (event.key === 'Escape') {
-				setOpen(false);
-			}
-		});
+			restorePreference();
+		};
 
-		window.addEventListener('scroll', updatePlacement, { passive: true });
-		window.addEventListener('resize', updatePlacement);
-
-		if ('requestIdleCallback' in window) {
-			window.requestIdleCallback(prefetchAdditionalLevels, { timeout: 1600 });
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', init, { once: true });
 		} else {
-			window.setTimeout(prefetchAdditionalLevels, 250);
+			init();
 		}
-
-		restorePreference();
 	})();
 </script>
