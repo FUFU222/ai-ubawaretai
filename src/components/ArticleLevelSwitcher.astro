@@ -24,9 +24,11 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 <div
 	class="article-level-shell"
 	data-article-level-switcher
+	data-article-level-behavior="dock-on-read"
 	data-article-default-level="standard"
 	data-article-level-routes={JSON.stringify(routes)}
 	data-article-level-storage-key="preferred-article-level"
+	data-article-level-placement="inline"
 >
 	<div class="article-level-card">
 		<p class="article-level-eyebrow">解説レベル</p>
@@ -83,6 +85,7 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		z-index: 40;
 		display: flex;
 		justify-content: center;
+		width: 100%;
 		margin: 0 0 1.6rem;
 		pointer-events: none;
 	}
@@ -101,6 +104,20 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
 		pointer-events: auto;
 		transition: padding 0.18s ease, border-radius 0.18s ease, box-shadow 0.18s ease;
+	}
+
+	.article-level-shell.is-docked-right {
+		position: fixed;
+		top: calc(var(--header-height) + 0.9rem);
+		left: var(--article-level-dock-left, auto);
+		width: var(--article-level-dock-width, 220px);
+		margin: 0;
+		justify-content: flex-start;
+		z-index: 60;
+	}
+
+	.article-level-shell.is-docked-right .article-level-card {
+		width: 100%;
 	}
 
 	.article-level-eyebrow {
@@ -312,6 +329,8 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			return;
 		}
 
+		const article = prose.closest('[data-article-level-article]');
+
 		const routes = JSON.parse(root.dataset.articleLevelRoutes || '{}');
 		const storageKey = root.dataset.articleLevelStorageKey || 'preferred-article-level';
 		const defaultLevel = root.dataset.articleDefaultLevel || 'standard';
@@ -324,21 +343,120 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 		let activeLevel = defaultLevel;
 		let requestToken = 0;
+		let isDockedRight = false;
+		let lastScrollY = window.scrollY;
 
 		const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const dockWidth = 220;
+		const dockGap = 24;
+		const dockViewportPadding = 20;
+		const dockViewportMinWidth = 1200;
+
+		const getHeaderHeight = () =>
+			parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '60', 10);
+
+		const animatePlacement = (firstRect, lastRect) => {
+			if (
+				prefersReducedMotion ||
+				typeof root.animate !== 'function' ||
+				(!firstRect && !lastRect)
+			) {
+				return;
+			}
+
+			const deltaX = firstRect.left - lastRect.left;
+			const deltaY = firstRect.top - lastRect.top;
+
+			if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
+				return;
+			}
+
+			root.animate(
+				[
+					{ transform: `translate(${deltaX}px, ${deltaY}px)` },
+					{ transform: 'translate(0, 0)' },
+				],
+				{
+					duration: 280,
+					easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+				},
+			);
+		};
 
 		const setCompact = () => {
-			const headerHeight = parseInt(
-				getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '60',
-				10,
-			);
-			root.classList.toggle('is-compact', window.scrollY > 0 && root.getBoundingClientRect().top <= headerHeight + 14);
+			const headerHeight = getHeaderHeight();
+			const proseTop = prose.getBoundingClientRect().top;
+			const shouldCompact =
+				isDockedRight ||
+				(window.scrollY > 0 && proseTop <= headerHeight + 90);
+
+			root.classList.toggle('is-compact', shouldCompact);
 		};
 
 		const setOpen = (isOpen) => {
 			root.classList.toggle('is-open', isOpen);
 			trigger.setAttribute('aria-expanded', String(isOpen));
 			menu.hidden = !isOpen;
+		};
+
+		const getDockMetrics = () => {
+			if (!(article instanceof HTMLElement)) {
+				return { canDock: false, left: 0 };
+			}
+
+			const articleRect = article.getBoundingClientRect();
+			const minLeft = articleRect.right + 12;
+			const maxLeft = window.innerWidth - dockWidth - dockViewportPadding;
+			const preferredLeft = articleRect.right + dockGap;
+			const canDock =
+				window.innerWidth >= dockViewportMinWidth &&
+				maxLeft >= minLeft;
+
+			return {
+				canDock,
+				left: Math.min(preferredLeft, maxLeft),
+			};
+		};
+
+		const applyDockState = (shouldDock, dockLeft) => {
+			if (shouldDock && Number.isFinite(dockLeft)) {
+				root.style.setProperty('--article-level-dock-left', `${dockLeft}px`);
+				root.style.setProperty('--article-level-dock-width', `${dockWidth}px`);
+			}
+
+			if (shouldDock === isDockedRight) {
+				root.setAttribute('data-article-level-placement', shouldDock ? 'right-rail' : 'inline');
+				return;
+			}
+
+			const firstRect = root.getBoundingClientRect();
+
+			if (shouldDock) {
+				root.classList.add('is-docked-right');
+				root.setAttribute('data-article-level-placement', 'right-rail');
+			} else {
+				root.classList.remove('is-docked-right');
+				root.setAttribute('data-article-level-placement', 'inline');
+			}
+
+			isDockedRight = shouldDock;
+			const lastRect = root.getBoundingClientRect();
+			animatePlacement(firstRect, lastRect);
+		};
+
+		const updatePlacement = () => {
+			const headerHeight = getHeaderHeight();
+			const proseTop = prose.getBoundingClientRect().top;
+			const { canDock, left } = getDockMetrics();
+			const shouldDock = canDock && proseTop <= headerHeight + 42;
+
+			if (root.classList.contains('is-open') && (shouldDock || Math.abs(window.scrollY - lastScrollY) > 3)) {
+				setOpen(false);
+			}
+
+			applyDockState(shouldDock, left);
+			setCompact();
+			lastScrollY = window.scrollY;
 		};
 
 		const setActiveLevel = (level) => {
@@ -457,7 +575,7 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		};
 
 		setActiveLevel(defaultLevel);
-		setCompact();
+		updatePlacement();
 
 		trigger.addEventListener('click', () => {
 			setOpen(!root.classList.contains('is-open'));
@@ -485,7 +603,8 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			}
 		});
 
-		window.addEventListener('scroll', setCompact, { passive: true });
+		window.addEventListener('scroll', updatePlacement, { passive: true });
+		window.addEventListener('resize', updatePlacement);
 
 		if ('requestIdleCallback' in window) {
 			window.requestIdleCallback(prefetchAdditionalLevels, { timeout: 1600 });
