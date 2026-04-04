@@ -21,6 +21,8 @@ interface Props {
 const { slot, format = 'auto', label } = Astro.props;
 const clientId = import.meta.env.ADSENSE_CLIENT_ID || '';
 const isLive = clientId.length > 0 && slot;
+const shouldRenderPlaceholder = !isLive && import.meta.env.DEV;
+const shouldRenderContainer = isLive || shouldRenderPlaceholder;
 
 // フォーマットごとの最小高さ（CLS防止）
 const minHeights: Record<string, string> = {
@@ -32,26 +34,30 @@ const minHeights: Record<string, string> = {
 const minHeight = minHeights[format] || '250px';
 ---
 
-<div class="ad-container" style={`min-height: ${minHeight}`} data-ad-format={format}>
-	{
-		isLive ? (
-			<ins
-				class="adsbygoogle"
-				style="display:block"
-				data-ad-client={clientId}
-				data-ad-slot={slot}
-				data-ad-format={format === 'auto' ? 'auto' : undefined}
-				data-full-width-responsive={format === 'auto' ? 'true' : undefined}
-			/>
-		) : (
-			<div class="ad-placeholder">
-				<span class="ad-placeholder-label">
-					{label ? `Ad: ${label}` : 'Ad'}
-				</span>
-			</div>
-		)
-	}
-</div>
+{
+	shouldRenderContainer && (
+		<div class="ad-container" style={`min-height: ${minHeight}`} data-ad-format={format}>
+			{
+				isLive ? (
+					<ins
+						class="adsbygoogle"
+						style="display:block"
+						data-ad-client={clientId}
+						data-ad-slot={slot}
+						data-ad-format={format === 'auto' ? 'auto' : undefined}
+						data-full-width-responsive={format === 'auto' ? 'true' : undefined}
+					/>
+				) : (
+					<div class="ad-placeholder">
+						<span class="ad-placeholder-label">
+							{label ? `Ad: ${label}` : 'Ad'}
+						</span>
+					</div>
+				)
+			}
+		</div>
+	)
+}
 
 {isLive && (
 	<script is:inline>
