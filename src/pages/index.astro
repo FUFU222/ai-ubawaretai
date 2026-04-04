@@ -36,7 +36,11 @@ const personLd = personJsonLd();
 		<main>
 			<section class="hero">
 				<h1>{SITE_TITLE}</h1>
-				<p class="hero-sub">{SITE_DESCRIPTION}</p>
+				<p class="hero-sub">
+					AI業界の最新ニュースを
+					<br class="hero-sub-break" />
+					現役エンジニアの視点で読み解く
+				</p>
 			</section>
 
 			<section class="latest">
@@ -119,6 +123,10 @@ const personLd = personJsonLd();
 		color: var(--color-text-muted);
 		font-size: 1rem;
 		margin-top: 0.5rem;
+	}
+
+	.hero-sub-break {
+		display: none;
 	}
 
 	.section-title {
@@ -238,6 +246,10 @@ const personLd = personJsonLd();
 
 		.hero h1 {
 			font-size: 1.5rem;
+		}
+
+		.hero-sub-break {
+			display: block;
 		}
 	}
 </style>
