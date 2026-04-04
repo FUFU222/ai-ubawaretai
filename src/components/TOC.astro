@@ -9,7 +9,7 @@ const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
 {
 	tocItems.length > 0 && (
-		<details class="toc" open>
+		<details class="toc" open data-article-level-toc>
 			<summary>目次</summary>
 			<nav>
 				<ol>

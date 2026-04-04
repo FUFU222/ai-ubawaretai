@@ -17,14 +17,20 @@ test('build exposes article level switcher only for supported articles', () => {
 	const expertFragmentPath = join(rootDir, 'dist', 'article-levels', 'chatgpt-workflow-guide', 'expert', 'index.html');
 	const childNewsFragmentPath = join(rootDir, 'dist', 'article-levels', 'openai-sora-shutdown-2026', 'child', 'index.html');
 	const expertNewsFragmentPath = join(rootDir, 'dist', 'article-levels', 'openai-sora-shutdown-2026', 'expert', 'index.html');
+	const supportedCss = Array.from(supportedArticle.matchAll(/href="(\/_astro\/[^"]+\.css)"/g))
+		.map((match) => readFileSync(join(rootDir, 'dist', match[1].slice(1)), 'utf8'))
+		.join('\n');
 
 	assert.match(supportedArticle, /解説レベル/);
 	assert.match(supportedArticle, /data-article-level-switcher/);
 	assert.match(supportedArticle, /data-article-level-behavior="dock-on-read"/);
 	assert.match(supportedArticle, /data-article-level-target/);
 	assert.match(supportedArticle, /data-article-level-article/);
+	assert.match(supportedArticle, /data-article-level-toc/);
 	assert.match(supportedArticle, /document\.readyState === 'loading'/);
 	assert.match(supportedArticle, /DOMContentLoaded/);
+	assert.match(supportedCss, /article-level-menu[^\{]+\[hidden\]\{display:none\}/);
+	assert.match(supportedCss, /--article-level-progress/);
 	assert.match(supportedNewsArticle, /解説レベル/);
 	assert.match(supportedNewsArticle, /data-article-level-switcher/);
 	assert.match(supportedNewsArticle, /data-article-level-behavior="dock-on-read"/);

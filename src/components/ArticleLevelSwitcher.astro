@@ -88,6 +88,11 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		width: 100%;
 		margin: 0 0 1.6rem;
 		pointer-events: none;
+		overflow: visible;
+		--article-level-progress: 0;
+		--article-level-shift-x: 0px;
+		--article-level-shift-y: 0px;
+		--article-level-scale: 1;
 	}
 
 	.article-level-card {
@@ -103,21 +108,15 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		-webkit-backdrop-filter: blur(14px);
 		box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
 		pointer-events: auto;
-		transition: padding 0.18s ease, border-radius 0.18s ease, box-shadow 0.18s ease;
-	}
-
-	.article-level-shell.is-docked-right {
-		position: fixed;
-		top: calc(var(--header-height) + 0.9rem);
-		left: var(--article-level-dock-left, auto);
-		width: var(--article-level-dock-width, 220px);
-		margin: 0;
-		justify-content: flex-start;
-		z-index: 60;
-	}
-
-	.article-level-shell.is-docked-right .article-level-card {
-		width: 100%;
+		transform: translate3d(var(--article-level-shift-x), var(--article-level-shift-y), 0)
+			scale(var(--article-level-scale));
+		transform-origin: top left;
+		will-change: transform;
+		transition:
+			transform 0.14s linear,
+			padding 0.18s ease,
+			border-radius 0.18s ease,
+			box-shadow 0.18s ease;
 	}
 
 	.article-level-eyebrow {
@@ -127,8 +126,11 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		text-transform: uppercase;
 		color: var(--color-text-muted);
 		padding: 0 0.35rem;
+		opacity: calc(1 - var(--article-level-progress));
+		transform: translateY(calc(-4px * var(--article-level-progress)));
 		transition: opacity 0.18s ease, transform 0.18s ease, max-height 0.18s ease;
-		max-height: 1rem;
+		max-height: calc(1rem * (1 - var(--article-level-progress)));
+		overflow: hidden;
 	}
 
 	.article-level-anchor {
@@ -176,6 +178,10 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 	.article-level-trigger-label {
 		font-size: 0.72rem;
 		color: var(--color-text-muted);
+		opacity: calc(1 - var(--article-level-progress));
+		max-height: calc(0.95rem * (1 - var(--article-level-progress)) + 0.05rem);
+		overflow: hidden;
+		transition: opacity 0.18s ease, max-height 0.18s ease;
 	}
 
 	.article-level-current {
@@ -206,6 +212,10 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
 		transform-origin: top center;
 		animation: article-level-menu-in 0.18s ease-out;
+	}
+
+	.article-level-menu[hidden] {
+		display: none;
 	}
 
 	.article-level-option {
@@ -262,7 +272,8 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 	}
 
 	.article-level-shell.is-compact .article-level-trigger-label {
-		display: none;
+		opacity: 0;
+		max-height: 0;
 	}
 
 	.article-level-shell.is-loading .article-level-trigger {
@@ -330,7 +341,14 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 				return;
 			}
 
+			const card = root.querySelector('.article-level-card');
+
+			if (!(card instanceof HTMLElement)) {
+				return;
+			}
+
 			const article = prose.closest('[data-article-level-article]');
+			const toc = article instanceof HTMLElement ? article.querySelector('[data-article-level-toc]') : null;
 
 			const routes = JSON.parse(root.dataset.articleLevelRoutes || '{}');
 			const storageKey = root.dataset.articleLevelStorageKey || 'preferred-article-level';
@@ -344,240 +362,245 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 			let activeLevel = defaultLevel;
 			let requestToken = 0;
-			let isDockedRight = false;
 			let lastScrollY = window.scrollY;
+			let frame = 0;
+			let rootDocumentTop = 0;
+			let tocDocumentBottom = 0;
 
 			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-			const dockWidth = 220;
 			const dockGap = 24;
 			const dockViewportPadding = 20;
 			const dockViewportMinWidth = 1200;
+			const compactThreshold = 0.72;
 
-		const getHeaderHeight = () =>
-			parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '60', 10);
+			const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-		const animatePlacement = (firstRect, lastRect) => {
-			if (
-				prefersReducedMotion ||
-				typeof root.animate !== 'function' ||
-				(!firstRect && !lastRect)
-			) {
-				return;
-			}
+			const getHeaderHeight = () =>
+				parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '60', 10);
 
-			const deltaX = firstRect.left - lastRect.left;
-			const deltaY = firstRect.top - lastRect.top;
+			const getStaticDocumentTop = (element) => {
+				let top = 0;
+				let current = element;
 
-			if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
-				return;
-			}
+				while (current instanceof HTMLElement) {
+					top += current.offsetTop;
+					current = current.offsetParent;
+				}
 
-			root.animate(
-				[
-					{ transform: `translate(${deltaX}px, ${deltaY}px)` },
-					{ transform: 'translate(0, 0)' },
-				],
-				{
-					duration: 280,
-					easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-				},
-			);
-		};
-
-		const setCompact = () => {
-			const headerHeight = getHeaderHeight();
-			const proseTop = prose.getBoundingClientRect().top;
-			const shouldCompact =
-				isDockedRight ||
-				(window.scrollY > 0 && proseTop <= headerHeight + 90);
-
-			root.classList.toggle('is-compact', shouldCompact);
-		};
-
-		const setOpen = (isOpen) => {
-			root.classList.toggle('is-open', isOpen);
-			trigger.setAttribute('aria-expanded', String(isOpen));
-			menu.hidden = !isOpen;
-		};
-
-		const getDockMetrics = () => {
-			if (!(article instanceof HTMLElement)) {
-				return { canDock: false, left: 0 };
-			}
-
-			const articleRect = article.getBoundingClientRect();
-			const minLeft = articleRect.right + 12;
-			const maxLeft = window.innerWidth - dockWidth - dockViewportPadding;
-			const preferredLeft = articleRect.right + dockGap;
-			const canDock =
-				window.innerWidth >= dockViewportMinWidth &&
-				maxLeft >= minLeft;
-
-			return {
-				canDock,
-				left: Math.min(preferredLeft, maxLeft),
+				return top;
 			};
-		};
 
-		const applyDockState = (shouldDock, dockLeft) => {
-			if (shouldDock && Number.isFinite(dockLeft)) {
-				root.style.setProperty('--article-level-dock-left', `${dockLeft}px`);
-				root.style.setProperty('--article-level-dock-width', `${dockWidth}px`);
-			}
+			const setOpen = (isOpen) => {
+				root.classList.toggle('is-open', isOpen);
+				trigger.setAttribute('aria-expanded', String(isOpen));
+				menu.hidden = !isOpen;
+			};
 
-			if (shouldDock === isDockedRight) {
-				root.setAttribute('data-article-level-placement', shouldDock ? 'right-rail' : 'inline');
-				return;
-			}
+			const setActiveLevel = (level) => {
+				activeLevel = level;
+				current.textContent = labels[level] || labels.standard || '標準';
 
-			const firstRect = root.getBoundingClientRect();
+				options.forEach((option) => {
+					const isActive = option.getAttribute('data-level') === level;
+					option.classList.toggle('active', isActive);
+					option.setAttribute('aria-pressed', String(isActive));
+				});
+			};
 
-			if (shouldDock) {
-				root.classList.add('is-docked-right');
-				root.setAttribute('data-article-level-placement', 'right-rail');
-			} else {
-				root.classList.remove('is-docked-right');
-				root.setAttribute('data-article-level-placement', 'inline');
-			}
+			const measureLayout = () => {
+				rootDocumentTop = getStaticDocumentTop(root);
 
-			isDockedRight = shouldDock;
-			const lastRect = root.getBoundingClientRect();
-			animatePlacement(firstRect, lastRect);
-		};
+				if (toc instanceof HTMLElement) {
+					const tocTop = getStaticDocumentTop(toc);
+					tocDocumentBottom = tocTop + toc.offsetHeight;
+				}
+			};
 
-		const updatePlacement = () => {
-			const headerHeight = getHeaderHeight();
-			const proseTop = prose.getBoundingClientRect().top;
-			const { canDock, left } = getDockMetrics();
-			const shouldDock = canDock && proseTop <= headerHeight + 42;
+			const getDesktopProgress = () => {
+				if (!(article instanceof HTMLElement) || !(toc instanceof HTMLElement) || window.innerWidth < dockViewportMinWidth) {
+					return 0;
+				}
 
-			if (root.classList.contains('is-open') && (shouldDock || Math.abs(window.scrollY - lastScrollY) > 3)) {
-				setOpen(false);
-			}
+				const headerHeight = getHeaderHeight();
+				const start = Math.max(rootDocumentTop - headerHeight - 20, 0);
+				const end = Math.max(tocDocumentBottom - headerHeight - 180, start + 1);
 
-			applyDockState(shouldDock, left);
-			setCompact();
-			lastScrollY = window.scrollY;
-		};
+				return clamp((window.scrollY - start) / (end - start), 0, 1);
+			};
 
-		const setActiveLevel = (level) => {
-			activeLevel = level;
-			current.textContent = labels[level] || labels.standard || '標準';
+			const setCompact = (progress) => {
+				const headerHeight = getHeaderHeight();
+				const proseTop = prose.getBoundingClientRect().top;
+				const shouldCompact =
+					window.innerWidth < 769
+						? window.scrollY > 0 && proseTop <= headerHeight + 90
+						: progress >= compactThreshold;
 
-			options.forEach((option) => {
-				const isActive = option.getAttribute('data-level') === level;
-				option.classList.toggle('active', isActive);
-				option.setAttribute('aria-pressed', String(isActive));
-			});
-		};
+				root.classList.toggle('is-compact', shouldCompact);
+			};
 
-		const animateSwap = (html) => {
-			if (prefersReducedMotion) {
-				prose.innerHTML = html;
-				return;
-			}
+			const updateMotion = () => {
+				const progress = getDesktopProgress();
+				const desktopRailEnabled = window.innerWidth >= dockViewportMinWidth && article instanceof HTMLElement;
+				const scale = desktopRailEnabled ? 1 - progress * 0.12 : 1;
+				const shiftY = desktopRailEnabled ? -6 * progress : 0;
 
-			prose.classList.remove('is-level-switching-in');
-			prose.classList.add('is-level-switching-out');
+				root.style.setProperty('--article-level-progress', progress.toFixed(3));
+				root.style.setProperty('--article-level-scale', scale.toFixed(3));
+				root.style.setProperty('--article-level-shift-y', `${shiftY.toFixed(2)}px`);
 
-			window.setTimeout(() => {
-				prose.innerHTML = html;
-				prose.classList.remove('is-level-switching-out');
-				prose.classList.add('is-level-switching-in');
+				let shiftX = 0;
+
+				if (desktopRailEnabled && progress > 0) {
+					const shellRect = root.getBoundingClientRect();
+					const articleRect = article.getBoundingClientRect();
+					const cardWidth = card.offsetWidth;
+					const baseLeft = shellRect.left + Math.max((root.clientWidth - cardWidth) / 2, 0);
+					const preferredLeft = articleRect.right + dockGap;
+					const maxLeft = window.innerWidth - cardWidth - dockViewportPadding;
+					const targetLeft = Math.max(baseLeft, Math.min(preferredLeft, maxLeft));
+
+					shiftX = (targetLeft - baseLeft) * progress;
+				}
+
+				root.style.setProperty('--article-level-shift-x', `${shiftX.toFixed(2)}px`);
+				root.setAttribute(
+					'data-article-level-placement',
+					progress >= 0.98 ? 'right-rail' : progress > 0 ? 'inline-floating' : 'inline',
+				);
+				setCompact(progress);
+
+				if (root.classList.contains('is-open') && Math.abs(window.scrollY - lastScrollY) > 3) {
+					setOpen(false);
+				}
+
+				lastScrollY = window.scrollY;
+			};
+
+			const queueUpdateMotion = () => {
+				if (frame) {
+					return;
+				}
+
+				frame = window.requestAnimationFrame(() => {
+					frame = 0;
+					updateMotion();
+				});
+			};
+
+			const animateSwap = (html) => {
+				if (prefersReducedMotion) {
+					prose.innerHTML = html;
+					queueUpdateMotion();
+					return;
+				}
+
+				prose.classList.remove('is-level-switching-in');
+				prose.classList.add('is-level-switching-out');
 
 				window.setTimeout(() => {
-					prose.classList.remove('is-level-switching-in');
-				}, 240);
-			}, 120);
-		};
+					prose.innerHTML = html;
+					prose.classList.remove('is-level-switching-out');
+					prose.classList.add('is-level-switching-in');
+					queueUpdateMotion();
 
-		const fetchLevel = async (level) => {
-			if (cache[level]) {
-				return cache[level];
-			}
+					window.setTimeout(() => {
+						prose.classList.remove('is-level-switching-in');
+					}, 240);
+				}, 120);
+			};
 
-			const route = routes[level];
+			const fetchLevel = async (level) => {
+				if (cache[level]) {
+					return cache[level];
+				}
 
-			if (!route) {
-				throw new Error(`Missing article level route for ${level}`);
-			}
+				const route = routes[level];
 
-			const response = await fetch(route, {
-				headers: { 'X-Requested-With': 'article-level-switcher' },
-			});
+				if (!route) {
+					throw new Error(`Missing article level route for ${level}`);
+				}
 
-			if (!response.ok) {
-				throw new Error(`Failed to fetch article level ${level}`);
-			}
-
-			const html = await response.text();
-			cache[level] = html;
-			return html;
-		};
-
-		const prefetchAdditionalLevels = () => {
-			Object.keys(routes).forEach((level) => {
-				void fetchLevel(level).catch(() => {
-					// Quietly keep the current prose if a variant payload is unavailable.
+				const response = await fetch(route, {
+					headers: { 'X-Requested-With': 'article-level-switcher' },
 				});
-			});
-		};
 
-		const switchLevel = async (level) => {
-			if (level === activeLevel) {
-				setOpen(false);
-				return;
-			}
-
-			const nextToken = requestToken + 1;
-			requestToken = nextToken;
-			root.classList.add('is-loading');
-			trigger.disabled = true;
-			setOpen(false);
-
-			try {
-				const html = level === 'standard' ? cache.standard : await fetchLevel(level);
-
-				if (requestToken !== nextToken) {
-					return;
+				if (!response.ok) {
+					throw new Error(`Failed to fetch article level ${level}`);
 				}
 
-				animateSwap(html);
-				setActiveLevel(level);
-				try {
-					localStorage.setItem(storageKey, level);
-				} catch {}
-			} catch (error) {
-				console.error(error);
-			} finally {
-				if (requestToken === nextToken) {
-					root.classList.remove('is-loading');
-					trigger.disabled = false;
-				}
-			}
-		};
+				const html = await response.text();
+				cache[level] = html;
+				return html;
+			};
 
-		const restorePreference = () => {
-			try {
-				const saved = localStorage.getItem(storageKey);
-				if (!saved || saved === 'standard' || !routes[saved]) {
-					return;
-				}
-
-				void fetchLevel(saved)
-					.then((html) => {
-						animateSwap(html);
-						setActiveLevel(saved);
-					})
-					.catch(() => {
-						// Stay on standard if the restore target is unavailable.
+			const prefetchAdditionalLevels = () => {
+				Object.keys(routes).forEach((level) => {
+					void fetchLevel(level).catch(() => {
+						// Quietly keep the current prose if a variant payload is unavailable.
 					});
-			} catch {}
-		};
+				});
+			};
+
+			const switchLevel = async (level) => {
+				if (level === activeLevel) {
+					setOpen(false);
+					return;
+				}
+
+				const nextToken = requestToken + 1;
+				requestToken = nextToken;
+				root.classList.add('is-loading');
+				trigger.disabled = true;
+				setOpen(false);
+
+				try {
+					const html = level === 'standard' ? cache.standard : await fetchLevel(level);
+
+					if (requestToken !== nextToken) {
+						return;
+					}
+
+					animateSwap(html);
+					setActiveLevel(level);
+					queueUpdateMotion();
+
+					try {
+						localStorage.setItem(storageKey, level);
+					} catch {}
+				} catch (error) {
+					console.error(error);
+				} finally {
+					if (requestToken === nextToken) {
+						root.classList.remove('is-loading');
+						trigger.disabled = false;
+					}
+				}
+			};
+
+			const restorePreference = () => {
+				try {
+					const saved = localStorage.getItem(storageKey);
+					if (!saved || saved === 'standard' || !routes[saved]) {
+						return;
+					}
+
+					void fetchLevel(saved)
+						.then((html) => {
+							animateSwap(html);
+							setActiveLevel(saved);
+							queueUpdateMotion();
+						})
+						.catch(() => {
+							// Stay on standard if the restore target is unavailable.
+						});
+				} catch {}
+			};
 
 			setActiveLevel(defaultLevel);
 			setOpen(false);
-			updatePlacement();
+			measureLayout();
+			queueUpdateMotion();
 
 			trigger.addEventListener('click', () => {
 				setOpen(!root.classList.contains('is-open'));
@@ -605,8 +628,21 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 				}
 			});
 
-			window.addEventListener('scroll', updatePlacement, { passive: true });
-			window.addEventListener('resize', updatePlacement);
+			window.addEventListener('scroll', queueUpdateMotion, { passive: true });
+			window.addEventListener('resize', () => {
+				measureLayout();
+				queueUpdateMotion();
+			});
+			window.addEventListener('load', () => {
+				measureLayout();
+				queueUpdateMotion();
+			});
+			if (toc instanceof HTMLDetailsElement) {
+				toc.addEventListener('toggle', () => {
+					measureLayout();
+					queueUpdateMotion();
+				});
+			}
 
 			if ('requestIdleCallback' in window) {
 				window.requestIdleCallback(prefetchAdditionalLevels, { timeout: 1600 });
