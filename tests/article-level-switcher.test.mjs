@@ -1,18 +1,21 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = fileURLToPath(new URL('..', import.meta.url));
 
-test('build exposes article level switcher only for supported articles', () => {
+test('build exposes article level switcher for every article', () => {
 	execFileSync('npm', ['run', 'build'], { cwd: rootDir, stdio: 'pipe' });
 
+	const slugs = readdirSync(join(rootDir, 'src', 'content', 'blog'))
+		.filter((entry) => /\.(md|mdx)$/.test(entry))
+		.map((entry) => entry.replace(/\.(md|mdx)$/, ''))
+		.sort();
 	const supportedArticle = readFileSync(join(rootDir, 'dist', 'blog', 'chatgpt-workflow-guide', 'index.html'), 'utf8');
 	const supportedNewsArticle = readFileSync(join(rootDir, 'dist', 'blog', 'openai-sora-shutdown-2026', 'index.html'), 'utf8');
-	const unsupportedArticle = readFileSync(join(rootDir, 'dist', 'blog', 'openai-acquires-astral-uv-ruff-2026', 'index.html'), 'utf8');
 	const childFragmentPath = join(rootDir, 'dist', 'article-levels', 'chatgpt-workflow-guide', 'child', 'index.html');
 	const expertFragmentPath = join(rootDir, 'dist', 'article-levels', 'chatgpt-workflow-guide', 'expert', 'index.html');
 	const childNewsFragmentPath = join(rootDir, 'dist', 'article-levels', 'openai-sora-shutdown-2026', 'child', 'index.html');
@@ -39,12 +42,21 @@ test('build exposes article level switcher only for supported articles', () => {
 	assert.match(supportedNewsArticle, /解説レベル/);
 	assert.match(supportedNewsArticle, /data-article-level-switcher/);
 	assert.match(supportedNewsArticle, /data-article-level-behavior="dock-on-read"/);
-
-	assert.doesNotMatch(unsupportedArticle, /解説レベル/);
 	assert.equal(existsSync(childFragmentPath), true, 'expected child fragment build output');
 	assert.equal(existsSync(expertFragmentPath), true, 'expected expert fragment build output');
 	assert.equal(existsSync(childNewsFragmentPath), true, 'expected child news fragment build output');
 	assert.equal(existsSync(expertNewsFragmentPath), true, 'expected expert news fragment build output');
+
+	for (const slug of slugs) {
+		const articleHtml = readFileSync(join(rootDir, 'dist', 'blog', slug, 'index.html'), 'utf8');
+		const childPath = join(rootDir, 'dist', 'article-levels', slug, 'child', 'index.html');
+		const expertPath = join(rootDir, 'dist', 'article-levels', slug, 'expert', 'index.html');
+
+		assert.match(articleHtml, /解説レベル/, `expected switcher on ${slug}`);
+		assert.match(articleHtml, /data-article-level-switcher/, `expected switcher marker on ${slug}`);
+		assert.equal(existsSync(childPath), true, `expected child fragment build output for ${slug}`);
+		assert.equal(existsSync(expertPath), true, `expected expert fragment build output for ${slug}`);
+	}
 
 	const childFragment = readFileSync(childFragmentPath, 'utf8');
 	const expertFragment = readFileSync(expertFragmentPath, 'utf8');
