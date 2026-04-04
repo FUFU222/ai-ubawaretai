@@ -1,9 +1,9 @@
 import type { CollectionEntry } from 'astro:content';
 
 export const ARTICLE_LEVEL_LABELS = {
-	child: '幼児向け',
+	child: 'やさしく',
 	standard: '標準',
-	expert: '玄人向け',
+	expert: '深掘り',
 } as const;
 
 export const ARTICLE_LEVEL_SEQUENCE = ['child', 'standard', 'expert'] as const;

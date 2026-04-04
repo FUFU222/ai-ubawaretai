@@ -22,6 +22,11 @@ test('build exposes article level switcher only for supported articles', () => {
 		.join('\n');
 
 	assert.match(supportedArticle, /解説レベル/);
+	assert.match(supportedArticle, /やさしく/);
+	assert.match(supportedArticle, /標準/);
+	assert.match(supportedArticle, /深掘り/);
+	assert.doesNotMatch(supportedArticle, /幼児向け/);
+	assert.doesNotMatch(supportedArticle, /玄人向け/);
 	assert.match(supportedArticle, /data-article-level-switcher/);
 	assert.match(supportedArticle, /data-article-level-behavior="dock-on-read"/);
 	assert.match(supportedArticle, /data-article-level-target/);
