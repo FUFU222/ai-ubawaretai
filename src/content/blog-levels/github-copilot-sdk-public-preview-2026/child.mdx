@@ -1,0 +1,58 @@
+---
+article: 'github-copilot-sdk-public-preview-2026'
+level: 'child'
+---
+
+GitHubが2026年4月2日に**Copilot SDK**をパブリックプレビューで公開しました。これで、GitHub Copilotのエージェント機能を、自分たちのアプリや社内ツールから呼び出しやすくなりました。
+
+大事なのは、「Copilotを使う場所」がエディタの中だけではなくなることです。これまでは、CopilotはVS CodeやGitHub上で使うもの、という感覚が強めでした。でもSDKが出ると、たとえば社内の運用画面、問い合わせ管理ツール、障害対応ツールの中からCopilotのエージェントを動かせます。
+
+## Copilot SDKって何？
+
+簡単に言うと、**GitHubのAIエージェントを部品として使うための開発キット**です。
+
+GitHubの発表では、このSDKはCopilot cloud agentやCopilot CLIで使っているのと同じ実運用ランタイムを外から呼び出せるようにしたものです。つまり、ゼロからAIエージェント基盤を作るのではなく、GitHubがすでに使っている仕組みを自分のアプリへ組み込みやすくした、という理解が近いです。
+
+対応言語はTypeScript、Python、Go、.NET、Javaの5つです。主要な業務システムや社内ツールで使われやすい言語がそろっているので、かなり間口が広いです。
+
+## 何ができるの？
+
+GitHubが案内している主な機能は次のようなものです。
+
+- 自分専用のツールやエージェントを定義できる
+- 応答を少しずつ受け取るストリーミングに対応している
+- 画像やスクリーンショットも渡せる
+- 権限を細かく確認する仕組みがある
+- OpenTelemetryで実行状況を追いやすい
+- BYOKで自前のAPIキーも使える
+
+ここで特に大きいのは、**権限**と**監視**です。AIエージェントは便利ですが、ファイルを読んだり、ツールを呼んだり、外部にアクセスしたりできるので、企業導入では「どこまで許すか」が重要になります。GitHubはpermission frameworkやcloud agent向けのfirewall設定も同じ時期に出していて、単に動くだけでなく、組織で管理できる形を整え始めています。
+
+## 日本の会社にどう関係する？
+
+日本企業では、AIの性能だけでなく、稟議、監査、セキュリティ、既存契約が大きな論点になります。Copilot SDKはそこに刺さりやすいです。
+
+たとえばBYOKがあると、自社で契約しているモデル基盤やクラウドの事情に合わせやすくなります。さらに4月3日には、Copilot cloud agentについて組織単位のrunner設定、agent firewall、署名付きコミット対応も公開されました。これは、企業が「AIをどこで動かすか」「外部通信をどう制御するか」「保護ブランチで使えるか」を考える時に重要です。
+
+ここから先は筆者の見立てですが、日本で本当に導入が進むかどうかは、モデルの賢さよりも、こうした運用条件をどこまで満たせるかで決まりやすいです。その意味で今回のSDK公開は、ただの開発者向け新機能ではなく、**企業導入の前提を整える動き**として見るべきです。
+
+## 気をつける点は？
+
+便利そうに見えますが、まだパブリックプレビューです。GitHubのREADMEでは、SDKがCopilot CLIを前提に動くこと、課金がpremium request枠に関係すること、BYOKでは自前のAPIキー管理が必要なことも示されています。
+
+つまり、「SDKがあるからすぐ全部置き換えよう」ではなく、まずは小さな社内ワークフローで試し、権限とコストを確認するのが現実的です。
+
+## まとめ
+
+GitHub Copilot SDKの公開で、Copilotはエディタの中の支援機能から、アプリや業務フローに埋め込めるエージェント基盤へ近づきました。
+
+特に日本では、BYOK、権限制御、署名付きコミット、社内runnerのような運用論点までそろってきたことが重要です。AIエージェントを本番で使う準備が、少しずつ「特別な実験」ではなく「導入設計の問題」になり始めています。
+
+## 参考資料
+
+- [Copilot SDK in public preview - GitHub Changelog](https://github.blog/changelog/2026-04-02-copilot-sdk-in-public-preview/)
+- [github/copilot-sdk README](https://github.com/github/copilot-sdk)
+- [Using your LLM provider API keys with Copilot - GitHub Docs](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/use-your-own-api-keys)
+- [Organization runner controls for Copilot cloud agent - GitHub Changelog](https://github.blog/changelog/2026-04-03-organization-runner-controls-for-copilot-cloud-agent/)
+- [Organization firewall settings for Copilot cloud agent - GitHub Changelog](https://github.blog/changelog/2026-04-03-organization-firewall-settings-for-copilot-cloud-agent/)
+- [Copilot cloud agent signs its commits - GitHub Changelog](https://github.blog/changelog/2026-04-03-copilot-cloud-agent-signs-its-commits/)

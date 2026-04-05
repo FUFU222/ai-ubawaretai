@@ -1,0 +1,122 @@
+---
+article: 'github-copilot-sdk-public-preview-2026'
+level: 'expert'
+---
+
+GitHub Copilot SDKのパブリックプレビュー公開は、新しいSDKが1本増えたという話ではありません。これは、GitHubが自社のagent runtimeを外部化し、Copilotを「GitHubの中で使う製品」から「他人のプロダクトに埋め込まれる基盤」へ進めた出来事です。
+
+しかも公開タイミングが象徴的です。4月1日にCopilot cloud agentはPR起点を超えて「research, plan, and code」へ広がり、4月2日にSDKがpublic previewへ上がり、4月3日にはrunner制御、agent firewallの組織設定、署名付きコミットがそろいました。この並びを見ると、GitHubは単体機能の追加ではなく、**agentic developmentを組織運用できる面**までまとめて整えに来ています。
+
+## SDKの本質は「モデル呼び出し」ではなく「ランタイム配布」
+
+GitHub Changelogが強調しているのは、Copilot SDKがCopilot cloud agentとCopilot CLIを支えるのと同じ本番利用済みランタイムを公開するという点です。READMEでも、SDKはCopilot CLI server modeとJSON-RPCで通信すると説明されています。
+
+ここが重要です。多くの企業がAIエージェントを内製しようとすると、実際に難しいのはモデルAPIそのものではありません。
+
+- セッションをどう持つか
+- ツール呼び出しをどう管理するか
+- ファイル編集やコマンド実行をどう制御するか
+- ストリーミングと中断をどう扱うか
+- 監査や権限承認をどう挟むか
+- 障害時にどこを観測するか
+
+GitHub Copilot SDKは、この「面倒で壊れやすいオーケストレーション層」を製品として外へ出してきたわけです。つまり企業は、モデル能力の比較だけでなく、**エージェント制御面をどこまで外部調達するか**を選べるようになる。
+
+## 5言語対応は機能表よりも市場戦略として効く
+
+public preview時点でTypeScript、Python、Go、.NET、Javaの5言語に対応したことも、見た目以上に大きいです。個人開発者向けならTypeScriptかPythonだけでも十分ですが、組織導入を狙うならそうはいきません。
+
+日本市場で考えると、この5言語構成はかなり実用的です。
+
+- TypeScript: 社内フロントエンド基盤、BFF、運用ダッシュボード
+- Python: データ基盤、社内自動化、AIワークフロー
+- Go: インフラ系ツール、社内CLI、プラットフォーム開発
+- .NET: 基幹寄りの業務システムやエンタープライズアプリ
+- Java: 既存の大規模社内システムやSI案件
+
+ここから先は筆者の分析ですが、GitHubは「開発者が遊べるSDK」を出したのではなく、**企業の既存資産に割り込めるだけの言語面積**を最初から確保しに行っています。Javaがpublic previewの段階で入ったのは、その意図をかなりはっきり示しています。
+
+## 今回の発表で本当に価値がある機能はどれか
+
+表面的にはカスタムツール、プロンプト編集、ストリーミング、blob添付、OpenTelemetry、permission framework、BYOKが並んでいます。ただ、実務上の重みは均等ではありません。特に重要なのは次の4つです。
+
+### 1. permission framework
+
+エージェントの実用化を止めるのは、しばしば性能不足ではなく権限問題です。GitHubは、承認ハンドラでセンシティブな操作を止めたり、読み取り専用ツールは権限確認を省略したりできると説明しています。これは「全部自由に動かす」か「全部禁止する」かの二択を避けるための最低条件です。
+
+ただしREADMEは、デフォルトではSDKがCopilot CLIの `--allow-all` 相当で動くと案内しています。ここには注意が必要です。PoCでは便利でも、本番では危ない。つまりこのSDKは、安全な既定値を全部提供してくれるというより、**安全に設計するためのフレームを提供する**タイプです。導入側に設計責任は残ります。
+
+### 2. BYOK
+
+BYOKは、企業導入における政治的・実務的な摩擦をかなり減らします。GitHubのREADMEは、GitHub認証なしでも自前のAPIキーで使えるとし、GitHub DocsのCopilot BYOK文書はOpenAI、Anthropic、Google AI Studio、AWS Bedrock、Microsoft Foundry、xAIなどの選択肢を案内しています。
+
+これが効くのは、技術的な自由度だけではありません。日本企業では「既存のクラウド契約に乗るか」「どのデータ境界なら法務が通るか」「既存の稟議フォーマットで説明できるか」が実導入に直結します。GitHubが上位レイヤーを担い、モデル供給元を切り替えやすくするなら、社内説得の難易度は下がります。
+
+### 3. OpenTelemetry
+
+生成AIプロダクトは、うまく動いている時は派手ですが、運用ではブラックボックス化しやすいです。応答が遅いのか、ツール呼び出しが詰まっているのか、モデル選択が悪いのか、どこで失敗したのかが分からないと、結局は人間が怖くて本番利用できません。
+
+OpenTelemetry対応は、この問題への答えとしてかなり現実的です。既存の分散トレーシング基盤にAI処理を流せるなら、社内の他サービスと同じ運用言語で観測できます。これはSREやプラットフォームチームがAIエージェントを受け入れるための条件に近い。
+
+### 4. fine-grained system prompt customization
+
+`replace` `append` `prepend` `transform` のように、システムプロンプト全体を書き換えるのではなく、必要な部分だけを差し替えられる設計は実務向きです。企業のエージェントは、ブランドガイドライン、禁止事項、レビュー手順、出力形式など、あとからルールが増えます。全体プロンプトを丸ごと管理すると崩壊しやすいので、局所変更できる設計は大事です。
+
+## cloud agent側の4月3日更新が示すこと
+
+SDKだけを見ていると「開発者向けの拡張」に見えますが、4月3日の更新をあわせると見え方が変わります。
+
+まずrunner制御です。Copilot cloud agentはGitHub Actionsベースで新しい開発環境を起動し、標準ではGitHub-hosted runnerを使いますが、組織単位でlarge runnerやself-hosted runnerを既定化できるようになりました。これは、エージェントを単なる補助機能ではなく、**実行環境まで含めた業務基盤**として扱い始めたことを意味します。
+
+次にagent firewallです。インターネットアクセスを制御し、prompt injectionやdata exfiltration対策の一部を担う仕組みを、リポジトリ単位から組織単位で管理できるようにしました。AIエージェントの脅威モデルでは、モデルの賢さよりも「どこへ勝手に出ていくか」の方が先に問題になります。組織レベルのallowlist運用は、企業導入の最低条件です。
+
+そして署名付きコミット対応です。agentが作るコミットがVerified表示され、require signed commitsの保護ルールでも動かせるようになった。これは地味ですが本質的です。多くの組織では、セキュリティ規律を緩めない限りAIが入れない状態が最大の阻害要因になります。GitHubはここを「AIのために規律を下げてください」ではなく、「規律の中でAIが動くようにします」で解こうとしている。
+
+## GitHubの競争相手はもはやIDE補完ではない
+
+GitHub Copilot SDKの真の競争相手は、Cursorや単純なコード補完ではありません。むしろ競争しているのは、社内で独自に組まれるagent platform、クラウド各社のエージェント基盤、そしてコーディングエージェントを社内SaaSへ埋め込むためのミドルウェア群です。
+
+この観点で見ると、GitHubはかなり強い位置にいます。
+
+- 既存の開発フローの中心にGitHub自体がある
+- Copilot CLIとcloud agentで実運用済みのランタイムがある
+- 課金、認証、組織管理、監査の導線をすでに持っている
+- Jira連携やorganization custom instructionsなど周辺機能が揃っている
+
+つまりGitHubは、モデル会社というより**開発ワークフローのcontrol plane**として優位を取りに来ている。モデルが入れ替わっても、運用レイヤーを握っていれば主導権を保ちやすい、という戦略に見えます。
+
+## 日本企業はどう見るべきか
+
+日本でこの発表をどう読むかは、「GitHub Copilotがもっと便利になる」で終わらせると浅いです。実際の論点は次の3つです。
+
+### 1. 内製か外部調達か
+
+社内エージェント基盤を自前で持つのか、GitHubのruntimeを活用するのか。SDKがあることで、中間解が取りやすくなりました。UIや業務ロジックは内製しつつ、エージェント制御面はGitHubに寄せる、という構成が可能になります。
+
+### 2. モデル選定と統制を分離できるか
+
+BYOKがあるなら、現場の開発者体験と、法務・調達・セキュリティが求める統制をある程度切り分けられます。これは日本企業にとってかなり大きい。OpenAIかAnthropicかGoogleか、あるいはクラウド経由かという議論をしつつ、アプリ側のエージェント実装は大きく変えずに済む可能性があるからです。
+
+### 3. AIを監査可能な運用対象として扱えるか
+
+runner、firewall、署名、権限、トレース。これらがそろって初めて、AIエージェントは「便利なデモ」から「監査可能なシステム」へ移ります。日本の大企業が本番導入するなら、まさにこの条件が必要です。
+
+## まとめ
+
+GitHub Copilot SDKのpublic previewは、Copilotの拡張ではなく、GitHubの立ち位置の変化です。GitHubはAIコード補完ツールを売っているのではなく、開発組織がAIエージェントを実装・運用・統制するための共通基盤を配り始めた。
+
+その意味で、この発表の核心は「SDKが出た」ことよりも、「同じ週に運用ガードレールまで並べてきた」ことにあります。日本の開発組織にとっての次の問いは、Copilotを使うかどうかではありません。**GitHubのruntimeを自社のどの業務へ、どの統制条件で、どのモデル契約の上に載せるか**です。
+
+もしそこまで設計できるなら、GitHub Copilot SDKは単なる便利機能ではなく、AI開発基盤の調達候補になります。
+
+## 参考資料
+
+- [Copilot SDK in public preview - GitHub Changelog](https://github.blog/changelog/2026-04-02-copilot-sdk-in-public-preview/)
+- [Copilot SDK in technical preview - GitHub Changelog](https://github.blog/changelog/2026-01-14-copilot-sdk-in-technical-preview/)
+- [github/copilot-sdk README](https://github.com/github/copilot-sdk)
+- [Build Your First Copilot-Powered App - getting-started.md](https://github.com/github/copilot-sdk/blob/main/docs/getting-started.md)
+- [Using your LLM provider API keys with Copilot - GitHub Docs](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/use-your-own-api-keys)
+- [Research, plan, and code with Copilot cloud agent - GitHub Changelog](https://github.blog/changelog/2026-04-01-research-plan-and-code-with-copilot-cloud-agent/)
+- [Organization runner controls for Copilot cloud agent - GitHub Changelog](https://github.blog/changelog/2026-04-03-organization-runner-controls-for-copilot-cloud-agent/)
+- [Organization firewall settings for Copilot cloud agent - GitHub Changelog](https://github.blog/changelog/2026-04-03-organization-firewall-settings-for-copilot-cloud-agent/)
+- [Copilot cloud agent signs its commits - GitHub Changelog](https://github.blog/changelog/2026-04-03-copilot-cloud-agent-signs-its-commits/)
