@@ -349,6 +349,8 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 			const article = prose.closest('[data-article-level-article]');
 			const toc = article instanceof HTMLElement ? article.querySelector('[data-article-level-toc]') : null;
+			const tocNav = toc instanceof HTMLElement ? toc.querySelector('[data-article-level-toc-nav]') : null;
+			const tocList = toc instanceof HTMLElement ? toc.querySelector('[data-article-level-toc-list]') : null;
 
 			const routes = JSON.parse(root.dataset.articleLevelRoutes || '{}');
 			const storageKey = root.dataset.articleLevelStorageKey || 'preferred-article-level';
@@ -405,6 +407,60 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 					option.classList.toggle('active', isActive);
 					option.setAttribute('aria-pressed', String(isActive));
 				});
+			};
+
+			const extractHeadings = (html) => {
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(html, 'text/html');
+				return Array.from(doc.querySelectorAll('h2[id], h3[id]'))
+					.map((heading) => {
+						if (!(heading instanceof HTMLElement)) {
+							return null;
+						}
+
+						return {
+							depth: Number(heading.tagName.slice(1)),
+							slug: heading.id,
+							text: heading.textContent?.trim() ?? '',
+						};
+					})
+					.filter((heading) => heading && heading.slug && heading.text);
+			};
+
+			const updateToc = (html) => {
+				if (!(toc instanceof HTMLDetailsElement) || !(tocNav instanceof HTMLElement) || !(tocList instanceof HTMLElement)) {
+					return;
+				}
+
+				const headings = extractHeadings(html).filter((heading) => heading.depth === 2 || heading.depth === 3);
+				const wasOpen = toc.open;
+
+				if (headings.length === 0) {
+					toc.hidden = true;
+					tocNav.hidden = true;
+					tocList.replaceChildren();
+					return;
+				}
+
+				const fragment = document.createDocumentFragment();
+
+				headings.forEach((heading) => {
+					const item = document.createElement('li');
+					if (heading.depth === 3) {
+						item.classList.add('toc-h3');
+					}
+
+					const link = document.createElement('a');
+					link.href = `#${heading.slug}`;
+					link.textContent = heading.text;
+					item.append(link);
+					fragment.append(item);
+				});
+
+				tocList.replaceChildren(fragment);
+				toc.hidden = false;
+				tocNav.hidden = false;
+				toc.open = wasOpen;
 			};
 
 			const measureLayout = () => {
@@ -491,6 +547,8 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			const animateSwap = (html) => {
 				if (prefersReducedMotion) {
 					prose.innerHTML = html;
+					updateToc(html);
+					measureLayout();
 					queueUpdateMotion();
 					return;
 				}
@@ -500,6 +558,8 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 				window.setTimeout(() => {
 					prose.innerHTML = html;
+					updateToc(html);
+					measureLayout();
 					prose.classList.remove('is-level-switching-out');
 					prose.classList.add('is-level-switching-in');
 					queueUpdateMotion();
@@ -599,6 +659,7 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 			setActiveLevel(defaultLevel);
 			setOpen(false);
+			updateToc(cache.standard);
 			measureLayout();
 			queueUpdateMotion();
 
