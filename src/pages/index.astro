@@ -5,12 +5,15 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import GenerativeHero from '../components/GenerativeHero.astro';
 import Header from '../components/Header.astro';
-import { CATEGORIES, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import { personJsonLd } from '../utils/jsonld';
+import { getCategoryLabel, getCategoryPath, getCategorySummaries } from '../utils/categories';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft))
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const posts = allPosts
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 6);
+const categorySummaries = getCategorySummaries(allPosts);
 
 const personLd = personJsonLd();
 ---
@@ -58,7 +61,7 @@ const personLd = personJsonLd();
 								/>
 								<div class="post-card-body">
 									<span class="post-category">
-										{CATEGORIES[post.data.category]}
+										{getCategoryLabel(post.data.category)}
 									</span>
 									<h3 class="post-title">{post.data.title}</h3>
 									<p class="post-date">
@@ -78,8 +81,8 @@ const personLd = personJsonLd();
 				<h2 class="section-title">カテゴリ</h2>
 				<div class="category-grid">
 					{
-						Object.entries(CATEGORIES).map(([slug, label]) => (
-							<a href={`/category/${slug}/`} class="category-card">
+						categorySummaries.map(({ slug, label }) => (
+							<a href={getCategoryPath(slug)} class="category-card">
 								{label}
 							</a>
 						))

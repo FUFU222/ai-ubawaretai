@@ -10,10 +10,11 @@ import BackToTop from '../components/BackToTop.astro';
 import ReadingTime from '../components/ReadingTime.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
 import TOC from '../components/TOC.astro';
-import { CATEGORIES, SITE_TITLE } from '../consts';
+import { SITE_TITLE } from '../consts';
 import ArticleLevelSwitcher from '../components/ArticleLevelSwitcher.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
 import { hasArticleLevelSwitcher, type ArticleLevelAvailability } from '../utils/articleLevels';
+import { getCategoryLabel, getCategoryPath } from '../utils/categories';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	id?: string;
@@ -28,7 +29,8 @@ const articleLevels = Astro.props.articleLevels ?? {};
 
 const siteUrl = Astro.site?.toString() ?? '';
 const articleUrl = `${siteUrl}blog/${id}/`;
-const categoryLabel = CATEGORIES[category];
+const categoryLabel = getCategoryLabel(category);
+const categoryPath = getCategoryPath(category);
 const showArticleLevelSwitcher = id ? hasArticleLevelSwitcher(articleLevels) : false;
 
 const articleLd = articleJsonLd({
@@ -42,7 +44,7 @@ const articleLd = articleJsonLd({
 const breadcrumbLd = breadcrumbJsonLd([
 	{ name: 'ホーム', url: siteUrl },
 	{ name: 'ブログ', url: `${siteUrl}blog/` },
-	{ name: categoryLabel, url: `${siteUrl}category/${category}/` },
+	{ name: categoryLabel, url: `${siteUrl}${categoryPath.replace(/^\//, '')}` },
 	{ name: title, url: articleUrl },
 ]);
 ---
@@ -63,7 +65,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 				</div>
 				<div class="article-header">
 					<div class="meta">
-						<a href={`/category/${category}/`} class="category-badge">{categoryLabel}</a>
+						<a href={categoryPath} class="category-badge">{categoryLabel}</a>
 						<FormattedDate date={pubDate} />
 						{
 							updatedDate && (

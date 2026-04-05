@@ -3,49 +3,87 @@ import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
-import { CATEGORIES, type Category, SITE_TITLE } from '../../consts';
+import { SITE_TITLE } from '../../consts';
+import { getCategoryPath, getCategorySummaries } from '../../utils/categories';
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-
-const categoryCounts = (Object.keys(CATEGORIES) as Category[]).map((key) => ({
-	slug: key,
-	label: CATEGORIES[key],
-	count: allPosts.filter((p) => p.data.category === key).length,
-}));
+const categorySummaries = getCategorySummaries(allPosts);
 ---
 
 <!doctype html>
 <html lang="ja">
 	<head>
-		<BaseHead title={`カテゴリ | ${SITE_TITLE}`} description="カテゴリ一覧" />
+		<BaseHead title={`カテゴリ | ${SITE_TITLE}`} description="記事カテゴリの一覧ページ" />
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>カテゴリ</h1>
-			<div class="category-list">
-				{
-					categoryCounts.map(({ slug, label, count }) => (
-						<a href={`/category/${slug}/`} class="category-card">
-							<span class="category-label">{label}</span>
-							<span class="category-count">{count}件</span>
-						</a>
-					))
-				}
-			</div>
+			<section class="category-hero">
+				<p class="category-eyebrow">Category Guide</p>
+				<h1>カテゴリ</h1>
+				<p class="category-lead">
+					記事のまとまりから読みたい方向けの案内ページです。実際に記事が存在するカテゴリだけを表示しています。
+				</p>
+			</section>
+
+			{
+				categorySummaries.length === 0 ? (
+					<p class="category-empty">表示できるカテゴリがまだありません。</p>
+				) : (
+					<div class="category-list">
+						{
+							categorySummaries.map(({ slug, label, count }) => (
+								<a href={getCategoryPath(slug)} class="category-card">
+									<div class="category-copy">
+										<span class="category-label">{label}</span>
+									</div>
+									<span class="category-count">{count}件</span>
+								</a>
+							))
+						}
+					</div>
+				)
+			}
 		</main>
 		<Footer />
 	</body>
 </html>
 
 <style>
+	.category-hero {
+		margin-bottom: 1.75rem;
+		padding-bottom: 1.35rem;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+	}
+
+	.category-eyebrow {
+		margin: 0 0 0.45rem;
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+
 	h1 {
-		margin-bottom: 1.5rem;
+		margin-bottom: 0.6rem;
+	}
+
+	.category-lead {
+		max-width: 42rem;
+		margin: 0;
+		color: var(--color-text-muted);
+		line-height: 1.8;
+	}
+
+	.category-empty {
+		color: var(--color-text-muted);
+		padding: 2rem 0;
 	}
 
 	.category-list {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 1rem;
 	}
 
@@ -53,32 +91,54 @@ const categoryCounts = (Object.keys(CATEGORIES) as Category[]).map((key) => ({
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 1.25rem 1.5rem;
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border);
-		border-radius: 8px;
+		gap: 1rem;
+		padding: 1.15rem 1.25rem;
+		background:
+			linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 94%, white 6%), var(--color-bg-card));
+		border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+		border-radius: 14px;
 		text-decoration: none;
-		transition: border-color 0.2s, transform 0.2s;
+		transition:
+			border-color 0.2s ease,
+			transform 0.2s ease,
+			box-shadow 0.2s ease,
+			background-color 0.2s ease;
 	}
 
 	.category-card:hover {
-		border-color: var(--color-primary);
+		border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border));
+		background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg-card));
+		box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 		transform: translateY(-2px);
 		text-decoration: none;
 	}
 
+	.category-copy {
+		min-width: 0;
+	}
+
 	.category-label {
-		font-size: 1.1rem;
+		font-size: 1.05rem;
 		font-weight: 600;
 		color: var(--color-text-heading);
 	}
 
 	.category-count {
-		font-size: 0.85rem;
-		color: var(--color-text-muted);
+		flex: none;
+		padding: 0.25rem 0.65rem;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+		font-size: 0.8rem;
+		font-weight: 700;
+		color: var(--color-primary-light);
 	}
 
 	@media (max-width: 768px) {
+		.category-hero {
+			margin-bottom: 1.4rem;
+			padding-bottom: 1.1rem;
+		}
+
 		.category-list {
 			grid-template-columns: 1fr;
 		}
