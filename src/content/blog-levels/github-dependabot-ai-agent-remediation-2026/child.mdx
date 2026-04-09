@@ -1,0 +1,80 @@
+---
+article: "github-dependabot-ai-agent-remediation-2026"
+level: "child"
+---
+
+GitHubが2026年4月7日、**Dependabotの脆弱性アラートをAIエージェントへそのまま渡して、修正案のPRを作らせる機能**を公開しました。GitHubの発表では、Copilot、Claude、CodexのようなAIコーディングエージェントを選べます。これまでは「危ない依存関係があります」と教えてくれるところまでがDependabotの主な役割でしたが、今回はそこから一歩進んで、**直すためのたたき台までAIに作らせる**流れが入りました。
+
+この話が大事なのは、依存関係の脆弱性対応が現場では意外と重いからです。小さなバージョン更新ならすぐ終わります。でも現実には、更新先で関数名が変わる、型が変わる、設定の書き方が変わる、古い書き方が非推奨になる、といったことがよくあります。そうなると、単に `package.json` や `requirements.txt` の数字を上げるだけでは終わりません。
+
+## Dependabotで何が変わったの？
+
+GitHub Changelogによると、Dependabotアラートの詳細画面から `Assign to Agent` を選ぶと、AIエージェントが次のことを行います。
+
+- 脆弱性の内容を読む
+- その依存関係がリポジトリの中でどう使われているかを見る
+- 修正案を含むドラフトPRを開く
+- 更新で壊れたテストがあれば、その解消も試す
+
+つまり、AIは「新しい安全なバージョンに上げましょう」と言うだけでなく、**上げたせいで壊れたコードの直し方まで考える**わけです。
+
+しかもGitHubは、**同じアラートに複数のAIエージェントを割り当てられる**と説明しています。Copilotに1本、Claudeに1本、Codexに1本という形で別々のPRを出させて、どれが一番よいか比べられます。これは地味に大きいです。AIの答えは1つに固定されないので、比較できるだけでレビューしやすさがかなり上がります。
+
+## どうしてそんなに便利なの？
+
+Dependabotはもともと、脆弱性のある依存関係を見つけて、修正できるならPRを自動で開いてくれる仕組みを持っていました。でもそれが効くのは、**更新しても周辺コードがほとんど壊れないとき**です。
+
+問題は、次のようなケースです。
+
+- メジャーバージョン更新でAPIが変わる
+- 非推奨になったメソッドの置き換えが必要
+- 型の変更でビルドが通らなくなる
+- 安全な修正版がなく、危ないバージョンから一時的に戻す必要がある
+
+こういうときは、人がエラーを見て、利用箇所を探して、コードを書き換えて、テストを直して、やっとマージできます。今回の機能は、そこをAIに先にやらせるイメージです。
+
+GitHubの説明でも、Dependabotが得意なのは「どの依存関係をどこへ更新すべきか」を示すこと、AIエージェントが得意なのは「その更新で壊れた部分をどう直すか」を考えることだと読めます。つまり、役割がぶつかっているのではなく、**前半と後半を分担している**わけです。
+
+## 日本の開発チームには何がうれしい？
+
+日本のチームでこの機能が効きやすいのは、脆弱性対応がいつも大事なのに、後回しになりやすいからです。
+
+スタートアップや少人数チームでは、脆弱性対応は必要でも、顧客向け機能の開発を止めてまで毎回丁寧にやるのはつらいです。そこで、DependabotアラートからそのままAIへ渡してドラフトPRまで出せるなら、「とりあえず着手してみる」までのハードルが下がります。
+
+大企業やSIerでは、別の意味で助かります。依存関係の更新は監査やレビューが必要で、いきなり自動マージしにくいからです。今回の機能は、最初から**ドラフトPR**として出す設計です。つまり、AIが勝手に本番へ反映するのではなく、人が確認する前提です。これは日本企業の運用にかなり合っています。
+
+以前このサイトで書いた[GitHub Copilot SDKがパブリックプレビュー公開。自社アプリにCopilotエージェントを組み込める時代へ](/blog/github-copilot-sdk-public-preview-2026/)や、[GitHub CopilotにAutopilot登場。VS Codeが「多エージェント開発OS」になるのか](/blog/github-copilot-autopilot-vscode-2026/)でも見えたように、最近のGitHubはAIを「補完機能」ではなく、**仕事の流れの中で動くエージェント**として広げています。今回のDependabot連携は、その流れがセキュリティ対応まで来た形です。
+
+## 気をつけることもある
+
+便利そうに見えますが、GitHub自身が「AIの修正はいつも正しいわけではない」と書いています。これはかなり大事です。
+
+たとえば、次のようなことは普通に起こりえます。
+
+- テストが十分でなく、表面だけ直っている
+- ビルドは通るが本番で問題が出る
+- 余計なコード変更が混ざる
+- 脆弱性は消えても、別の不具合を持ち込む
+
+だから、AIが作ったPRはそのまま信じず、**レビュー、テスト、CI確認**が必要です。便利なのは「ゼロから手で直すより速く、最初のたたき台が出る」ことであって、「人間の確認がいらなくなる」ことではありません。
+
+## 使うための条件は？
+
+GitHubの発表では、この機能には**GitHub Code Security**と、**coding agentへのアクセスを含むCopilotプラン**が必要です。使える場所も現時点では `github.com` です。
+
+つまり、個人の無料環境で誰でも今すぐ使えるというより、**GitHub上でセキュリティ運用とAIエージェント運用をまとめて回したい組織向けの機能**として見るのが自然です。
+
+## まとめ
+
+今回のGitHub Dependabot更新は、「脆弱性を教える」段階から、「脆弱性修正の下書きをAIに作らせる」段階へ進んだニュースです。
+
+自分はここをかなり重要だと思っています。依存関係の脆弱性は、見つけることより、**安全に直し切ること**のほうが大変だからです。DependabotとAIエージェントが組み合わさると、その面倒な後半の仕事をかなり圧縮できます。
+
+ただし、最後に責任を持つのは人です。だからこそ、この機能の本当の価値は「AIが全部やる」ことではなく、**人がレビューしやすいところまで修正を前進させる**ことにあります。
+
+## 出典
+
+- [Dependabot alerts are now assignable to AI agents for remediation](https://github.blog/changelog/2026-04-07-dependabot-alerts-are-now-assignable-to-ai-agents-for-remediation/) — GitHub Changelog, 2026-04-07
+- [Viewing and updating Dependabot alerts](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-dependabot-alerts/viewing-and-updating-dependabot-alerts?learn=dependabot_alerts) — GitHub Docs
+- [Configuring Dependabot security updates](https://docs.github.com/code-security/dependabot/dependabot-security-updates/configuring-dependabot-security-updates) — GitHub Docs
+- [What’s new with GitHub Copilot coding agent](https://github.blog/ai-and-ml/github-copilot/whats-new-with-github-copilot-coding-agent/) — GitHub Blog, 2026-02-26
