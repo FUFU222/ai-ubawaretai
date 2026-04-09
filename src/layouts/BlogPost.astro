@@ -10,11 +10,11 @@ import BackToTop from '../components/BackToTop.astro';
 import ReadingTime from '../components/ReadingTime.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
 import TOC from '../components/TOC.astro';
-import { SITE_TITLE } from '../consts';
+import { NEWS_LABEL, SITE_TITLE } from '../consts';
 import ArticleLevelSwitcher from '../components/ArticleLevelSwitcher.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
 import { hasArticleLevelSwitcher, type ArticleLevelAvailability } from '../utils/articleLevels';
-import { getCategoryLabel, getCategoryPath } from '../utils/categories';
+import { getTagPath } from '../utils/tags';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	id?: string;
@@ -23,14 +23,12 @@ type Props = CollectionEntry<'blog'>['data'] & {
 	articleLevels?: ArticleLevelAvailability;
 };
 
-const { title, description, pubDate, updatedDate, heroImage, category, tags, id, headings, rawContent } =
+const { title, description, pubDate, updatedDate, heroImage, tags, id, headings, rawContent } =
 	Astro.props;
 const articleLevels = Astro.props.articleLevels ?? {};
 
 const siteUrl = Astro.site?.toString() ?? '';
 const articleUrl = `${siteUrl}blog/${id}/`;
-const categoryLabel = getCategoryLabel(category);
-const categoryPath = getCategoryPath(category);
 const showArticleLevelSwitcher = id ? hasArticleLevelSwitcher(articleLevels) : false;
 
 const articleLd = articleJsonLd({
@@ -44,7 +42,6 @@ const articleLd = articleJsonLd({
 const breadcrumbLd = breadcrumbJsonLd([
 	{ name: 'ホーム', url: siteUrl },
 	{ name: 'ブログ', url: `${siteUrl}blog/` },
-	{ name: categoryLabel, url: `${siteUrl}${categoryPath.replace(/^\//, '')}` },
 	{ name: title, url: articleUrl },
 ]);
 ---
@@ -65,7 +62,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 				</div>
 				<div class="article-header">
 					<div class="meta">
-						<a href={categoryPath} class="category-badge">{categoryLabel}</a>
+						<span class="category-badge">{NEWS_LABEL}</span>
 						<FormattedDate date={pubDate} />
 						{
 							updatedDate && (
@@ -81,7 +78,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 						tags && tags.length > 0 && (
 							<div class="tags">
 								{tags.map((tag) => (
-									<span class="tag">#{tag}</span>
+									<a href={getTagPath(tag)} class="tag">#{tag}</a>
 								))}
 							</div>
 						)
@@ -100,7 +97,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 				<AdSense label="記事下" format="rectangle" />
 
-				<RelatedPosts currentId={id ?? ''} category={category} tags={tags ?? []} />
+				<RelatedPosts currentId={id ?? ''} tags={tags ?? []} />
 			</article>
 		</main>
 		<BackToTop />
@@ -148,12 +145,6 @@ const breadcrumbLd = breadcrumbJsonLd([
 		border-radius: 4px;
 		font-size: 0.8rem;
 		font-weight: 600;
-		text-decoration: none;
-	}
-
-	.category-badge:hover {
-		background-color: rgba(59, 130, 246, 0.25);
-		text-decoration: none;
 	}
 
 	.updated {
@@ -174,8 +165,15 @@ const breadcrumbLd = breadcrumbJsonLd([
 	}
 
 	.tag {
+		display: inline-block;
 		color: var(--color-text-muted);
 		font-size: 0.8rem;
+		text-decoration: none;
+	}
+
+	.tag:hover {
+		color: var(--color-primary-light);
+		text-decoration: none;
 	}
 
 	.prose {

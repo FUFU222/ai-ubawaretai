@@ -6,11 +6,10 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import GenerativeHero from '../../components/GenerativeHero.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
-import { getCategoryLabel } from '../../utils/categories';
+import { getPublishedPosts } from '../../utils/posts';
+import { getPrimaryTag } from '../../utils/tags';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = getPublishedPosts(await getCollection('blog'));
 ---
 
 <!doctype html>
@@ -34,7 +33,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 								class="post-thumb"
 							/>
 							<div class="post-info">
-								<span class="post-category">{getCategoryLabel(post.data.category)}</span>
+								<span class="post-category">#{getPrimaryTag(post.data.tags)}</span>
 								<h2 class="post-title">{post.data.title}</h2>
 								<p class="post-desc">{post.data.description}</p>
 								<p class="post-date">

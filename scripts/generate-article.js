@@ -12,7 +12,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { fetchAllFeeds, getExistingSlugs, titleToSlug } from './fetch-news.js';
+import { fetchAllFeeds, getExistingSlugs, hasLikelyDuplicateSlug, titleToSlug } from './fetch-news.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -28,16 +28,6 @@ if (!ANTHROPIC_API_KEY) {
 }
 
 const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-
-// ---------- カテゴリ判定 ----------
-function detectCategory(title, summary) {
-  const text = `${title} ${summary}`.toLowerCase();
-  if (/compar|vs\.?|versus|better than|alternative/i.test(text)) return 'comparison';
-  if (/how to|guide|tutorial|setup|install/i.test(text)) return 'how-to';
-  if (/workflow|automat|pipeline|integrate/i.test(text)) return 'workflow';
-  if (/launch|release|announc|update|new feature|introduce/i.test(text)) return 'news';
-  return 'ai-tools';
-}
 
 // ---------- 記事生成プロンプト ----------
 function buildPrompt(newsItem, sourceContent) {
@@ -95,8 +85,8 @@ ${sourceContent ? `## ソースの詳細内容（抜粋）\n${sourceContent.slic
 title: "日本語タイトル（30〜40文字）"
 description: "メタディスクリプション（80〜120文字）"
 pubDate: "${new Date().toISOString().split('T')[0]}"
-category: "${detectCategory(newsItem.title, newsItem.summary)}"
-tags: [関連タグをカンマ区切りで3〜5個]
+category: "news"
+tags: [企業名またはプロダクト名を1つ以上 + テーマタグを2〜4個]
 draft: false
 ---
 
@@ -144,13 +134,7 @@ async function main() {
 
   // 既存記事との重複チェック
   const existingSlugs = getExistingSlugs();
-  const candidates = items.filter((item) => {
-    const slug = titleToSlug(item.title);
-    return !existingSlugs.some(
-      (existing) =>
-        existing.includes(slug.slice(0, 20)) || slug.includes(existing.slice(0, 20)),
-    );
-  });
+  const candidates = items.filter((item) => !hasLikelyDuplicateSlug(existingSlugs, item.title));
 
   console.log(`   重複除外後: ${candidates.length} 件`);
 
