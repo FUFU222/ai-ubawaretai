@@ -1,0 +1,52 @@
+---
+article: "github-copilot-autopilot-vscode-2026"
+level: "child"
+---
+
+GitHubが2026年4月8日に出した[VS Code向けのCopilot更新](https://github.blog/changelog/2026-04-08-github-copilot-in-visual-studio-code-march-releases/)で、いちばん大きいのは `Autopilot` だと自分は見ている。これはCopilotが途中でいちいち承認待ちにならず、**自分で再試行しながらタスク完了まで進むモード**だからだ。しかも今回の話は、それだけでは終わらない。前日の2026年4月7日には[Copilot CLIがBYOKとローカルモデルに対応](https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/)し、同じ2026年4月8日には[GitHub Mobileでもcloud agentが調査・実装計画・コード変更](https://github.blog/changelog/2026-04-08-github-mobile-research-and-code-with-copilot-cloud-agent-anywhere/)までできるようになった。GitHubが本気で「どこでも動く開発エージェント」を作りにきた、というのが今回のニュースだ。
+
+## Autopilotって何？
+
+[Visual Studio Code 1.111のリリースノート](https://code.visualstudio.com/updates/v1_111)によると、Copilotの権限レベルは `Default Approvals`、`Bypass Approvals`、`Autopilot` の3段階になった。Autopilotでは、ツール呼び出しを自動承認し、エラー時に自動再試行し、必要な質問にも自動で応じながら、タスク完了まで進み続ける。
+
+要するに、「ここを編集していいですか」「このコマンドを実行していいですか」と何度も止まるAIではなく、**終わるまで走り続けるAI**になった、ということだ。
+
+## 何がそんなに大事なの？
+
+今回おもしろいのは、GitHubがCopilotを1つの場所だけで使う道具にしていないことだ。
+
+2026年4月8日の[GitHub Changelog](https://github.blog/changelog/2026-04-08-github-copilot-in-visual-studio-code-march-releases/)では、Autopilotだけでなく、**統合ブラウザでのデバッグ**、**画像・動画のやりとり**、**ネスト可能なsubagent**、**チャット用カスタマイズの統合エディタ**も発表された。さらに[GitHub Mobileの更新](https://github.blog/changelog/2026-04-08-github-mobile-research-and-code-with-copilot-cloud-agent-anywhere/)では、スマホからでもコードベース調査、実装計画、ブランチ上の変更、差分確認、PR作成まで進められるようになった。
+
+つまり、VS Codeで始めた作業を、CLIやcloud agentやMobileまでつないでいく方向がかなりはっきりしてきた。
+
+## 日本の開発チームにはどう効く？
+
+日本の開発チームにとっては、2つ意味があると思う。
+
+1つ目は、**ツールが分散しにくくなる**ことだ。すでにGitHubとVS Codeを使っているなら、別の専用エディタや別サービスを大量に足さなくても、同じ流れの中でAIエージェントを使えるかもしれない。
+
+2つ目は、**企業導入の現実味が上がる**ことだ。2026年4月7日の[CLI更新](https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/)では、AnthropicやAzure OpenAI、OpenAI互換API、Ollama、vLLMなどを使えるBYOK/ローカルモデル対応が入り、`COPILOT_OFFLINE=true` によるオフライン動作も案内された。これなら、社内ポリシーやコスト都合に合わせてモデルを選びやすい。
+
+以前このサイトで書いた[GitHub Copilot SDKがパブリックプレビュー公開。自社アプリにCopilotエージェントを組み込める時代へ](/blog/github-copilot-sdk-public-preview-2026/)もそうだったけど、最近のGitHubは「AIを1機能として足す」のではなく、**開発フロー全体をエージェント前提で組み直す**方向に進んでいる。
+
+## ただし注意点もある
+
+便利になった一方で、Autopilotは完全に安全モードではない。
+
+[VS Codeのリリースノート](https://code.visualstudio.com/updates/v1_111)では、AutopilotとBypass Approvalsはファイル編集、ターミナル実行、外部ツール呼び出しの承認を飛ばすと書かれている。だから、いきなり本番リポジトリで常用するより、まずは低リスクなリポジトリで試すほうがいい。
+
+[GitHubのcloud agent導入ガイド](https://docs.github.com/en/copilot/tutorials/cloud-agent/pilot-cloud-agent)でも、まずは低リスクなリポジトリで試し、ブランチルールで第二承認者を必須にすることを勧めている。ここはかなり大事だ。
+
+## まとめ
+
+GitHub CopilotのAutopilotは、「AIが少し便利になった」という話ではなく、GitHubが**VS Code、CLI、cloud agent、Mobileをまたぐ開発エージェント基盤**を作り始めた話として見ると分かりやすい。
+
+自分は今回の更新を、AIコーディングツールの小さな改善ではなく、「GitHubの中で多エージェント開発が標準化し始めた合図」だと見ている。日本の開発現場でも、そろそろこの流れを無視しにくくなってきた。
+
+## 出典
+
+- [GitHub Copilot in Visual Studio Code, March Releases](https://github.blog/changelog/2026-04-08-github-copilot-in-visual-studio-code-march-releases/) — GitHub Changelog, 2026-04-08
+- [Visual Studio Code 1.111](https://code.visualstudio.com/updates/v1_111) — Visual Studio Code, 2026-03-09
+- [GitHub Mobile: Research and code with Copilot cloud agent anywhere](https://github.blog/changelog/2026-04-08-github-mobile-research-and-code-with-copilot-cloud-agent-anywhere/) — GitHub Changelog, 2026-04-08
+- [Copilot CLI now supports BYOK and local models](https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/) — GitHub Changelog, 2026-04-07
+- [Piloting GitHub Copilot cloud agent in your organization](https://docs.github.com/en/copilot/tutorials/cloud-agent/pilot-cloud-agent) — GitHub Docs, accessed 2026-04-09

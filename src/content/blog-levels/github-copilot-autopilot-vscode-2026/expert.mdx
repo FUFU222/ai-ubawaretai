@@ -1,0 +1,81 @@
+---
+article: "github-copilot-autopilot-vscode-2026"
+level: "expert"
+---
+
+2026年4月8日の[GitHub Copilot in Visual Studio Code, March Releases](https://github.blog/changelog/2026-04-08-github-copilot-in-visual-studio-code-march-releases/)だけ見ると、Autopilotやブラウザデバッグや画像対応が並んだ「便利機能まとめ」に見える。でも2026年4月1日から8日までの一次情報を並べると、もっと別の絵が見えてくる。GitHubは今、Copilotを“モデル付きIDE機能”として育てているのではなく、**ソフトウェア開発におけるエージェントの制御面そのもの**へ変えようとしている。
+
+2026年4月1日にCopilot CLIは[/fleet](https://github.blog/ai-and-ml/github-copilot/run-multiple-agents-at-once-with-fleet-in-copilot-cli/)で複数subagentの並列実行に対応した。2026年4月6日には[Rubber Duck](https://github.blog/ai-and-ml/github-copilot/github-copilot-cli-combines-model-families-for-a-second-opinion/)が別モデル系統のレビュー役として入り、Claude SonnetとGPT-5.4の組み合わせで難タスク性能改善を示した。2026年4月7日には[Copilot CLIがBYOKとローカルモデル](https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/)に対応し、2026年4月8日にはVS Code側へAutopilot、ネスト可能subagent、統合ブラウザ、統合カスタマイズエディタが入り、同日に[GitHub Mobileでもcloud agentの調査・実装・差分確認](https://github.blog/changelog/2026-04-08-github-mobile-research-and-code-with-copilot-cloud-agent-anywhere/)が広がった。これは機能追加の連打ではなく、**実行、分解、レビュー、モデル切り替え、モバイル継続**を一本の製品思想へ束ねる動きだ。
+
+## GitHubが作ろうとしているのは「開発エージェントのcontrol plane」
+
+ここからは僕の見方だけど、GitHubの本命はモデル販売ではない。**誰のモデルを使っても、開発エージェントの仕事をGitHub中心に流れるようにすること**だと思う。
+
+2026年4月7日のCLI更新が分かりやすい。GitHubはCopilot CLIでGitHub-hosted model routingを必須にせず、Azure OpenAI、Anthropic、OpenAI互換API、Ollama、vLLM、Foundry Localまで許容した。しかも `COPILOT_OFFLINE=true` でGitHubのサーバーに接続しないモードまで入れた。これは「GitHubのモデルを使ってください」という話ではない。逆に言えば、**推論はどこでやってもいいから、作業の導線はGitHubに残してほしい**という設計だ。
+
+この見方は、4月2日に公開された[GitHub Copilot SDKがパブリックプレビュー公開。自社アプリにCopilotエージェントを組み込める時代へ](/blog/github-copilot-sdk-public-preview-2026/)ともつながる。SDKでもGitHubは、Copilot CLIとcloud agentで実運用しているランタイムを外に配る方向を取っていた。今回BYOKとローカルモデルがCLI側に入ったことで、そのランタイムはさらに中立化した。GitHubは推論の供給者というより、**開発エージェントのOSとオーケストレータ**に近づいている。
+
+## Autopilotは「便利機能」ではなく信頼境界の再設計
+
+Autopilotの本質も、単なる自動化強化ではない。[VS Code 1.111のリリースノート](https://code.visualstudio.com/updates/v1_111)では、Autopilotはツールを自動承認し、エラー時に自動再試行し、自動で質問にも応じ、`task_complete` まで走り続けるとされている。つまりAutopilotとは、**エージェントにどこまで意思決定権を渡すかをUIとして明示したもの**だ。
+
+ここが重要だ。AIコーディング製品の多くは「何ができるか」を売るが、GitHubは今回「どこまで任せるか」を1つの製品面として出してきた。[VS Codeのセキュリティ文書](https://code.visualstudio.com/docs/copilot/security)でも、permission picker、terminal approval、tool approval、URL/domain approval、diff reviewの流れが分けて説明されている。自律性を高めつつ、同時に信頼境界をUI化しているわけだ。
+
+ただし、Autopilotが安全になったわけではない。リリースノートでは、Bypass ApprovalsとAutopilotは潜在的に破壊的な操作でも手動承認を無視すると警告している。だから、この機能を本当に企業導入するなら、「Autopilotを使うか」ではなく、**どのリポジトリで、どのユーザーが、どのコマンド境界で、どのブランチ保護の下で使うか**まで設計しないと危ない。
+
+## subagentと `/fleet` が示すもの
+
+Autopilotより個人的に面白いのは、subagent周りの変化だ。
+
+VS CodeのChangelogでは、subagentがさらにsubagentを呼べるネスト対応が入った。[VS Code docs](https://code.visualstudio.com/docs/copilot/agents/subagents)でも、main agentが複雑タスクを見て必要な部分だけをsubagentへ分離し、要約を受けて先へ進む流れが説明されている。一方、CLI側では4月1日に `/fleet` が入り、オーケストレータが依存関係を見ながら複数subagentを並列起動できるようになった。
+
+ここで面白いのは、ローカルUIとCLIで見せ方は違っても、裏にある思想が同じことだ。どちらも「1つの賢いモデルが全部やる」ではなく、**仕事を分解し、複数コンテキストへ割り振り、最後に合成する**ほうへ進んでいる。これは今後のコーディングエージェントの標準形にかなり近いと思う。
+
+以前このサイトで取り上げた[OpenAI Codexがプラグイン機能を導入——コーディングツールから「開発プラットフォーム」への転換点か？](/blog/openai-codex-plugins-platform-strategy-2026/)も、ツール接続と実行面の拡張が主題だった。でもGitHubの強みは、そこにGitHub本体のIssue、PR、branch protection、Actions、mobile、enterprise policyまで自然に接続できることだ。エージェント時代の競争は、モデルのIQだけではなく、**分解と実行と監査をどの作業面で回すか**へ完全に移り始めている。
+
+## Rubber Duckとcloud agentの既定レビューが意味すること
+
+4月6日の[Rubber Duck](https://github.blog/ai-and-ml/github-copilot/github-copilot-cli-combines-model-families-for-a-second-opinion/)は、見落とされやすいけどかなり重要だ。GitHubは、Claude familyをオーケストレータにしたとき、GPT-5.4を別系統レビュー役として呼び出し、難しい多ファイル・長時間タスクで性能向上が出たと説明している。評価ではSonnet + Rubber DuckがSonnet単独とOpus単独の差の74.7%を埋めたという。
+
+これは単に「二つのモデルを使える」という話ではない。GitHubは、**計画、実装、テストの途中に第二の視点を差し込む**ことを製品仕様にし始めた。さらに[cloud agentの設定ドキュメント](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/configuring-agent-settings)では、既定で生成コードに対してセキュリティチェックとCopilot code reviewをかけ、PR完了前に問題解消を試みるとある。つまりGitHubは、エージェントを“書く存在”としてだけでなく、**自分自身を点検する存在**として設計しようとしている。
+
+この流れは、日本企業にとってかなり重要だと思う。国内ではAI導入の議論が「どれだけ速いか」より「誰が責任を持つのか」で止まりやすい。Rubber Duckや既定レビューの価値は、単に精度を上げることではなく、**レビューをワークフローへ内蔵できること**にある。
+
+## 日本市場での勝ち筋はかなり明確
+
+日本の開発組織でこの動きが刺さるのは、大きく3層ある。
+
+まずスタートアップ。GitHubとVS Codeを既に使っているチームは多い。そこへCopilot CLI、cloud agent、Mobile、BYOKまで連結してきたら、専用AIエディタや複数エージェント製品を並行運用する理由はかなり減る。導入判断が単純になる。
+
+次にSIerや大企業の内製組織。ここでは、[GitHub Docsのcloud agent導入ガイド](https://docs.github.com/en/copilot/tutorials/cloud-agent/pilot-cloud-agent)が**低リスクなリポジトリでの試験導入、第二承認者の必須化、MCPや開発環境の事前整備**を明示しているのが効く。しかも同ガイドでは、cloud agentはGitHub上で自律的にタスクを進め、ドラフトPRを開き、複数のissueを並行処理できると説明している。つまり「いきなり全部自動化しましょう」ではなく、既存ガバナンスに乗せながら段階導入する道筋が最初から出ている。
+
+最後に金融や公共寄りの組織だ。4月7日のCLI更新でオフラインとローカルモデルが入ったのは大きい。日本では外部通信やデータ所在の制約が強い現場がまだ多い。そこで「GitHubのUXは使いたいが、推論は社内や閉域で回したい」という要求は現実にある。Copilot CLIがそこを取り込み始めたのは、かなり戦略的だ。
+
+## それでも残る論点
+
+もちろん、懸念点はある。
+
+1つ目は、Autopilotの責任分界だ。自動承認でどこまで許容するかを誤ると、便利さがそのまま事故率になる。
+
+2つ目は、製品メッセージが広がりすぎていることだ。VS Code、CLI、cloud agent、SDK、Mobile、MCP、Rubber Duck、`/fleet`。全部を追える人は多くない。GitHubがこの全体像をうまく説明できないと、ユーザーからは「機能が多いけど何を使えばいいか分からない」になりやすい。
+
+3つ目は、GitHub以外の競争相手も強いことだ。[GoogleがGemini API Docs MCPを公開した話](/blog/google-gemini-api-docs-mcp-agent-skills-2026/)が示したように、他社は「最新知識をどう与えるか」で差別化している。OpenAIやAnthropicはモデル品質とツール連携の深さで攻めている。だからGitHubの本当の勝負は、「全部入り」になることではなく、**GitHub上の開発フローに最も自然に溶け込むagent control planeになること**だろう。
+
+## まとめ
+
+GitHub CopilotのAutopilotは、2026年4月8日に突然出てきた便利機能ではない。4月1日の `/fleet`、4月6日のRubber Duck、4月7日のBYOK/ローカルモデル対応、4月8日のVS CodeとMobile拡張まで含めて見ると、GitHubは明確に**多エージェント開発の標準作業面**を狙っている。
+
+自分は今回の一連の更新を、AIコーディング市場の小さなUI改善ではなく、**「モデルを売る会社」と「エージェントの作業面を握る会社」が分かれ始めた瞬間**だと見ている。日本の開発チームにとっても、これから問われるのは「どのLLMが一番賢いか」だけではない。どの基盤が、分解、実行、レビュー、監査、モバイル継続までを一番自然に回せるかだ。GitHub Copilotは、その本命候補にかなり近づいてきた。
+
+## 出典
+
+- [GitHub Copilot in Visual Studio Code, March Releases](https://github.blog/changelog/2026-04-08-github-copilot-in-visual-studio-code-march-releases/) — GitHub Changelog, 2026-04-08
+- [Visual Studio Code 1.111](https://code.visualstudio.com/updates/v1_111) — Visual Studio Code, 2026-03-09
+- [Security](https://code.visualstudio.com/docs/copilot/security) — Visual Studio Code Docs, accessed 2026-04-09
+- [Subagents in Visual Studio Code](https://code.visualstudio.com/docs/copilot/agents/subagents) — Visual Studio Code Docs, accessed 2026-04-09
+- [GitHub Mobile: Research and code with Copilot cloud agent anywhere](https://github.blog/changelog/2026-04-08-github-mobile-research-and-code-with-copilot-cloud-agent-anywhere/) — GitHub Changelog, 2026-04-08
+- [Copilot CLI now supports BYOK and local models](https://github.blog/changelog/2026-04-07-copilot-cli-now-supports-byok-and-local-models/) — GitHub Changelog, 2026-04-07
+- [Run multiple agents at once with /fleet in Copilot CLI](https://github.blog/ai-and-ml/github-copilot/run-multiple-agents-at-once-with-fleet-in-copilot-cli/) — GitHub Blog, 2026-04-01
+- [GitHub Copilot CLI combines model families for a second opinion](https://github.blog/ai-and-ml/github-copilot/github-copilot-cli-combines-model-families-for-a-second-opinion/) — GitHub Blog, 2026-04-06
+- [Piloting GitHub Copilot cloud agent in your organization](https://docs.github.com/en/copilot/tutorials/cloud-agent/pilot-cloud-agent) — GitHub Docs, accessed 2026-04-09
+- [Configuring settings for GitHub Copilot cloud agent](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/configuring-agent-settings) — GitHub Docs, accessed 2026-04-09
