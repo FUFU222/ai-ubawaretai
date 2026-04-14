@@ -1,0 +1,78 @@
+---
+article: 'github-copilot-data-residency-fedramp-2026'
+level: 'child'
+---
+
+GitHubが2026年4月13日に、**GitHub Copilotのデータレジデンシー**と**FedRAMP対応**を一般提供しました。
+
+むずかしく見えますが、いちばん大事なのは、**Copilotがどこの地域で動くかを会社が前より細かく決められるようになった**ことです。
+
+最近の[Copilot SDK公開](/blog/github-copilot-sdk-public-preview-2026/)や[Copilot Proの運用制限強化](/blog/github-copilot-pro-trial-pause-rate-limits-2026/)を見ると、GitHubはCopilotを個人向けの補助機能ではなく、会社の開発基盤として整え始めています。今回の発表は、その中でも特に「どこで処理されるか」を決めるための土台です。
+
+これまでは「Copilotは便利そうだけど、コードやプロンプトがどこで処理されるのかが気になる」という会社が多くありました。今回GitHubは、Enterprise Cloud with data residencyを使う会社向けに、**Copilotの推論処理と関連データをUSまたはEUの中にとどめる設定**を出しました。
+
+しかも対象は一部ではありません。GitHubの説明では、agent mode、インライン補完、チャット、Copilot cloud agent、コードレビュー、PR要約、Copilot CLIまで、**一般提供されているCopilot機能全体**がこのルールの中で使えます。
+
+さらに米国リージョンでは、**FedRAMP Moderate準拠モデルだけに絞る設定**も使えます。これは米国政府向けの厳しめの基準に合わせたモデルだけを許可する仕組みです。日本の法律そのものではありませんが、「高いコンプライアンスを意識した運用ができる」という意味ではかなり大きいです。
+
+## 何に気をつければいいの？
+
+ここで気をつけたいのは、**使えるモデルが地域ごとに同じではない**ことです。
+
+GitHub Docsでは、USとEUで使えるモデル一覧が少し違います。たとえばEUではGPT-5.4が見えますが、US側は別のOpenAIモデルやClaude系が中心です。つまり、会社が「この地域で使う」と決めると、開発者が選べるモデルもその地域に合わせて変わります。
+
+しかもGitHubは、**Geminiモデルはまだ非対応**だと説明しています。理由は、Google Cloud側でデータレジデントな推論エンドポイントがまだ整っていないからです。
+
+## 日本ではすぐ使えるの？
+
+ここが今回いちばん重要なポイントです。
+
+GitHubは、今回のCopilotデータレジデンシー対応が**USとEUで開始**され、日本とオーストラリアは**2026年後半のロードマップ**だと案内しています。
+
+つまり、日本企業にとっては「完全に待望の答えが来た」というより、**方向は見えたけれど、日本リージョンはまだこれから**という状態です。
+
+ここがややこしいのは、GitHub Enterprise Cloud with data residency自体は、GitHub Docsで**Japanリージョン対応**が案内されていることです。つまり、GitHub本体のコードや企業データは日本リージョンに置けても、**Copilotの推論はまだ日本リージョンで閉じられない**というズレがあります。
+
+## 日本の会社にはどう関係するの？
+
+日本企業では、AIツールを入れる時に「本当に便利か」だけでは決まりません。
+
+- どこで処理されるのか
+- ログやテレメトリーはどこへ行くのか
+- 顧客や社内ルールに合うのか
+- 追加コストはいくらか
+
+こうした話が必ず出ます。
+
+今回の発表で、海外拠点を持つ会社やUS/EUで先に試せる会社は、Copilotを本番導入しやすくなります。一方で、「日本国内で完結してほしい」という条件が強い会社は、まだ少し待つ必要があります。
+
+## 追加コストもある
+
+GitHubは、データレジデンシーやFedRAMPの制限を有効にすると、**premium requestの倍率が10%増える**と説明しています。ふつう1回分の処理が1.1回分として数えられるイメージです。
+
+しかも、このポリシーは**デフォルトでオフ**です。会社の管理者が自分で有効にしないと適用されません。GitHubとしても、「便利だから全員すぐオンにする機能」ではなく、**コストと制約を理解して選ぶ機能**として出しているわけです。
+
+また、利用には比較的新しいクライアントも必要です。GitHub Docsでは、2025年以降に出たCopilot拡張やCLIなら、必要なポリシー強制にだいたい対応していると説明しています。
+
+## まとめ
+
+今回のニュースは、「Copilotの新機能が増えた」というだけではありません。
+
+**Copilotを企業がコンプライアンス前提で使いやすくする土台が、やっと見えてきた**という話です。
+
+ただし日本市場では、まだ日本リージョンが来ていません。なので今の段階では、
+
+- 海外拠点から先に使うのか
+- 日本リージョン対応を待つのか
+- 追加コストとモデル制限を受け入れるのか
+
+を会社ごとに考える必要があります。
+
+便利さだけでなく、**どこで動くかまで含めてCopilotを選ぶ時代**に入った、と考えるとわかりやすいです。
+
+## 参考資料
+
+- [Copilot data residency in US + EU and FedRAMP compliance now available](https://github.blog/changelog/2026-04-13-copilot-data-residency-in-us-eu-and-fedramp-compliance-now-available/) - GitHub Changelog
+- [GitHub Copilot with data residency](https://docs.github.com/en/enterprise-cloud@latest/admin/data-residency/github-copilot-with-data-residency) - GitHub Docs
+- [FedRAMP-compliant models for GitHub Copilot](https://docs.github.com/en/copilot/concepts/fedramp-models) - GitHub Docs
+- [About GitHub Enterprise Cloud with data residency](https://docs.github.com/en/enterprise-cloud@latest/admin/data-residency/about-github-enterprise-cloud-with-data-residency) - GitHub Docs
