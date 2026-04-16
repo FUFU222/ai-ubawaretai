@@ -187,7 +187,11 @@ async function main() {
     ],
   });
 
-  const articleContent = message.content[0].text;
+  const firstBlock = message.content[0];
+  if (!firstBlock || firstBlock.type !== 'text') {
+    throw new Error(`Claude API が予期しない応答を返しました: ${JSON.stringify(message.content)}`);
+  }
+  const articleContent = firstBlock.text;
 
   // frontmatter からスラッグを生成
   const titleMatch = articleContent.match(/title:\s*"([^"]+)"/);
