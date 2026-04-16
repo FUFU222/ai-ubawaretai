@@ -9,6 +9,8 @@ import Parser from 'rss-parser';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const parser = new Parser({ timeout: 10000 });
 
+const SOURCE_TYPE_PRIORITY = { official: 4, news: 3, expert: 2, newsletter: 2, community: 1 };
+
 /**
  * 全RSSフィードを取得して直近のニュースを返す
  * @param {number} hoursBack - 何時間前までのニュースを取得するか
@@ -57,9 +59,8 @@ export async function fetchAllFeeds(hoursBack = 48) {
   );
 
   // ソート: 公式ブログ > ニュース > エキスパート > コミュニティ、新しい順
-  const typePriority = { official: 4, news: 3, expert: 2, newsletter: 2, community: 1 };
   recent.sort((a, b) => {
-    const pDiff = (typePriority[b.sourceType] || 0) - (typePriority[a.sourceType] || 0);
+    const pDiff = (SOURCE_TYPE_PRIORITY[b.sourceType] || 0) - (SOURCE_TYPE_PRIORITY[a.sourceType] || 0);
     if (pDiff !== 0) return pDiff;
     return b.pubDate - a.pubDate;
   });

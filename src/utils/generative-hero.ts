@@ -38,29 +38,13 @@ function extractKeywords(title: string): { main: string; sub: string; accent?: s
 		.map((s) => s.trim())
 		.filter((s) => s.length > 0);
 
-	// Known brand/product names to prioritize as main keyword
-	const brands = [
-		'OpenAI', 'Claude', 'Gemini', 'GPT', 'Copilot', 'Sora', 'Codex',
-		'Anthropic', 'Google', 'Meta', 'Apple', 'Microsoft', 'GitHub',
-		'Shopify', 'Wikipedia', 'Mistral', 'Arm', 'Alibaba', 'Qwen',
-		'ChatGPT', 'Mythos', 'Lyria', 'Voxtral', 'Cursor', 'Jira',
-	];
-
-	// Action/impact words that make good main keywords
-	const impactWords = [
-		'発表', '公開', '登場', '開始', '終了', '撤退', '買収', '連携',
-		'革命', '衝撃', '転換', '進化', '崩壊', '対決', '決戦', '変革',
-		'禁止', '制限', '解禁', '参入', '独占', '統合', '分裂',
-		'誕生', '消滅', '復活', '挑戦', '突破', '逆転', '加速',
-	];
-
 	let main = '';
 	let sub = '';
 	let accent = '';
 
 	// Find the brand name that appears earliest in the title
 	let earliestPos = Infinity;
-	for (const brand of brands) {
+	for (const brand of BRANDS) {
 		const pos = title.indexOf(brand);
 		if (pos !== -1 && pos < earliestPos) {
 			earliestPos = pos;
@@ -69,7 +53,7 @@ function extractKeywords(title: string): { main: string; sub: string; accent?: s
 	}
 
 	// Try to find an impact word for accent
-	for (const word of impactWords) {
+	for (const word of IMPACT_WORDS) {
 		if (title.includes(word) && word !== main) {
 			accent = word;
 			break;
@@ -111,6 +95,22 @@ function extractKeywords(title: string): { main: string; sub: string; accent?: s
 
 	return { main: main || title.slice(0, 6), sub, accent };
 }
+
+// Known brand/product names to prioritize as main keyword
+const BRANDS = [
+	'OpenAI', 'Claude', 'Gemini', 'GPT', 'Copilot', 'Sora', 'Codex',
+	'Anthropic', 'Google', 'Meta', 'Apple', 'Microsoft', 'GitHub',
+	'Shopify', 'Wikipedia', 'Mistral', 'Arm', 'Alibaba', 'Qwen',
+	'ChatGPT', 'Mythos', 'Lyria', 'Voxtral', 'Cursor', 'Jira',
+];
+
+// Action/impact words that make good main keywords
+const IMPACT_WORDS = [
+	'発表', '公開', '登場', '開始', '終了', '撤退', '買収', '連携',
+	'革命', '衝撃', '転換', '進化', '崩壊', '対決', '決戦', '変革',
+	'禁止', '制限', '解禁', '参入', '独占', '統合', '分裂',
+	'誕生', '消滅', '復活', '挑戦', '突破', '逆転', '加速',
+];
 
 const FF = `'Noto Serif JP','Hiragino Mincho ProN','Yu Mincho','MS PMincho',serif`;
 
