@@ -11,7 +11,10 @@
     "postbuild": "node scripts/postbuild-sitemap-alias.mjs",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "node --test --test-concurrency=1"
+    "test": "node --test --test-concurrency=1",
+    "publisher:status": "node scripts/publisher-workspace.mjs status --memory /Users/fufu/.codex/automations/ai-news-jp-publisher/memory.md",
+    "publisher:preflight": "node scripts/publisher-workspace.mjs preflight --memory /Users/fufu/.codex/automations/ai-news-jp-publisher/memory.md",
+    "publisher:clean": "node scripts/publisher-workspace.mjs clean"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
