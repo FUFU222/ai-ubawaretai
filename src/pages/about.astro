@@ -19,6 +19,9 @@ const personLd = personJsonLd();
 		<main>
 			<article class="about">
 				<h1>About</h1>
+				<p class="about-lead">
+					「AIに仕事を奪われたい」は、海外の一次ソースを軸にAI業界の変化を整理し、日本の開発者や事業担当者にとって何が重要かを読み解くための独立系メディアです。
+				</p>
 
 				<section>
 					<h2>「奪われたい」の真意</h2>
@@ -36,6 +39,7 @@ const personLd = personJsonLd();
 				<section>
 					<h2>書いてる人</h2>
 					<p class="author-name">{SITE_AUTHOR}</p>
+					<p class="author-role">{SITE_AUTHOR_DESCRIPTION}</p>
 					<p>
 						消防士として約10年、命に関わる現場に携わってきました。
 						その後、独学でプログラミングを学び、NFT関連プロジェクトへの参画をきっかけにソフトウェア開発の道へ進みました。
@@ -45,18 +49,28 @@ const personLd = personJsonLd();
 						現在はSNSマーケティング会社でフルスタック開発に携わりながら、海外のAIニュースや主要プロダクトのアップデートを継続的に追っています。
 						「昨日までは難しかったことが、今日には現実になっている」という変化の速さに、今も強い面白さを感じています。
 					</p>
+					<p>
+						このブログでは、単なる翻訳や要約ではなく、「発表のどこが本質か」「日本の開発組織やスタートアップにどう効くか」を追加で整理することを自分の役割にしています。
+					</p>
 				</section>
 
 				<section>
-					<h2>このブログについて</h2>
+					<h2>このブログが大事にしていること</h2>
+					<ul class="principles">
+						<li>公式ブログ、公式ドキュメント、changelog、論文など一次ソースを優先する</li>
+						<li>ただの要約で終わらせず、日本市場への意味と実務上の含意を加える</li>
+						<li>検索流入だけを狙った量産ではなく、読者が「何が変わったか」を短時間でつかめる記事を出す</li>
+						<li>誤りや更新があれば修正し、訂正導線を残す</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>記事の作り方</h2>
 					<p>
-						本ブログでは、海外の公式ブログやテックメディアから得たAI関連の最新情報を、開発者目線で整理してお届けしています。
-						新しいモデルの発表、大型アップデート、業界の転換点など、変化の早い話題をできるだけわかりやすくまとめることを心がけています。
+						記事は、まず一次ソースの確認から始めます。公式発表、製品ドキュメント、価格ページ、研究論文、規制文書などを先に読み、必要な場合だけ補助的に二次ソースを参照します。
 					</p>
 					<p>
-						AI分野は進化が非常に速く、追いかけるだけでも大変です。
-						それでも、そのスピードそのものに価値があると考えています。
-						読者の方に「何が変わったのか」「なぜ注目すべきなのか」を短時間でご覧いただける記事を目指しています。
+						そのうえで、「何が起きたか」だけでなく、「どの読者に関係するのか」「競争環境や導入判断にどう影響するのか」を加えて整理します。翻訳調の言い換えだけで終わる記事は出さない方針です。
 					</p>
 				</section>
 
@@ -71,9 +85,21 @@ const personLd = personJsonLd();
 				</section>
 
 				<section>
+					<h2>透明性と訂正について</h2>
+					<p>
+						記事末尾には出典を明記し、後から情報が変わった場合は更新します。誤りのご指摘や補足提案は、<a href="/contact">お問い合わせページ</a>から受け付けています。
+					</p>
+					<p>
+						また、記事制作の考え方やAI利用方針は、<a href="/editorial-policy">編集方針ページ</a>にまとめています。広告やアフィリエイトを掲載する場合も、編集判断は独立して行います。
+					</p>
+				</section>
+
+				<section>
 					<h2>リンク</h2>
 					<ul>
 						<li><a href={GITHUB_URL} target="_blank" rel="noopener">GitHub</a></li>
+						<li><a href="/editorial-policy">編集方針</a></li>
+						<li><a href="/contact">お問い合わせ</a></li>
 					</ul>
 				</section>
 			</article>
@@ -88,18 +114,30 @@ const personLd = personJsonLd();
 		margin-top: 2rem;
 	}
 
+	.about-lead {
+		font-size: 1.03rem;
+		line-height: 1.95;
+		color: var(--color-text-heading);
+	}
+
 	.author-name {
 		font-size: 1.5rem;
 		font-weight: 700;
 		color: var(--color-text-heading);
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.25rem;
 	}
 
-	.career li {
-		margin-bottom: 0.5rem;
+	.author-role {
+		margin-top: 0;
+		color: var(--color-text-muted);
+		font-size: 0.95rem;
 	}
 
 	ul {
 		padding-left: 1.5em;
+	}
+
+	.principles li {
+		margin-bottom: 0.65rem;
 	}
 </style>

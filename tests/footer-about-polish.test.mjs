@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const rootDir = fileURLToPath(new URL('..', import.meta.url));
 
-test('build uses structured footer sections and polished About copy', () => {
+test('build uses structured footer sections and trust-oriented About copy', () => {
 	execFileSync('npm', ['run', 'build'], { cwd: rootDir, stdio: 'pipe' });
 
 	const aboutHtml = readFileSync(join(rootDir, 'dist', 'about', 'index.html'), 'utf8');
@@ -16,8 +16,10 @@ test('build uses structured footer sections and polished About copy', () => {
 	assert.match(aboutHtml, /class="footer-meta"/);
 	assert.match(aboutHtml, /class="footer-eyebrow"/);
 
-	assert.match(aboutHtml, /本ブログでは/);
-	assert.match(aboutHtml, /ご覧いただける/);
+	assert.match(aboutHtml, /独立系メディア/);
+	assert.match(aboutHtml, /このブログが大事にしていること/);
+	assert.match(aboutHtml, /一次ソースを優先する/);
+	assert.match(aboutHtml, /\/editorial-policy/);
 	assert.doesNotMatch(aboutHtml, /でも僕は/);
 	assert.doesNotMatch(aboutHtml, /割と本気で/);
 	assert.doesNotMatch(aboutHtml, /うわ、まじか/);

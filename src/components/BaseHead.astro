@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { SITE_TITLE } from '../consts';
+import { SITE_AUTHOR, SITE_TITLE } from '../consts';
 
 interface Props {
 	title: string;
@@ -54,6 +54,7 @@ const adsenseClientId = import.meta.env.ADSENSE_CLIENT_ID || '';
 <title>{title}</title>
 <meta name="title" content={title} />
 <meta name="description" content={description} />
+<meta name="author" content={SITE_AUTHOR} />
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={type} />

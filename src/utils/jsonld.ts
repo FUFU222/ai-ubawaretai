@@ -1,4 +1,4 @@
-import { SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, SITE_TITLE, GITHUB_URL } from '../consts';
+import { SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, SITE_TITLE, GITHUB_URL, SITE_URL } from '../consts';
 
 export function personJsonLd() {
 	return {
@@ -6,8 +6,13 @@ export function personJsonLd() {
 		'@type': 'Person',
 		name: SITE_AUTHOR,
 		description: SITE_AUTHOR_DESCRIPTION,
-		url: GITHUB_URL,
+		url: `${SITE_URL}/about`,
 		jobTitle: 'フルスタックエンジニア',
+		worksFor: {
+			'@type': 'Organization',
+			name: SITE_TITLE,
+			url: SITE_URL,
+		},
 		sameAs: [GITHUB_URL],
 	};
 }
@@ -31,11 +36,12 @@ export function articleJsonLd(params: {
 		author: {
 			'@type': 'Person',
 			name: SITE_AUTHOR,
-			url: GITHUB_URL,
+			url: `${SITE_URL}/about`,
 		},
 		publisher: {
 			'@type': 'Organization',
 			name: SITE_TITLE,
+			url: SITE_URL,
 		},
 		mainEntityOfPage: {
 			'@type': 'WebPage',

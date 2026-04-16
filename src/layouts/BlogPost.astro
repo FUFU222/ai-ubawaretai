@@ -10,7 +10,7 @@ import BackToTop from '../components/BackToTop.astro';
 import ReadingTime from '../components/ReadingTime.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
 import TOC from '../components/TOC.astro';
-import { SITE_TITLE } from '../consts';
+import { SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, GITHUB_URL, SITE_TITLE } from '../consts';
 import ArticleLevelSwitcher from '../components/ArticleLevelSwitcher.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
 import { hasArticleLevelSwitcher, type ArticleLevelAvailability } from '../utils/articleLevels';
@@ -66,6 +66,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 				<div class="article-header">
 					<div class="meta">
 						<a href={categoryPath} class="category-badge">{categoryLabel}</a>
+						<a href="/about" class="author-link">{SITE_AUTHOR}</a>
 						<FormattedDate date={pubDate} />
 						{
 							updatedDate && (
@@ -99,6 +100,26 @@ const breadcrumbLd = breadcrumbJsonLd([
 				</div>
 
 				<AdSense label="記事下" format="rectangle" />
+
+				<section class="article-trust-box" aria-label="記事制作情報">
+					<p class="trust-eyebrow">Who / How / Why</p>
+					<h2>この記事について</h2>
+					<p class="trust-copy">
+						執筆者は {SITE_AUTHOR}。{SITE_AUTHOR_DESCRIPTION}
+						このサイトでは、公式ブログ、公式ドキュメント、changelog、論文などの一次ソースを優先し、その内容を日本の開発者・事業担当者向けに整理しています。
+					</p>
+					<ul class="trust-list">
+						<li>一次ソース優先で事実確認</li>
+						<li>日本市場と実務への影響を追加で分析</li>
+						<li>誤りの指摘はお問い合わせから受付</li>
+					</ul>
+					<div class="trust-links">
+						<a href="/about">運営者情報</a>
+						<a href="/editorial-policy">編集方針</a>
+						<a href="/contact">訂正・お問い合わせ</a>
+						<a href={GITHUB_URL} target="_blank" rel="noopener">GitHub</a>
+					</div>
+				</section>
 
 				<RelatedPosts currentId={id ?? ''} category={category} tags={tags ?? []} />
 			</article>
@@ -151,6 +172,17 @@ const breadcrumbLd = breadcrumbJsonLd([
 		text-decoration: none;
 	}
 
+	.author-link {
+		color: var(--color-text-muted);
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	.author-link:hover {
+		color: var(--color-primary-light);
+		text-decoration: none;
+	}
+
 	.category-badge:hover {
 		background-color: rgba(59, 130, 246, 0.25);
 		text-decoration: none;
@@ -191,6 +223,59 @@ const breadcrumbLd = breadcrumbJsonLd([
 		margin: 1.5rem 0;
 	}
 
+	.article-trust-box {
+		margin-top: 2rem;
+		padding: 1.25rem;
+		border: 1px solid var(--color-border);
+		border-radius: 14px;
+		background: color-mix(in srgb, var(--color-bg-card) 88%, transparent);
+	}
+
+	.article-trust-box h2 {
+		font-size: 1.1rem;
+		margin: 0.25rem 0 0.75rem;
+	}
+
+	.trust-eyebrow {
+		margin: 0;
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+
+	.trust-copy {
+		margin-bottom: 0.85rem;
+		color: var(--color-text-muted);
+	}
+
+	.trust-list {
+		margin: 0 0 1rem;
+		padding-left: 1.2rem;
+	}
+
+	.trust-list li {
+		margin-bottom: 0.4rem;
+	}
+
+	.trust-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+	}
+
+	.trust-links a {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.45rem 0.7rem;
+		border-radius: 999px;
+		background: rgba(59, 130, 246, 0.08);
+		font-size: 0.85rem;
+		text-decoration: none;
+	}
+
 	.prose.is-level-switching-out {
 		opacity: 0.24;
 		transform: translateY(-6px);
@@ -214,6 +299,10 @@ const breadcrumbLd = breadcrumbJsonLd([
 	@media (max-width: 768px) {
 		h1 {
 			font-size: 1.4rem;
+		}
+
+		.article-trust-box {
+			padding: 1rem;
 		}
 	}
 
