@@ -75,6 +75,38 @@ function collectReasons(candidate, haystack) {
 	return reasons;
 }
 
+function splitMemorySections(memoryText) {
+	const sections = memoryText
+		.split(/^## /m)
+		.filter(Boolean)
+		.map((section) => `## ${section}`.trim());
+
+	return sections.length > 0 ? sections : [memoryText];
+}
+
+function isUnpublishedRetrySection(sectionText, candidate) {
+	const haystack = normalize(sectionText);
+	const slug = normalize(candidate.slug);
+	if (!slug || !haystack.includes(slug)) {
+		return false;
+	}
+
+	for (const marker of [
+		'publish 成否 未公開',
+		'publish成否未公開',
+		'staging 残存',
+		'staging残存',
+		'unpublished commit なし',
+		'unpublished commitなし',
+	]) {
+		if (haystack.includes(normalize(marker))) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 export function checkDuplicateCandidate({ candidate, blogDir, memoryPath }) {
 	const matches = [];
 	const blogEntries = listBlogEntries(blogDir);
@@ -89,10 +121,17 @@ export function checkDuplicateCandidate({ candidate, blogDir, memoryPath }) {
 	}
 
 	if (memoryPath && existsSync(memoryPath)) {
-		const memoryText = normalize(readFileSync(memoryPath, 'utf8'));
-		const reasons = collectReasons(candidate, memoryText);
-		if (reasons.includes('title') || reasons.length >= 2) {
-			matches.push({ type: 'memory', source: resolve(memoryPath), reasons });
+		const memoryText = readFileSync(memoryPath, 'utf8');
+		for (const sectionText of splitMemorySections(memoryText)) {
+			if (isUnpublishedRetrySection(sectionText, candidate)) {
+				continue;
+			}
+
+			const reasons = collectReasons(candidate, normalize(sectionText));
+			if (reasons.includes('title') || reasons.length >= 2) {
+				matches.push({ type: 'memory', source: resolve(memoryPath), reasons });
+				break;
+			}
 		}
 	}
 

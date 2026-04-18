@@ -51,6 +51,43 @@ OpenAI が Cloudflare と組んで Agent Cloud を拡張した話。`,
 	}
 });
 
+test('duplicate check ignores memory entry for same unpublished staged candidate', async () => {
+	const root = mkdtempSync(join(tmpdir(), 'publisher-content-'));
+	const blogDir = join(root, 'src', 'content', 'blog');
+	const memoryPath = join(root, 'memory.md');
+
+	try {
+		mkdirSync(blogDir, { recursive: true });
+		writeFileSync(
+			memoryPath,
+			`## 2026-04-18 12:17 JST
+
+- 採用候補: \`anthropic-claude-opus-47-agentic-coding-2026\`
+- publish 成否: 未公開
+- staging 残存: \`.publisher-staging/anthropic-claude-opus-47-agentic-coding-2026/\` を保持したまま停止
+`,
+		);
+
+		const { checkDuplicateCandidate } = await import(moduleUrl);
+		const result = checkDuplicateCandidate({
+			blogDir,
+			memoryPath,
+			candidate: {
+				slug: 'anthropic-claude-opus-47-agentic-coding-2026',
+				title: 'AnthropicのClaude Opus 4.7公開',
+				company: 'Anthropic',
+				date: '2026-04-16',
+				intent: 'Claude Opus 4.7の一般提供開始と実務インパクト',
+			},
+		});
+
+		assert.equal(result.isDuplicate, false);
+		assert.deepEqual(result.matches, []);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('promoteStagedArticle copies staged files into publish locations and removes staging', async () => {
 	const root = mkdtempSync(join(tmpdir(), 'publisher-promote-'));
 	const stagingRoot = join(root, '.publisher-staging');
