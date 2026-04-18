@@ -32,6 +32,28 @@ function stripQuotes(value) {
 	return String(value || '').replace(/^['"]|['"]$/g, '');
 }
 
+function normalizeSearchText(value) {
+	return String(value || '')
+		.normalize('NFKC')
+		.toLowerCase()
+		.replace(/\s+/g, ' ')
+		.trim();
+}
+
+function extractSearchIntentTokens(value) {
+	const normalized = normalizeSearchText(value)
+		.replace(/[「」『』（）()【】［］\[\]、。！？!?・,，/／:：;；]/g, ' ')
+		.replace(/とは何か|について|を知りたい|知りたい|意味を知りたい|意味|解説|まとめ/g, ' ')
+		.replace(/[のをにへでとやがはも]/g, ' ');
+
+	return [...new Set(
+		normalized
+			.split(/\s+/)
+			.map((token) => token.trim())
+			.filter((token) => token.length >= 2),
+	)];
+}
+
 function countH2(body) {
 	return (body.match(/^## /gm) || []).length;
 }
@@ -115,11 +137,8 @@ function auditMainArticle(mainPath, candidate) {
 	if (countSourceLinks(body) < 2) errors.push('main article must include at least 2 source links');
 	if (hasPlaceholderText(body)) errors.push('main article contains placeholder text');
 
-	const keywordHaystack = `${title} ${description} ${body.slice(0, 600)}`;
-	const searchTokens = String(candidate.searchIntent || '')
-		.split(/\s+/)
-		.map((token) => token.trim())
-		.filter((token) => token.length >= 2);
+	const keywordHaystack = normalizeSearchText(`${title} ${description} ${body.slice(0, 600)}`);
+	const searchTokens = extractSearchIntentTokens(candidate.searchIntent);
 	const matchedKeywords = searchTokens.filter((token) => keywordHaystack.includes(token));
 	if (searchTokens.length > 0 && matchedKeywords.length === 0) {
 		errors.push('main article does not reflect search intent keywords');
