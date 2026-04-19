@@ -14,7 +14,8 @@
     "test": "node --test --test-concurrency=1",
     "publisher:status": "node scripts/publisher-workspace.mjs status --memory /Users/fufu/.codex/automations/ai-news-jp-publisher/memory.md",
     "publisher:preflight": "node scripts/publisher-workspace.mjs preflight --memory /Users/fufu/.codex/automations/ai-news-jp-publisher/memory.md",
-    "publisher:clean": "node scripts/publisher-workspace.mjs clean"
+    "publisher:clean": "node scripts/publisher-workspace.mjs clean",
+    "publisher:push-main": "node scripts/publisher-workspace.mjs push-main"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
