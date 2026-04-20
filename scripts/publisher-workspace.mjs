@@ -12,6 +12,14 @@ function run(command, args, options = {}) {
 	return typeof output === 'string' ? output.trim() : '';
 }
 
+function getGitConfig(key, { cwd, execFileSyncImpl = execFileSync } = {}) {
+	try {
+		return run('git', ['config', '--get', key], { cwd, execFileSyncImpl });
+	} catch {
+		return '';
+	}
+}
+
 function tryRun(command, args, options = {}) {
 	try {
 		return run(command, args, options);
@@ -52,6 +60,29 @@ function isTransientGitRemoteError(error) {
 function sleepMs(ms) {
 	if (!ms || ms <= 0) return;
 	Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function toHttpsRemoteUrl(remoteUrl) {
+	const value = String(remoteUrl || '').trim();
+	if (!value) return '';
+	if (value.startsWith('https://')) return value;
+
+	const scpLikeMatch = value.match(/^git@github\.com:(.+)$/);
+	if (scpLikeMatch) {
+		return `https://github.com/${scpLikeMatch[1]}`;
+	}
+
+	const sshLikeMatch = value.match(/^ssh:\/\/git@github\.com\/(.+)$/);
+	if (sshLikeMatch) {
+		return `https://github.com/${sshLikeMatch[1]}`;
+	}
+
+	return '';
+}
+
+function resolveFetchTarget({ cwd, remoteName = 'origin', execFileSyncImpl = execFileSync } = {}) {
+	const remoteUrl = getGitConfig(`remote.${remoteName}.url`, { cwd, execFileSyncImpl });
+	return toHttpsRemoteUrl(remoteUrl) || remoteName;
 }
 
 function runGitWithRetry(commandArgs, options = {}) {
@@ -170,9 +201,10 @@ export function preflight({
 	retryDelayMs = 1500,
 } = {}) {
 	const resolvedMemoryPath = assertReadableFile(memoryPath);
+	const fetchTarget = resolveFetchTarget({ cwd, execFileSyncImpl });
 
 	ensureCleanWorktree(cwd, { execFileSyncImpl });
-	runGitWithRetry(['fetch', 'origin', 'main'], {
+	runGitWithRetry(['fetch', fetchTarget, 'main'], {
 		cwd,
 		stdio: 'inherit',
 		execFileSyncImpl,

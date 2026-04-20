@@ -40,7 +40,7 @@ function setupRepos() {
 
 	writeFileSync(memoryPath, '# memory\n');
 
-	return { root, workerDir, memoryPath };
+	return { root, remoteDir, workerDir, memoryPath };
 }
 
 test('preflight reattaches detached HEAD and fast-forwards main to origin/main', async () => {
@@ -141,6 +141,47 @@ test('preflight retries a transient git fetch failure before succeeding', async 
 
 		assert.equal(report.branch, 'main');
 		assert.equal(fetchAttempts, 2);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('preflight prefers derived HTTPS fetch target for GitHub SSH remotes', async () => {
+	const { root, remoteDir, workerDir, memoryPath } = setupRepos();
+
+	try {
+		git(workerDir, ['remote', 'set-url', 'origin', 'git@github.com:FUFU222/ai-ubawaretai.git']);
+
+		const { preflight } = await import(moduleUrl);
+		const originalExecFileSync = execFileSync;
+		const seenFetchTargets = [];
+
+		function transportAwareExec(command, args, options = {}) {
+			if (command === 'git' && args[0] === 'fetch') {
+				seenFetchTargets.push(args[1]);
+				if (args[1] === 'https://github.com/FUFU222/ai-ubawaretai.git') {
+					return originalExecFileSync(
+						'git',
+						['fetch', remoteDir, 'main:refs/remotes/origin/main'],
+						options,
+					);
+				}
+			}
+
+			return originalExecFileSync(command, args, options);
+		}
+
+		const report = preflight({
+			cwd: workerDir,
+			memoryPath,
+			skipInstall: true,
+			skipChecks: true,
+			execFileSyncImpl: transportAwareExec,
+		});
+
+		assert.equal(report.branch, 'main');
+		assert.deepEqual(seenFetchTargets, ['https://github.com/FUFU222/ai-ubawaretai.git']);
+		assert.equal(git(workerDir, ['rev-parse', 'HEAD']), git(workerDir, ['rev-parse', 'origin/main']));
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}
