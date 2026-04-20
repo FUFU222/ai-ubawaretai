@@ -123,6 +123,56 @@ test('duplicate check ignores status-only memory sections that merely mention th
 	}
 });
 
+test('duplicate check prefers structured state over freeform memory when state exists', async () => {
+	const root = mkdtempSync(join(tmpdir(), 'publisher-content-'));
+	const blogDir = join(root, 'src', 'content', 'blog');
+	const memoryPath = join(root, 'memory.md');
+	const statePath = join(root, 'publisher-state.jsonl');
+
+	try {
+		mkdirSync(blogDir, { recursive: true });
+		writeFileSync(
+			memoryPath,
+			`## 2026-04-21T00:00:00Z note
+
+- nextStagedCandidate: \`cyberagent-chatgpt-enterprise-codex-japan-2026\`
+`,
+		);
+		writeFileSync(
+			statePath,
+			`${JSON.stringify({
+				recordedAt: '2026-04-21T00:00:00Z',
+				slug: 'other-entry',
+				title: 'Other entry',
+				company: 'Other',
+				date: '2026-04-20',
+				intent: 'Other intent',
+				outcome: 'quality_rejected',
+				publishStatus: 'unpublished',
+				stagingRetained: false,
+			})}\n`,
+		);
+
+		const { checkDuplicateCandidate } = await import(moduleUrl);
+		const result = checkDuplicateCandidate({
+			blogDir,
+			memoryPath,
+			candidate: {
+				slug: 'cyberagent-chatgpt-enterprise-codex-japan-2026',
+				title: 'サイバーエージェントがChatGPT EnterpriseとCodexを導入',
+				company: 'CyberAgent',
+				date: '2026-04-20',
+				intent: 'ChatGPT EnterpriseとCodexの導入事例',
+			},
+		});
+
+		assert.equal(result.isDuplicate, false);
+		assert.deepEqual(result.matches, []);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('promoteStagedArticle copies staged files into publish locations and removes staging', async () => {
 	const root = mkdtempSync(join(tmpdir(), 'publisher-promote-'));
 	const stagingRoot = join(root, '.publisher-staging');
@@ -152,6 +202,51 @@ test('promoteStagedArticle copies staged files into publish locations and remove
 			'# expert\n',
 		);
 		assert.equal(existsSync(stagedDir), false);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('promoteStagedArticle records a published entry in structured state when memory path is provided', async () => {
+	const root = mkdtempSync(join(tmpdir(), 'publisher-promote-'));
+	const stagingRoot = join(root, '.publisher-staging');
+	const memoryPath = join(root, 'memory.md');
+	const slug = 'test-slug';
+	const stagedDir = join(stagingRoot, slug);
+
+	try {
+		writeFileSync(memoryPath, '# memory\n');
+		mkdirSync(join(root, 'src', 'content', 'blog'), { recursive: true });
+		mkdirSync(join(root, 'src', 'content', 'blog-levels', slug), { recursive: true });
+		mkdirSync(stagedDir, { recursive: true });
+
+		writeFileSync(
+			join(stagedDir, 'candidate.json'),
+			JSON.stringify({
+				slug,
+				title: 'テスト候補',
+				company: 'OpenAI',
+				date: '2026-04-21',
+				intent: 'テスト候補の意味を解説',
+				searchIntent: 'OpenAI テスト候補',
+				whyUnique: 'テスト',
+			}, null, 2),
+		);
+		writeFileSync(join(stagedDir, 'main.md'), '# main\n');
+		writeFileSync(join(stagedDir, 'child.md'), '# child\n');
+		writeFileSync(join(stagedDir, 'expert.md'), '# expert\n');
+
+		const { promoteStagedArticle } = await import(moduleUrl);
+		promoteStagedArticle({ cwd: root, slug, memoryPath });
+
+		const stateEntries = readFileSync(join(root, 'publisher-state.jsonl'), 'utf8')
+			.trim()
+			.split('\n')
+			.map((line) => JSON.parse(line));
+		assert.equal(stateEntries.length, 1);
+		assert.equal(stateEntries[0].slug, slug);
+		assert.equal(stateEntries[0].outcome, 'published');
+		assert.equal(stateEntries[0].publishStatus, 'published');
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

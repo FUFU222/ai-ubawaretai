@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -325,6 +325,50 @@ test('cleanPublisherState removes only the targeted staged candidate when slug i
 			listStagedCandidates({ cwd: workerDir }).map((candidate) => candidate.slug),
 			['keep-me'],
 		);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('cleanPublisherState records a structured rejection when memory path is provided', async () => {
+	const { root, workerDir, memoryPath } = setupRepos();
+
+	try {
+		const slug = 'remove-me';
+		const stagedDir = join(workerDir, '.publisher-staging', slug);
+		mkdirSync(stagedDir, { recursive: true });
+		for (const filename of ['main.md', 'child.md', 'expert.md']) {
+			writeFileSync(join(stagedDir, filename), `${slug}-${filename}\n`);
+		}
+		writeFileSync(
+			join(stagedDir, 'candidate.json'),
+			JSON.stringify({
+				slug,
+				title: '削除テスト候補',
+				company: 'OpenAI',
+				date: '2026-04-21',
+				intent: '削除理由の記録確認',
+				searchIntent: 'OpenAI 削除テスト候補',
+				whyUnique: '削除理由の記録',
+			}, null, 2),
+		);
+
+		const { cleanPublisherState } = await import(moduleUrl);
+		cleanPublisherState({
+			cwd: workerDir,
+			slug,
+			memoryPath,
+			reason: 'duplicate_rejected',
+		});
+
+		const entries = readFileSync(join(root, 'publisher-state.jsonl'), 'utf8')
+			.trim()
+			.split('\n')
+			.map((line) => JSON.parse(line));
+		assert.equal(entries.length, 1);
+		assert.equal(entries[0].slug, slug);
+		assert.equal(entries[0].outcome, 'duplicate_rejected');
+		assert.equal(entries[0].publishStatus, 'unpublished');
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

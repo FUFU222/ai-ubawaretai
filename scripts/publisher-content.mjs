@@ -1,5 +1,6 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { loadPublisherState, recordCandidateState } from './publisher-state.mjs';
 
 function normalize(value) {
 	return String(value || '')
@@ -130,7 +131,36 @@ export function checkDuplicateCandidate({ candidate, blogDir, memoryPath }) {
 		}
 	}
 
-	if (memoryPath && existsSync(memoryPath)) {
+	const stateEntries = memoryPath ? loadPublisherState({ memoryPath }) : [];
+	if (stateEntries.length > 0) {
+		for (const entry of stateEntries) {
+			if (entry.slug === candidate.slug && entry.publishStatus !== 'published') {
+				continue;
+			}
+
+			const reasons = collectReasons(
+				candidate,
+				normalize(
+					[
+						entry.slug,
+						entry.title,
+						entry.company,
+						entry.date,
+						entry.intent,
+						entry.searchIntent,
+						entry.whyUnique,
+						...(entry.topicsToAvoid || []),
+						...(entry.duplicateReasons || []),
+					].join(' '),
+				),
+			);
+
+			if (reasons.includes('title') || reasons.length >= 2) {
+				matches.push({ type: 'state', source: 'publisher-state.jsonl', reasons });
+				break;
+			}
+		}
+	} else if (memoryPath && existsSync(memoryPath)) {
 		const memoryText = readFileSync(memoryPath, 'utf8');
 		for (const sectionText of splitMemorySections(memoryText)) {
 			if (isUnpublishedRetrySection(sectionText, candidate)) {
@@ -157,8 +187,10 @@ export function promoteStagedArticle({
 	cwd = process.cwd(),
 	slug,
 	stagingDir = '.publisher-staging',
+	memoryPath,
 } = {}) {
 	const stagedDir = resolve(cwd, stagingDir, slug);
+	const candidateSource = resolve(stagedDir, 'candidate.json');
 	const mainSource = resolve(stagedDir, 'main.md');
 	const childSource = resolve(stagedDir, 'child.md');
 	const expertSource = resolve(stagedDir, 'expert.md');
@@ -176,6 +208,14 @@ export function promoteStagedArticle({
 	copyFileSync(mainSource, blogTarget);
 	copyFileSync(childSource, resolve(levelsTargetDir, 'child.md'));
 	copyFileSync(expertSource, resolve(levelsTargetDir, 'expert.md'));
+	if (memoryPath && existsSync(candidateSource)) {
+		recordCandidateState({
+			candidateFile: candidateSource,
+			memoryPath,
+			outcome: 'published',
+			publishStatus: 'published',
+		});
+	}
 	rmSync(stagedDir, { recursive: true, force: true });
 
 	return {
@@ -231,6 +271,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 					cwd: args.cwd || process.cwd(),
 					slug: args.slug,
 					stagingDir: args['staging-dir'] || '.publisher-staging',
+					memoryPath: args.memory,
 				}),
 			);
 		} else {

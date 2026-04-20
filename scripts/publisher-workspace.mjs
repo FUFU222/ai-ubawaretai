@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { recordCandidateState } from './publisher-state.mjs';
 
 function run(command, args, options = {}) {
 	const { execFileSyncImpl = execFileSync, ...spawnOptions } = options;
@@ -262,9 +263,22 @@ export function cleanPublisherState({
 	cwd = process.cwd(),
 	stagingDir = '.publisher-staging',
 	slug = null,
+	memoryPath = null,
+	reason = 'cleaned',
+	notes = '',
 } = {}) {
 	const resolvedStagingDir = resolve(cwd, stagingDir);
 	const resolvedTarget = slug ? resolve(resolvedStagingDir, slug) : resolvedStagingDir;
+	const candidateFile = slug ? resolve(resolvedTarget, 'candidate.json') : null;
+	if (slug && memoryPath && existsSync(candidateFile)) {
+		recordCandidateState({
+			candidateFile,
+			memoryPath,
+			outcome: reason,
+			publishStatus: 'unpublished',
+			notes,
+		});
+	}
 	rmSync(resolvedTarget, { recursive: true, force: true });
 	return { cleaned: true, stagingDir: resolvedTarget };
 }
@@ -323,6 +337,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 					cwd: args.cwd || process.cwd(),
 					stagingDir: args['staging-dir'] || '.publisher-staging',
 					slug: args.slug,
+					memoryPath: args.memory,
+					reason: args.reason || 'cleaned',
+					notes: args.notes || '',
 				}),
 			);
 		} else if (command === 'push-main') {
