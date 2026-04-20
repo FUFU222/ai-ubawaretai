@@ -88,6 +88,41 @@ test('duplicate check ignores memory entry for same unpublished staged candidate
 	}
 });
 
+test('duplicate check ignores status-only memory sections that merely mention the staged slug', async () => {
+	const root = mkdtempSync(join(tmpdir(), 'publisher-content-'));
+	const blogDir = join(root, 'src', 'content', 'blog');
+	const memoryPath = join(root, 'memory.md');
+
+	try {
+		mkdirSync(blogDir, { recursive: true });
+		writeFileSync(
+			memoryPath,
+			`## 2026-04-20T14:04:16Z local-start-gate-failure
+
+- 判定: \`nextStagedCandidate\` は \`cyberagent-chatgpt-enterprise-codex-japan-2026\` だったが、dirty worktree のため再開不可。
+`,
+		);
+
+		const { checkDuplicateCandidate } = await import(moduleUrl);
+		const result = checkDuplicateCandidate({
+			blogDir,
+			memoryPath,
+			candidate: {
+				slug: 'cyberagent-chatgpt-enterprise-codex-japan-2026',
+				title: 'サイバーエージェントがChatGPT EnterpriseとCodexを導入',
+				company: 'CyberAgent',
+				date: '2026-04-20',
+				intent: 'ChatGPT EnterpriseとCodexの導入事例',
+			},
+		});
+
+		assert.equal(result.isDuplicate, false);
+		assert.deepEqual(result.matches, []);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('promoteStagedArticle copies staged files into publish locations and removes staging', async () => {
 	const root = mkdtempSync(join(tmpdir(), 'publisher-promote-'));
 	const stagingRoot = join(root, '.publisher-staging');

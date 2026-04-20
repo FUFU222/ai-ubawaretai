@@ -82,7 +82,18 @@ function toHttpsRemoteUrl(remoteUrl) {
 
 function resolveFetchTarget({ cwd, remoteName = 'origin', execFileSyncImpl = execFileSync } = {}) {
 	const remoteUrl = getGitConfig(`remote.${remoteName}.url`, { cwd, execFileSyncImpl });
-	return toHttpsRemoteUrl(remoteUrl) || remoteName;
+	const httpsRemoteUrl = toHttpsRemoteUrl(remoteUrl);
+	if (httpsRemoteUrl) {
+		return {
+			target: httpsRemoteUrl,
+			refspec: `main:refs/remotes/${remoteName}/main`,
+		};
+	}
+
+	return {
+		target: remoteName,
+		refspec: 'main',
+	};
 }
 
 function runGitWithRetry(commandArgs, options = {}) {
@@ -201,10 +212,10 @@ export function preflight({
 	retryDelayMs = 1500,
 } = {}) {
 	const resolvedMemoryPath = assertReadableFile(memoryPath);
-	const fetchTarget = resolveFetchTarget({ cwd, execFileSyncImpl });
+	const fetchSpec = resolveFetchTarget({ cwd, execFileSyncImpl });
 
 	ensureCleanWorktree(cwd, { execFileSyncImpl });
-	runGitWithRetry(['fetch', fetchTarget, 'main'], {
+	runGitWithRetry(['fetch', fetchSpec.target, fetchSpec.refspec], {
 		cwd,
 		stdio: 'inherit',
 		execFileSyncImpl,

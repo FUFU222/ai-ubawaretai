@@ -187,6 +187,50 @@ test('preflight prefers derived HTTPS fetch target for GitHub SSH remotes', asyn
 	}
 });
 
+test('preflight updates origin/main when using derived HTTPS fetch target', async () => {
+	const { root, remoteDir, workerDir, memoryPath } = setupRepos();
+
+	try {
+		git(workerDir, ['remote', 'set-url', 'origin', 'git@github.com:FUFU222/ai-ubawaretai.git']);
+
+		const { preflight } = await import(moduleUrl);
+		const originalExecFileSync = execFileSync;
+		const seenFetchArgs = [];
+
+		function transportAwareExec(command, args, options = {}) {
+			if (command === 'git' && args[0] === 'fetch') {
+				seenFetchArgs.push(args.slice(1));
+				if (args[1] === 'https://github.com/FUFU222/ai-ubawaretai.git') {
+					return originalExecFileSync(
+						'git',
+						['fetch', remoteDir, 'main:refs/remotes/origin/main'],
+						options,
+					);
+				}
+			}
+
+			return originalExecFileSync(command, args, options);
+		}
+
+		preflight({
+			cwd: workerDir,
+			memoryPath,
+			skipInstall: true,
+			skipChecks: true,
+			execFileSyncImpl: transportAwareExec,
+		});
+
+		assert.deepEqual(seenFetchArgs, [
+			[
+				'https://github.com/FUFU222/ai-ubawaretai.git',
+				'main:refs/remotes/origin/main',
+			],
+		]);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('status lists complete staged candidates in oldest-first order', async () => {
 	const { root, workerDir, memoryPath } = setupRepos();
 

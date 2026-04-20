@@ -107,6 +107,16 @@ function isUnpublishedRetrySection(sectionText, candidate) {
 	return false;
 }
 
+function sanitizeMemoryReasons(reasons) {
+	if (!reasons.includes('slug')) {
+		return reasons;
+	}
+
+	// Memory often logs staged slugs during recovery/status reporting. Treat the slug itself
+	// as bookkeeping unless the section also repeats the exact title.
+	return reasons.filter((reason) => reason === 'title');
+}
+
 export function checkDuplicateCandidate({ candidate, blogDir, memoryPath }) {
 	const matches = [];
 	const blogEntries = listBlogEntries(blogDir);
@@ -127,7 +137,9 @@ export function checkDuplicateCandidate({ candidate, blogDir, memoryPath }) {
 				continue;
 			}
 
-			const reasons = collectReasons(candidate, normalize(sectionText));
+			const reasons = sanitizeMemoryReasons(
+				collectReasons(candidate, normalize(sectionText)),
+			);
 			if (reasons.includes('title') || reasons.length >= 2) {
 				matches.push({ type: 'memory', source: resolve(memoryPath), reasons });
 				break;
