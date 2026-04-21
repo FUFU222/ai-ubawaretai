@@ -15,4 +15,7 @@ test('build includes a mobile-only line break in the home hero subtitle', () => 
 	assert.match(homeHtml, /AI業界の最新ニュースを/);
 	assert.match(homeHtml, /現役エンジニアの視点で読み解く/);
 	assert.match(homeHtml, /class="hero-sub-break"/);
+	assert.match(homeHtml, /記事一覧を見る/);
+	assert.doesNotMatch(homeHtml, /このサイトの基準/);
+	assert.doesNotMatch(homeHtml, /公式ソース優先 \/ 日本市場への意味を整理 \/ 開発者目線の実務分析/);
 });

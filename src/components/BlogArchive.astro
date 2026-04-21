@@ -1,0 +1,262 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import CategoryBadge from './CategoryBadge.astro';
+import FormattedDate from './FormattedDate.astro';
+import GenerativeHero from './GenerativeHero.astro';
+import { BLOG_PAGE_SIZE } from '../consts';
+import { getPrimaryTag } from '../utils/tags';
+
+type Props = {
+	posts: CollectionEntry<'blog'>[];
+	currentPage: number;
+	totalPages: number;
+	title?: string;
+	description?: string;
+};
+
+const {
+	posts,
+	currentPage,
+	totalPages,
+	title = 'ブログ',
+	description = '最新の記事を時系列で一覧できます。',
+} = Astro.props;
+
+function getPagePath(page: number) {
+	return page <= 1 ? '/blog' : `/blog/page/${page}`;
+}
+
+const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
+const startIndex = (currentPage - 1) * BLOG_PAGE_SIZE + 1;
+const endIndex = startIndex + posts.length - 1;
+---
+
+<section class="archive-hero">
+	<p class="archive-eyebrow">Article Archive</p>
+	<h1>{title}</h1>
+	<p class="archive-lead">{description}</p>
+	<p class="archive-summary">
+		{startIndex}〜{endIndex}件を表示
+		{totalPages > 1 && <span> / 全{totalPages}ページ</span>}
+	</p>
+</section>
+
+<div class="post-list">
+	{
+		posts.map((post) => (
+			<a href={`/blog/${post.id}/`} class="post-item">
+				<GenerativeHero
+					seed={post.data.title}
+					alt={post.data.title}
+					width={240}
+					height={120}
+					class="post-thumb"
+				/>
+				<div class="post-info">
+					<CategoryBadge label={`#${getPrimaryTag(post.data.tags)}`} class="post-category-badge" />
+					<h2 class="post-title">{post.data.title}</h2>
+					<p class="post-desc">{post.data.description}</p>
+					<p class="post-date">
+						<FormattedDate date={post.data.pubDate} />
+					</p>
+				</div>
+			</a>
+		))
+	}
+</div>
+
+{
+	totalPages > 1 && (
+		<nav class="pagination" aria-label="記事一覧ページネーション">
+			<a
+				href={getPagePath(Math.max(currentPage - 1, 1))}
+				class:list={['pagination-link', 'pagination-arrow', { disabled: currentPage === 1 }]}
+				aria-disabled={currentPage === 1 ? 'true' : undefined}
+			>
+				← 前へ
+			</a>
+			<div class="pagination-pages">
+				{pageNumbers.map((page) => (
+					<a
+						href={getPagePath(page)}
+						class:list={['pagination-link', { active: page === currentPage }]}
+						aria-current={page === currentPage ? 'page' : undefined}
+					>
+						{page}
+					</a>
+				))}
+			</div>
+			<a
+				href={getPagePath(Math.min(currentPage + 1, totalPages))}
+				class:list={['pagination-link', 'pagination-arrow', { disabled: currentPage === totalPages }]}
+				aria-disabled={currentPage === totalPages ? 'true' : undefined}
+			>
+				次へ →
+			</a>
+		</nav>
+	)
+}
+
+<style>
+	.archive-hero {
+		margin-bottom: 1.75rem;
+		padding-bottom: 1.35rem;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+	}
+
+	.archive-eyebrow {
+		margin: 0 0 0.45rem;
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+
+	.archive-hero h1 {
+		margin-bottom: 0.55rem;
+	}
+
+	.archive-lead {
+		max-width: 42rem;
+		margin: 0;
+		color: var(--color-text-muted);
+		line-height: 1.8;
+	}
+
+	.archive-summary {
+		margin: 0.85rem 0 0;
+		font-size: 0.85rem;
+		color: var(--color-text-muted);
+	}
+
+	.post-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.post-item {
+		display: flex;
+		gap: 1rem;
+		background-color: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: 8px;
+		padding: 1rem;
+		text-decoration: none;
+		transition: border-color 0.2s;
+	}
+
+	.post-item:hover {
+		border-color: var(--color-primary);
+		text-decoration: none;
+	}
+
+	.post-thumb {
+		width: 160px;
+		height: 100px;
+		object-fit: cover;
+		border-radius: 6px;
+		flex-shrink: 0;
+	}
+
+	.post-info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.post-category-badge {
+		margin-bottom: 0.35rem;
+	}
+
+	.post-title {
+		font-size: 1rem;
+		line-height: 1.4;
+		color: var(--color-text-heading);
+		margin: 0.25rem 0;
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.post-desc {
+		font-size: 0.85rem;
+		color: var(--color-text-muted);
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.post-date {
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
+		margin: 0.35rem 0 0;
+	}
+
+	.pagination {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 1.75rem;
+		flex-wrap: wrap;
+	}
+
+	.pagination-pages {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.pagination-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 2.5rem;
+		padding: 0.55rem 0.85rem;
+		border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
+		color: var(--color-text-muted);
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.pagination-link:hover {
+		color: var(--color-primary-light);
+		border-color: color-mix(in srgb, var(--color-primary-light) 45%, var(--color-border));
+		text-decoration: none;
+	}
+
+	.pagination-link.active {
+		color: var(--color-primary-light);
+		background: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg-card));
+		border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+	}
+
+	.pagination-link.disabled {
+		pointer-events: none;
+		opacity: 0.45;
+	}
+
+	.pagination-arrow {
+		min-width: 5.5rem;
+	}
+
+	@media (max-width: 768px) {
+		.post-item {
+			flex-direction: column;
+		}
+
+		.post-thumb {
+			width: 100%;
+			height: 160px;
+		}
+
+		.pagination {
+			justify-content: center;
+		}
+	}
+</style>

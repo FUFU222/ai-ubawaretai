@@ -373,3 +373,46 @@ test('cleanPublisherState records a structured rejection when memory path is pro
 		rmSync(root, { recursive: true, force: true });
 	}
 });
+
+test('preflight can initialize structured state without legacy memory file', async () => {
+	const { root, workerDir } = setupRepos();
+	const statePath = join(root, 'shared', 'publisher-state.jsonl');
+
+	try {
+		const { preflight } = await import(moduleUrl);
+		const report = preflight({
+			cwd: workerDir,
+			statePath,
+			skipInstall: true,
+			skipChecks: true,
+		});
+
+		assert.equal(report.branch, 'main');
+		assert.equal(readFileSync(statePath, 'utf8'), '');
+		assert.equal(report.statePath, statePath);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('status can read staged candidates from an explicit shared staging directory', async () => {
+	const { root, workerDir } = setupRepos();
+	const stagingDir = join(root, 'shared', 'staging');
+
+	try {
+		const slug = 'shared-stage';
+		const dir = join(stagingDir, slug);
+		mkdirSync(dir, { recursive: true });
+		for (const filename of ['candidate.json', 'main.md', 'child.md', 'expert.md']) {
+			writeFileSync(join(dir, filename), `${slug}-${filename}\n`);
+		}
+
+		const { getWorkspaceStatus } = await import(moduleUrl);
+		const status = getWorkspaceStatus({ cwd: workerDir, stagingDir });
+
+		assert.equal(status.stagedCandidates.length, 1);
+		assert.equal(status.stagedCandidates[0].slug, slug);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});

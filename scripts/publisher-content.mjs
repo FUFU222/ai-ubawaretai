@@ -118,7 +118,7 @@ function sanitizeMemoryReasons(reasons) {
 	return reasons.filter((reason) => reason === 'title');
 }
 
-export function checkDuplicateCandidate({ candidate, blogDir, memoryPath }) {
+export function checkDuplicateCandidate({ candidate, blogDir, memoryPath, statePath }) {
 	const matches = [];
 	const blogEntries = listBlogEntries(blogDir);
 	for (const entry of blogEntries) {
@@ -131,7 +131,7 @@ export function checkDuplicateCandidate({ candidate, blogDir, memoryPath }) {
 		}
 	}
 
-	const stateEntries = memoryPath ? loadPublisherState({ memoryPath }) : [];
+	const stateEntries = memoryPath || statePath ? loadPublisherState({ memoryPath, statePath }) : [];
 	if (stateEntries.length > 0) {
 		for (const entry of stateEntries) {
 			if (entry.slug === candidate.slug && entry.publishStatus !== 'published') {
@@ -188,6 +188,7 @@ export function promoteStagedArticle({
 	slug,
 	stagingDir = '.publisher-staging',
 	memoryPath,
+	statePath,
 } = {}) {
 	const stagedDir = resolve(cwd, stagingDir, slug);
 	const candidateSource = resolve(stagedDir, 'candidate.json');
@@ -208,10 +209,11 @@ export function promoteStagedArticle({
 	copyFileSync(mainSource, blogTarget);
 	copyFileSync(childSource, resolve(levelsTargetDir, 'child.md'));
 	copyFileSync(expertSource, resolve(levelsTargetDir, 'expert.md'));
-	if (memoryPath && existsSync(candidateSource)) {
+	if ((memoryPath || statePath) && existsSync(candidateSource)) {
 		recordCandidateState({
 			candidateFile: candidateSource,
 			memoryPath,
+			statePath,
 			outcome: 'published',
 			publishStatus: 'published',
 		});
@@ -262,6 +264,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 				candidate,
 				blogDir: resolve(args.cwd || process.cwd(), 'src', 'content', 'blog'),
 				memoryPath: args.memory,
+				statePath: args.state,
 			});
 			printJson(result);
 			process.exit(result.isDuplicate ? 1 : 0);
@@ -272,6 +275,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 					slug: args.slug,
 					stagingDir: args['staging-dir'] || '.publisher-staging',
 					memoryPath: args.memory,
+					statePath: args.state,
 				}),
 			);
 		} else {

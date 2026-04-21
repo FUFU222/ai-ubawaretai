@@ -251,3 +251,88 @@ test('promoteStagedArticle records a published entry in structured state when me
 		rmSync(root, { recursive: true, force: true });
 	}
 });
+
+test('duplicate check can read structured state without legacy memory path', async () => {
+	const root = mkdtempSync(join(tmpdir(), 'publisher-content-'));
+	const blogDir = join(root, 'src', 'content', 'blog');
+	const statePath = join(root, 'publisher-state.jsonl');
+
+	try {
+		mkdirSync(blogDir, { recursive: true });
+		writeFileSync(
+			statePath,
+			`${JSON.stringify({
+				recordedAt: '2026-04-21T00:00:00Z',
+				slug: 'openai-enterprise-ai-followup-2026',
+				title: 'OpenAI enterprise AI follow-up',
+				company: 'OpenAI',
+				date: '2026-04-21',
+				intent: 'enterprise AI follow-up',
+				outcome: 'published',
+				publishStatus: 'published',
+				stagingRetained: false,
+			})}\n`,
+		);
+
+		const { checkDuplicateCandidate } = await import(moduleUrl);
+		const result = checkDuplicateCandidate({
+			blogDir,
+			statePath,
+			candidate: {
+				slug: 'openai-enterprise-ai-followup-2026-second-angle',
+				title: 'OpenAI enterprise AI follow-up',
+				company: 'OpenAI',
+				date: '2026-04-21',
+				intent: 'enterprise AI follow-up',
+			},
+		});
+
+		assert.equal(result.isDuplicate, true);
+		assert.equal(result.matches[0].type, 'state');
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('promoteStagedArticle records a published entry when explicit state path is provided', async () => {
+	const root = mkdtempSync(join(tmpdir(), 'publisher-promote-'));
+	const stagingRoot = join(root, '.publisher-staging');
+	const statePath = join(root, 'publisher-state.jsonl');
+	const slug = 'state-path-slug';
+	const stagedDir = join(stagingRoot, slug);
+
+	try {
+		mkdirSync(join(root, 'src', 'content', 'blog'), { recursive: true });
+		mkdirSync(join(root, 'src', 'content', 'blog-levels', slug), { recursive: true });
+		mkdirSync(stagedDir, { recursive: true });
+
+		writeFileSync(
+			join(stagedDir, 'candidate.json'),
+			JSON.stringify({
+				slug,
+				title: 'state path test',
+				company: 'OpenAI',
+				date: '2026-04-21',
+				intent: 'state path promotion',
+				searchIntent: 'OpenAI state path promotion',
+				whyUnique: 'state path test',
+			}, null, 2),
+		);
+		writeFileSync(join(stagedDir, 'main.md'), '# main\n');
+		writeFileSync(join(stagedDir, 'child.md'), '# child\n');
+		writeFileSync(join(stagedDir, 'expert.md'), '# expert\n');
+
+		const { promoteStagedArticle } = await import(moduleUrl);
+		promoteStagedArticle({ cwd: root, slug, statePath });
+
+		const stateEntries = readFileSync(statePath, 'utf8')
+			.trim()
+			.split('\n')
+			.map((line) => JSON.parse(line));
+		assert.equal(stateEntries.length, 1);
+		assert.equal(stateEntries[0].slug, slug);
+		assert.equal(stateEntries[0].outcome, 'published');
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});

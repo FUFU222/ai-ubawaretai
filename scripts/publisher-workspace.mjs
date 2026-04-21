@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { recordCandidateState } from './publisher-state.mjs';
+import { ensurePublisherState, recordCandidateState } from './publisher-state.mjs';
 
 function run(command, args, options = {}) {
 	const { execFileSyncImpl = execFileSync, ...spawnOptions } = options;
@@ -132,6 +132,20 @@ function assertReadableFile(path) {
 	return resolved;
 }
 
+function resolvePublisherContext({ memoryPath = null, statePath = null, ensureState = false } = {}) {
+	const resolvedMemoryPath = memoryPath ? assertReadableFile(memoryPath) : null;
+	const resolvedStatePath = ensureState
+		? ensurePublisherState({ memoryPath: resolvedMemoryPath, statePath })
+		: statePath
+			? resolve(statePath)
+			: null;
+
+	return {
+		memoryPath: resolvedMemoryPath,
+		statePath: resolvedStatePath,
+	};
+}
+
 function ensureCleanWorktree(cwd, options = {}) {
 	const status = run('git', ['status', '--porcelain'], { cwd, ...options });
 	if (status.length > 0) {
@@ -187,9 +201,12 @@ export function listStagedCandidates({ cwd = process.cwd(), stagingDir = '.publi
 		.sort((left, right) => left.mtimeMs - right.mtimeMs);
 }
 
-export function getWorkspaceStatus({ cwd = process.cwd(), memoryPath }) {
-	const resolvedMemoryPath = memoryPath ? resolve(memoryPath) : null;
-	const stagedCandidates = listStagedCandidates({ cwd });
+export function getWorkspaceStatus({ cwd = process.cwd(), memoryPath = null, statePath = null, stagingDir = '.publisher-staging' }) {
+	const { memoryPath: resolvedMemoryPath, statePath: resolvedStatePath } = resolvePublisherContext({
+		memoryPath,
+		statePath,
+	});
+	const stagedCandidates = listStagedCandidates({ cwd, stagingDir });
 	return {
 		cwd,
 		branch: tryRun('git', ['branch', '--show-current'], { cwd }),
@@ -199,6 +216,7 @@ export function getWorkspaceStatus({ cwd = process.cwd(), memoryPath }) {
 		clean: tryRun('git', ['status', '--porcelain'], { cwd }) === '',
 		memoryReadable: resolvedMemoryPath ? existsSync(resolvedMemoryPath) : false,
 		memoryPath: resolvedMemoryPath,
+		statePath: resolvedStatePath,
 		stagedCandidates,
 		nextStagedCandidate: stagedCandidates[0] || null,
 	};
@@ -207,12 +225,16 @@ export function getWorkspaceStatus({ cwd = process.cwd(), memoryPath }) {
 export function preflight({
 	cwd = process.cwd(),
 	memoryPath,
+	statePath,
 	skipInstall = false,
 	skipChecks = false,
 	execFileSyncImpl = execFileSync,
 	retryDelayMs = 1500,
 } = {}) {
-	const resolvedMemoryPath = assertReadableFile(memoryPath);
+	const {
+		memoryPath: resolvedMemoryPath,
+		statePath: resolvedStatePath,
+	} = resolvePublisherContext({ memoryPath, statePath, ensureState: true });
 	const fetchSpec = resolveFetchTarget({ cwd, execFileSyncImpl });
 
 	ensureCleanWorktree(cwd, { execFileSyncImpl });
@@ -240,7 +262,11 @@ export function preflight({
 	}
 
 	return {
-		...getWorkspaceStatus({ cwd, memoryPath: resolvedMemoryPath }),
+		...getWorkspaceStatus({
+			cwd,
+			memoryPath: resolvedMemoryPath,
+			statePath: resolvedStatePath,
+		}),
 		installedDependencies: installed,
 	};
 }
@@ -264,16 +290,18 @@ export function cleanPublisherState({
 	stagingDir = '.publisher-staging',
 	slug = null,
 	memoryPath = null,
+	statePath = null,
 	reason = 'cleaned',
 	notes = '',
 } = {}) {
 	const resolvedStagingDir = resolve(cwd, stagingDir);
 	const resolvedTarget = slug ? resolve(resolvedStagingDir, slug) : resolvedStagingDir;
 	const candidateFile = slug ? resolve(resolvedTarget, 'candidate.json') : null;
-	if (slug && memoryPath && existsSync(candidateFile)) {
+	if (slug && (memoryPath || statePath) && existsSync(candidateFile)) {
 		recordCandidateState({
 			candidateFile,
 			memoryPath,
+			statePath,
 			outcome: reason,
 			publishStatus: 'unpublished',
 			notes,
@@ -320,6 +348,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 				getWorkspaceStatus({
 					cwd: args.cwd || process.cwd(),
 					memoryPath: args.memory,
+					statePath: args.state,
+					stagingDir: args['staging-dir'] || '.publisher-staging',
 				}),
 			);
 		} else if (command === 'preflight') {
@@ -327,6 +357,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 				preflight({
 					cwd: args.cwd || process.cwd(),
 					memoryPath: args.memory,
+					statePath: args.state,
 					skipInstall: Boolean(args['skip-install']),
 					skipChecks: Boolean(args['skip-checks']),
 				}),
@@ -338,6 +369,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 					stagingDir: args['staging-dir'] || '.publisher-staging',
 					slug: args.slug,
 					memoryPath: args.memory,
+					statePath: args.state,
 					reason: args.reason || 'cleaned',
 					notes: args.notes || '',
 				}),

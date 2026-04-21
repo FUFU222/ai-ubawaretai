@@ -12,9 +12,9 @@
     "preview": "astro preview",
     "astro": "astro",
     "test": "node --test --test-concurrency=1",
-    "publisher:status": "node scripts/publisher-workspace.mjs status --memory /Users/fufu/.codex/automations/ai-news-jp-publisher/memory.md",
-    "publisher:preflight": "node scripts/publisher-workspace.mjs preflight --memory /Users/fufu/.codex/automations/ai-news-jp-publisher/memory.md",
-    "publisher:clean": "node scripts/publisher-workspace.mjs clean",
+    "publisher:status": "node scripts/publisher-workspace.mjs status --state \"${PUBLISHER_STATE_PATH:-$HOME/.codex/publisher-data/ai-ubawaretai/publisher-state.jsonl}\" --staging-dir \"${PUBLISHER_STAGING_DIR:-$HOME/.codex/publisher-data/ai-ubawaretai/staging}\"",
+    "publisher:preflight": "node scripts/publisher-workspace.mjs preflight --state \"${PUBLISHER_STATE_PATH:-$HOME/.codex/publisher-data/ai-ubawaretai/publisher-state.jsonl}\"",
+    "publisher:clean": "node scripts/publisher-workspace.mjs clean --state \"${PUBLISHER_STATE_PATH:-$HOME/.codex/publisher-data/ai-ubawaretai/publisher-state.jsonl}\" --staging-dir \"${PUBLISHER_STAGING_DIR:-$HOME/.codex/publisher-data/ai-ubawaretai/staging}\"",
     "publisher:push-main": "node scripts/publisher-workspace.mjs push-main"
   },
   "dependencies": {

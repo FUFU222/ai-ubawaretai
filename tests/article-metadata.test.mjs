@@ -23,4 +23,7 @@ test('build renders article info with author, updated date, and source links', (
 	assert.match(articleHtml, /The next phase of enterprise AI/);
 	assert.match(articleHtml, /href="\/about"/);
 	assert.match(articleHtml, /href="\/contact"/);
+	assert.match(articleHtml, /href="\/category\/OpenAI\/" class="category-badge"/);
+	assert.doesNotMatch(articleHtml, /href="\/category\/news\/" class="category-badge"/);
+	assert.match(articleHtml, /<meta property="og:image" content="https:\/\/ai-ubawaretai\.com\/header_image\.webp"/);
 });

@@ -15,7 +15,7 @@ import ArticleLevelSwitcher from '../components/ArticleLevelSwitcher.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
 import { hasArticleLevelSwitcher, type ArticleLevelAvailability } from '../utils/articleLevels';
 import { getCategoryLabel, getCategoryPath } from '../utils/categories';
-import { getTagPath } from '../utils/tags';
+import { getPrimaryTag, getTagPath } from '../utils/tags';
 import { extractSourceLinks } from '../utils/source-links';
 
 type Props = CollectionEntry<'blog'>['data'] & {
@@ -32,7 +32,11 @@ const articleLevels = Astro.props.articleLevels ?? {};
 const siteUrl = Astro.site?.toString() ?? '';
 const articleUrl = `${siteUrl}blog/${id}/`;
 const categoryLabel = getCategoryLabel(category);
-const categoryPath = getCategoryPath(category);
+const hasPrimaryTag = Boolean(tags && tags.length > 0);
+const primaryTag = getPrimaryTag(tags ?? []);
+const taxonomyLabel = hasPrimaryTag ? primaryTag : categoryLabel;
+const taxonomyPath = hasPrimaryTag ? getTagPath(primaryTag) : getCategoryPath(category);
+const taxonomyBadgeLabel = hasPrimaryTag ? `#${primaryTag}` : categoryLabel;
 const showArticleLevelSwitcher = id ? hasArticleLevelSwitcher(articleLevels) : false;
 const displayUpdatedDate = updatedDate ?? pubDate;
 const sourceLinks = extractSourceLinks(rawContent ?? '');
@@ -48,7 +52,7 @@ const articleLd = articleJsonLd({
 const breadcrumbLd = breadcrumbJsonLd([
 	{ name: 'ホーム', url: siteUrl },
 	{ name: 'ブログ', url: `${siteUrl}blog/` },
-	{ name: categoryLabel, url: `${siteUrl}${categoryPath.replace(/^\//, '')}` },
+	{ name: taxonomyLabel, url: `${siteUrl}${taxonomyPath.replace(/^\//, '')}` },
 	{ name: title, url: articleUrl },
 ]);
 ---
@@ -69,7 +73,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 				</div>
 				<div class="article-header">
 					<div class="meta">
-						<a href={categoryPath} class="category-badge">{categoryLabel}</a>
+						<a href={taxonomyPath} class="category-badge">{taxonomyBadgeLabel}</a>
 						<a href="/about" class="author-link">{SITE_AUTHOR}</a>
 						<span class="meta-label">公開: <FormattedDate date={pubDate} /></span>
 						<span class="meta-label">更新: <FormattedDate date={displayUpdatedDate} /></span>

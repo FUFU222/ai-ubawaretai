@@ -45,26 +45,12 @@ const personLd = personJsonLd();
 					<br class="hero-sub-break" />
 					現役エンジニアの視点で読み解く
 				</p>
-				<p class="hero-meta">
-					公式ソース優先 / 日本市場への意味を整理 / 開発者目線の実務分析
+				<p class="hero-lead">
+					AI・ソフトウェア・プロダクトの更新を、日本の事業と開発の文脈で整理しています。
 				</p>
-			</section>
-
-			<section class="standards">
-				<h2 class="section-title">このサイトの基準</h2>
-				<div class="standards-grid">
-					<article class="standard-card">
-						<h3>一次ソース優先</h3>
-						<p>公式ブログ、公式ドキュメント、changelog、論文を起点に確認し、曖昧な噂や転載だけでは記事化しません。</p>
-					</article>
-					<article class="standard-card">
-						<h3>日本で読む意味</h3>
-						<p>新機能の紹介だけで終わらせず、日本の開発組織、スタートアップ、事業担当者にどう効くかを整理します。</p>
-					</article>
-					<article class="standard-card">
-						<h3>独自の読み解き</h3>
-						<p>単なる翻訳や言い換えではなく、価格、競争、導入、規制まで含めて「次の判断に使える形」にまとめます。</p>
-					</article>
+				<div class="hero-actions">
+					<a href="/blog" class="hero-action-primary">記事一覧を見る</a>
+					<a href="/about" class="hero-action-secondary">About</a>
 				</div>
 			</section>
 
@@ -149,12 +135,44 @@ const personLd = personJsonLd();
 		margin-top: 0.5rem;
 	}
 
-	.hero-meta {
+	.hero-lead {
 		margin: 0.9rem auto 0;
 		max-width: 42rem;
-		font-size: 0.9rem;
+		font-size: 0.98rem;
 		line-height: 1.8;
 		color: var(--color-text-muted);
+	}
+
+	.hero-actions {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 1.15rem;
+		flex-wrap: wrap;
+	}
+
+	.hero-actions a {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 8.5rem;
+		padding: 0.7rem 1rem;
+		border-radius: 999px;
+		font-size: 0.9rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.hero-action-primary {
+		background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+		color: white;
+	}
+
+	.hero-action-secondary {
+		background: color-mix(in srgb, var(--color-bg-card) 90%, transparent);
+		border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+		color: var(--color-text-heading);
 	}
 
 	.hero-sub-break {
@@ -172,37 +190,6 @@ const personLd = personJsonLd();
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
 		gap: 1.25rem;
-	}
-
-	.standards {
-		margin-bottom: 3rem;
-	}
-
-	.standards-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1rem;
-	}
-
-	.standard-card {
-		padding: 1.1rem;
-		border: 1px solid var(--color-border);
-		border-radius: 12px;
-		background-color: var(--color-bg-card);
-	}
-
-	.standard-card h3 {
-		font-size: 1rem;
-		margin-bottom: 0.55rem;
-		border-bottom: none;
-		padding-bottom: 0;
-	}
-
-	.standard-card p {
-		margin: 0;
-		font-size: 0.9rem;
-		line-height: 1.75;
-		color: var(--color-text-muted);
 	}
 
 	.post-card {
@@ -305,10 +292,6 @@ const personLd = personJsonLd();
 
 		.category-grid {
 			grid-template-columns: repeat(2, 1fr);
-		}
-
-		.standards-grid {
-			grid-template-columns: 1fr;
 		}
 
 		.hero h1 {
