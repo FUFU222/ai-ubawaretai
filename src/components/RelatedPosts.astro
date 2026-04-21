@@ -6,35 +6,38 @@ import GenerativeHero from './GenerativeHero.astro';
 
 interface Props {
 	currentId: string;
-	category: string;
 	tags: string[];
 }
 
-const { currentId, category, tags } = Astro.props;
+const { currentId, tags } = Astro.props;
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 
-// スコア計算: 同カテゴリ+2, 共通タグ1つにつき+1
 const scored = allPosts
 	.filter((p) => p.id !== currentId)
 	.map((post) => {
-		let score = 0;
-		if (post.data.category === category) score += 2;
 		const commonTags = post.data.tags.filter((t) => tags.includes(t));
-		score += commonTags.length;
-		return { post, score };
+		return { post, score: commonTags.length };
 	})
 	.filter((s) => s.score > 0)
 	.sort((a, b) => b.score - a.score || b.post.data.pubDate.getTime() - a.post.data.pubDate.getTime())
 	.slice(0, 3);
+
+const fallback = allPosts
+	.filter((post) => post.id !== currentId)
+	.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+	.slice(0, 3)
+	.map((post) => ({ post }));
+
+const relatedPosts = scored.length > 0 ? scored : fallback;
 ---
 
 {
-	scored.length > 0 && (
+	relatedPosts.length > 0 && (
 		<section class="related-posts">
 			<h2>あわせて読みたい</h2>
 			<div class="related-grid">
-				{scored.map(({ post }) => (
+				{relatedPosts.map(({ post }) => (
 					<a href={`/blog/${post.id}/`} class="related-card">
 						<div class="related-thumb">
 							<GenerativeHero seed={post.data.title} alt={post.data.title} loading="lazy" />

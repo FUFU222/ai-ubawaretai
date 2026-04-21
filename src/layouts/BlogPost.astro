@@ -14,7 +14,8 @@ import { SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, GITHUB_URL, SITE_TITLE } from '..
 import ArticleLevelSwitcher from '../components/ArticleLevelSwitcher.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
 import { hasArticleLevelSwitcher, type ArticleLevelAvailability } from '../utils/articleLevels';
-import { getCategoryLabel, getCategoryPath } from '../utils/categories';
+import { getCategoryLabel } from '../utils/categories';
+import { getTagPath } from '../utils/tags';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	id?: string;
@@ -30,7 +31,6 @@ const articleLevels = Astro.props.articleLevels ?? {};
 const siteUrl = Astro.site?.toString() ?? '';
 const articleUrl = `${siteUrl}blog/${id}/`;
 const categoryLabel = getCategoryLabel(category);
-const categoryPath = getCategoryPath(category);
 const showArticleLevelSwitcher = id ? hasArticleLevelSwitcher(articleLevels) : false;
 
 const articleLd = articleJsonLd({
@@ -44,7 +44,6 @@ const articleLd = articleJsonLd({
 const breadcrumbLd = breadcrumbJsonLd([
 	{ name: 'ホーム', url: siteUrl },
 	{ name: 'ブログ', url: `${siteUrl}blog/` },
-	{ name: categoryLabel, url: `${siteUrl}${categoryPath.replace(/^\//, '')}` },
 	{ name: title, url: articleUrl },
 ]);
 ---
@@ -65,7 +64,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 				</div>
 				<div class="article-header">
 					<div class="meta">
-						<a href={categoryPath} class="category-badge">{categoryLabel}</a>
+						<span class="category-badge">{categoryLabel}</span>
 						<a href="/about" class="author-link">{SITE_AUTHOR}</a>
 						<FormattedDate date={pubDate} />
 						{
@@ -75,14 +74,14 @@ const breadcrumbLd = breadcrumbJsonLd([
 								</span>
 							)
 						}
-					{rawContent && <ReadingTime content={rawContent} />}
+						{rawContent && <ReadingTime content={rawContent} />}
 					</div>
 					<h1>{title}</h1>
 					{
 						tags && tags.length > 0 && (
 							<div class="tags">
 								{tags.map((tag) => (
-									<span class="tag">#{tag}</span>
+									<a href={getTagPath(tag)} class="tag">#{tag}</a>
 								))}
 							</div>
 						)
@@ -121,7 +120,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 					</div>
 				</section>
 
-				<RelatedPosts currentId={id ?? ''} category={category} tags={tags ?? []} />
+				<RelatedPosts currentId={id ?? ''} tags={tags ?? []} />
 			</article>
 		</main>
 		<BackToTop />
@@ -169,7 +168,6 @@ const breadcrumbLd = breadcrumbJsonLd([
 		border-radius: 4px;
 		font-size: 0.8rem;
 		font-weight: 600;
-		text-decoration: none;
 	}
 
 	.author-link {
@@ -180,11 +178,6 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 	.author-link:hover {
 		color: var(--color-primary-light);
-		text-decoration: none;
-	}
-
-	.category-badge:hover {
-		background-color: rgba(59, 130, 246, 0.25);
 		text-decoration: none;
 	}
 
@@ -206,8 +199,15 @@ const breadcrumbLd = breadcrumbJsonLd([
 	}
 
 	.tag {
+		display: inline-block;
 		color: var(--color-text-muted);
 		font-size: 0.8rem;
+		text-decoration: none;
+	}
+
+	.tag:hover {
+		color: var(--color-primary-light);
+		text-decoration: none;
 	}
 
 	.prose {

@@ -4,36 +4,36 @@ import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import { SITE_TITLE } from '../../consts';
-import { getCategoryPath, getCategorySummaries } from '../../utils/categories';
+import { getTagPath, getTagSummaries } from '../../utils/tags';
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const categorySummaries = getCategorySummaries(allPosts);
+const tagSummaries = getTagSummaries(allPosts);
 ---
 
 <!doctype html>
 <html lang="ja">
 	<head>
-		<BaseHead title={`カテゴリ | ${SITE_TITLE}`} description="記事カテゴリの一覧ページ" />
+		<BaseHead title={`タグ | ${SITE_TITLE}`} description="企業名やテーマから記事を探せるタグ一覧ページ" />
 	</head>
 	<body>
 		<Header />
 		<main>
 			<section class="category-hero">
-				<p class="category-eyebrow">Category Guide</p>
-				<h1>カテゴリ</h1>
+				<p class="category-eyebrow">Tag Guide</p>
+				<h1>タグ</h1>
 				<p class="category-lead">
-					記事のまとまりから読みたい方向けの案内ページです。実際に記事が存在するカテゴリだけを表示しています。
+					OpenAI や Anthropic のような企業名、半導体や音声AIのようなテーマ別に記事を探せます。
 				</p>
 			</section>
 
 			{
-				categorySummaries.length === 0 ? (
-					<p class="category-empty">表示できるカテゴリがまだありません。</p>
+				tagSummaries.length === 0 ? (
+					<p class="category-empty">表示できるタグがまだありません。</p>
 				) : (
 					<div class="category-list">
 						{
-							categorySummaries.map(({ slug, label, count }) => (
-								<a href={getCategoryPath(slug)} class="category-card">
+							tagSummaries.map(({ slug, label, count }) => (
+								<a href={getTagPath(slug)} class="category-card">
 									<div class="category-copy">
 										<span class="category-label">{label}</span>
 									</div>

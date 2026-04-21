@@ -8,13 +8,13 @@ import GenerativeHero from '../components/GenerativeHero.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import { personJsonLd } from '../utils/jsonld';
-import { getCategoryLabel, getCategoryPath, getCategorySummaries } from '../utils/categories';
+import { getPrimaryTag, getTagPath, getTagSummaries } from '../utils/tags';
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 const posts = allPosts
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 6);
-const categorySummaries = getCategorySummaries(allPosts);
+const tagSummaries = getTagSummaries(allPosts).slice(0, 12);
 
 const personLd = personJsonLd();
 ---
@@ -82,7 +82,7 @@ const personLd = personJsonLd();
 									class="post-image"
 								/>
 								<div class="post-card-body">
-									<CategoryBadge label={getCategoryLabel(post.data.category)} class="post-category-badge" />
+									<CategoryBadge label={`#${getPrimaryTag(post.data.tags)}`} class="post-category-badge" />
 									<h3 class="post-title">{post.data.title}</h3>
 									<p class="post-date">
 										<FormattedDate date={post.data.pubDate} />
@@ -98,12 +98,13 @@ const personLd = personJsonLd();
 			</section>
 
 			<section class="categories">
-				<h2 class="section-title">カテゴリ</h2>
+				<h2 class="section-title">タグ</h2>
 				<div class="category-grid">
 					{
-						categorySummaries.map(({ slug, label }) => (
-							<a href={getCategoryPath(slug)} class="category-card">
-								{label}
+						tagSummaries.map(({ slug, label, count }) => (
+							<a href={getTagPath(slug)} class="category-card">
+								<span>{label}</span>
+								<span class="category-count">{count}件</span>
 							</a>
 						))
 					}
@@ -273,7 +274,8 @@ const personLd = personJsonLd();
 	.category-card {
 		display: flex;
 		align-items: center;
-		justify-content: center;
+		justify-content: space-between;
+		gap: 0.75rem;
 		padding: 1rem;
 		background-color: var(--color-bg-card);
 		border: 1px solid var(--color-border);
@@ -283,6 +285,12 @@ const personLd = personJsonLd();
 		font-size: 0.9rem;
 		text-decoration: none;
 		transition: border-color 0.2s;
+	}
+
+	.category-count {
+		flex: none;
+		font-size: 0.78rem;
+		color: var(--color-text-muted);
 	}
 
 	.category-card:hover {
