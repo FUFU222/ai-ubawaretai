@@ -25,6 +25,39 @@ function escapeXml(str: string): string {
 	return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function fitWordsWithinLimit(phrase: string, maxChars: number): string {
+	const words = phrase.trim().split(/\s+/).filter(Boolean);
+	if (words.length <= 1) return phrase.trim().slice(0, maxChars);
+
+	let result = '';
+	for (const word of words) {
+		const candidate = result ? `${result} ${word}` : word;
+		if (candidate.length > maxChars) break;
+		result = candidate;
+	}
+
+	return result || words[0];
+}
+
+function extractLeadingLatinPhrase(text: string, maxChars = 16): string {
+	const match = text.trim().match(/^[A-Za-z0-9][A-Za-z0-9.+&/#-]*(?:\s+[A-Za-z0-9][A-Za-z0-9.+&/#-]*)*/);
+	if (!match) return '';
+	const phrase = match[0].trim();
+	if (phrase.length <= maxChars) return phrase;
+	return fitWordsWithinLimit(phrase, maxChars);
+}
+
+function smartMainFallback(text: string, maxChars = 10): string {
+	const trimmed = text.trim();
+	if (!trimmed) return '';
+	if (trimmed.length <= maxChars) return trimmed;
+
+	const latinPhrase = extractLeadingLatinPhrase(trimmed, maxChars + 6);
+	if (latinPhrase) return latinPhrase;
+
+	return trimmed.slice(0, maxChars);
+}
+
 /**
  * Extract short, punchy keywords from article title.
  * Returns { main: string (2-8 chars), sub: string (short phrase), accent?: string }
@@ -42,6 +75,9 @@ function extractKeywords(title: string): { main: string; sub: string; accent?: s
 	let sub = '';
 	let accent = '';
 
+	// Prefer a leading Latin phrase like "Sakana AI" before later-known brands.
+	const leadingPhrase = chunks.map((chunk) => extractLeadingLatinPhrase(chunk)).find(Boolean) || '';
+
 	// Find the brand name that appears earliest in the title
 	let earliestPos = Infinity;
 	for (const brand of BRANDS) {
@@ -50,6 +86,11 @@ function extractKeywords(title: string): { main: string; sub: string; accent?: s
 			earliestPos = pos;
 			main = brand;
 		}
+	}
+
+	const leadingPos = leadingPhrase ? title.indexOf(leadingPhrase) : -1;
+	if (leadingPhrase && (earliestPos === Infinity || (leadingPos !== -1 && leadingPos < earliestPos))) {
+		main = leadingPhrase;
 	}
 
 	// Try to find an impact word for accent
@@ -71,8 +112,7 @@ function extractKeywords(title: string): { main: string; sub: string; accent?: s
 			}
 		}
 		if (!main && chunks[0]) {
-			// Take first few chars of first chunk
-			main = chunks[0].slice(0, 8);
+			main = smartMainFallback(chunks[0], 10);
 		}
 	}
 
@@ -137,6 +177,24 @@ function vt(text: string, x: number, startY: number, size: number, opts: { opaci
 
 // ---- 16 layout functions ----
 type LFn = (m: string, s: string, a: string, r: () => number) => string;
+
+const verticalMainLayouts = new Set([3, 6, 11]);
+const verticalSubLayouts = new Set([6, 15]);
+
+function shouldAvoidVertical(text: string, maxChars: number): boolean {
+	return /\s/.test(text) || text.length > maxChars;
+}
+
+function pickCompatibleLayout(initialIndex: number, main: string, sub: string): number {
+	for (let offset = 0; offset < L.length; offset++) {
+		const index = (initialIndex + offset) % L.length;
+		if (verticalMainLayouts.has(index) && shouldAvoidVertical(main, 6)) continue;
+		if (verticalSubLayouts.has(index) && shouldAvoidVertical(sub, 8)) continue;
+		return index;
+	}
+
+	return initialIndex;
+}
 
 const L: LFn[] = [
 	// 0: 「涙」style — single huge word, dead center
@@ -292,7 +350,7 @@ export function generateHeroSvg(seed: string): string {
 	const rand = seededRandom(hash);
 
 	const { main, sub, accent } = extractKeywords(seed);
-	const layoutIndex = Math.floor(rand() * L.length);
+	const layoutIndex = pickCompatibleLayout(Math.floor(rand() * L.length), main, sub);
 
 	let svg = '';
 	svg += `<rect width="1200" height="630" fill="#000"/>`;

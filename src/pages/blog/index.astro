@@ -7,7 +7,7 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import GenerativeHero from '../../components/GenerativeHero.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
-import { getCategoryLabel } from '../../utils/categories';
+import { getPrimaryTag } from '../../utils/tags';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -26,25 +26,25 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 			<div class="post-list">
 				{
 					posts.map((post) => (
-						<a href={`/blog/${post.id}/`} class="post-item">
-							<GenerativeHero
-								seed={post.data.title}
-								alt={post.data.title}
-								width={240}
-								height={120}
-								class="post-thumb"
-							/>
-							<div class="post-info">
-								<CategoryBadge label={getCategoryLabel(post.data.category)} class="post-category-badge" />
-								<h2 class="post-title">{post.data.title}</h2>
-								<p class="post-desc">{post.data.description}</p>
-								<p class="post-date">
-									<FormattedDate date={post.data.pubDate} />
-								</p>
-							</div>
-						</a>
-					))
-				}
+							<a href={`/blog/${post.id}/`} class="post-item">
+								<GenerativeHero
+									seed={post.data.title}
+									alt={post.data.title}
+									width={240}
+									height={120}
+									class="post-thumb"
+								/>
+								<div class="post-info">
+									<CategoryBadge label={`#${getPrimaryTag(post.data.tags)}`} class="post-category-badge" />
+									<h2 class="post-title">{post.data.title}</h2>
+									<p class="post-desc">{post.data.description}</p>
+									<p class="post-date">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+								</div>
+							</a>
+						))
+					}
 			</div>
 		</main>
 		<Footer />
