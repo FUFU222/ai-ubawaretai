@@ -3,31 +3,24 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import { GITHUB_URL, SITE_TITLE } from '../consts';
+
+const contactDescription = '記事の内容に関するご連絡や、取材・掲載のご相談はこちらからお願いします。';
 ---
 
 <!doctype html>
 <html lang="ja">
 	<head>
-		<BaseHead
-			title={`お問い合わせ | ${SITE_TITLE}`}
-			description="当サイトへのお問い合わせ方法について"
-		/>
+		<BaseHead title={`お問い合わせ | ${SITE_TITLE}`} description={contactDescription} />
 	</head>
 	<body>
 		<Header />
 		<main>
 			<article class="contact">
 				<h1>お問い合わせ</h1>
-				<p class="lead">
-					記事の訂正依頼、出典の補足、運営に関するご連絡はこのページの案内に沿ってお送りください。内容確認のうえ、必要に応じて修正や返信を行います。
-				</p>
-
-				<p>
-					当サイトに関するご質問・ご意見・ご要望がございましたら、以下の方法でご連絡ください。
-				</p>
+				<p class="lead">記事の内容に関するご連絡や、取材・掲載のご相談はこちらからお願いします。</p>
 
 				<section>
-					<h2>GitHub</h2>
+					<h2>お問い合わせ方法</h2>
 					<p>
 						<a href={GITHUB_URL} target="_blank" rel="noopener">
 							運営者のGitHubプロフィール
@@ -40,8 +33,9 @@ import { GITHUB_URL, SITE_TITLE } from '../consts';
 					<h2>このページで受け付ける内容</h2>
 					<ul>
 						<li>記事の内容に関する修正・訂正のご指摘</li>
+						<li>記事の内容に関するご質問や出典の補足</li>
 						<li>サイトの不具合のご報告</li>
-						<li>広告掲載に関するお問い合わせ</li>
+						<li>取材・掲載に関するご相談</li>
 						<li>その他のご質問・ご意見</li>
 					</ul>
 				</section>
@@ -50,13 +44,6 @@ import { GITHUB_URL, SITE_TITLE } from '../consts';
 					<h2>訂正依頼について</h2>
 					<p>
 						記事URL、該当箇所、修正提案、根拠となるソースを添えてご連絡いただけると確認が早くなります。重要な事実誤認は優先して対応します。
-					</p>
-				</section>
-
-				<section>
-					<h2>編集方針</h2>
-					<p>
-						このサイトの記事制作基準、出典方針、AI利用方針については、<a href="/editorial-policy">編集方針ページ</a>をご覧ください。
 					</p>
 				</section>
 

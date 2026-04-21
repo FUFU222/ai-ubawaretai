@@ -31,7 +31,7 @@ export function articleJsonLd(params: {
 		headline: params.title,
 		description: params.description,
 		datePublished: params.pubDate.toISOString(),
-		...(params.updatedDate && { dateModified: params.updatedDate.toISOString() }),
+		dateModified: (params.updatedDate ?? params.pubDate).toISOString(),
 		...(params.image && { image: params.image }),
 		author: {
 			'@type': 'Person',

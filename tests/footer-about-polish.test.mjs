@@ -16,10 +16,15 @@ test('build uses structured footer sections and trust-oriented About copy', () =
 	assert.match(aboutHtml, /class="footer-meta"/);
 	assert.match(aboutHtml, /class="footer-eyebrow"/);
 
-	assert.match(aboutHtml, /独立系メディア/);
-	assert.match(aboutHtml, /このブログが大事にしていること/);
-	assert.match(aboutHtml, /一次ソースを優先する/);
-	assert.match(aboutHtml, /\/editorial-policy/);
+	assert.match(aboutHtml, /日本の事業・開発の現場でどう受け止めるべきかを整理するブログ/);
+	assert.match(aboutHtml, /更新と訂正/);
+	assert.match(aboutHtml, /\/about/);
+	assert.match(aboutHtml, /\/contact/);
+	assert.match(aboutHtml, /\/privacy/);
+	assert.doesNotMatch(aboutHtml, /このブログが大事にしていること/);
+	assert.doesNotMatch(aboutHtml, /記事の作り方/);
+	assert.doesNotMatch(aboutHtml, /\/editorial-policy/);
+	assert.doesNotMatch(aboutHtml, /\/terms/);
 	assert.doesNotMatch(aboutHtml, /でも僕は/);
 	assert.doesNotMatch(aboutHtml, /割と本気で/);
 	assert.doesNotMatch(aboutHtml, /うわ、まじか/);

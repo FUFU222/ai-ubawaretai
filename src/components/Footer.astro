@@ -10,15 +10,13 @@ const year = new Date().getFullYear();
 			<p class="footer-eyebrow">Information</p>
 			<div class="footer-link-grid">
 				<a href="/about">About</a>
-				<a href="/editorial-policy">編集方針</a>
 				<a href="/contact">お問い合わせ</a>
 				<a href="/privacy">プライバシーポリシー</a>
-				<a href="/terms">利用規約</a>
 			</div>
 		</div>
 		<div class="footer-meta">
 			<p class="footer-site-title">{SITE_TITLE}</p>
-			<p class="tagline">公式ソース優先、日本市場への意味、開発者目線の分析を軸に、AI業界の変化を追う独立系ブログです。</p>
+			<p class="tagline">AI・ソフトウェア・プロダクトの更新を、日本の事業と開発の文脈で整理するブログです。</p>
 			<p class="copyright">&copy; {year} {SITE_TITLE}. All rights reserved.</p>
 		</div>
 	</div>
@@ -55,7 +53,7 @@ const year = new Date().getFullYear();
 
 	.footer-link-grid {
 		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: repeat(1, minmax(0, 1fr));
 		gap: 0.75rem;
 	}
 
@@ -112,15 +110,11 @@ const year = new Date().getFullYear();
 
 	@media (min-width: 769px) {
 		.footer-link-grid {
-			grid-template-columns: repeat(5, minmax(0, 1fr));
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 
 	@media (max-width: 480px) {
-		.footer-link-grid {
-			grid-template-columns: 1fr;
-		}
-
 		.footer-link-grid a {
 			min-height: 2.8rem;
 		}

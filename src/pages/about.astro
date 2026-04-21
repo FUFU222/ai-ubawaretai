@@ -6,12 +6,14 @@ import { GITHUB_URL, SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, SITE_TITLE } from '..
 import { personJsonLd } from '../utils/jsonld';
 
 const personLd = personJsonLd();
+const aboutDescription =
+	'このサイトは、AI・ソフトウェア・プロダクトの更新を追い、日本の事業・開発の現場でどう受け止めるべきかを整理するブログです。';
 ---
 
 <!doctype html>
 <html lang="ja">
 	<head>
-		<BaseHead title={`About | ${SITE_TITLE}`} description={SITE_AUTHOR_DESCRIPTION} />
+		<BaseHead title={`About | ${SITE_TITLE}`} description={aboutDescription} />
 		<script type="application/ld+json" set:html={JSON.stringify(personLd)} />
 	</head>
 	<body>
@@ -20,77 +22,35 @@ const personLd = personJsonLd();
 			<article class="about">
 				<h1>About</h1>
 				<p class="about-lead">
-					「AIに仕事を奪われたい」は、海外の一次ソースを軸にAI業界の変化を整理し、日本の開発者や事業担当者にとって何が重要かを読み解くための独立系メディアです。
+					このサイトは、AI・ソフトウェア・プロダクトの更新を追い、日本の事業・開発の現場でどう受け止めるべきかを整理するブログです。扱うテーマは、AIモデル、API、開発ツール、価格改定、競争動向、規制や制度の変化などです。公開情報を確認したうえで、変更点だけでなく、誰に関係するのか、導入判断や実務にどんな影響があるのかを簡潔にまとめます。内容の更新や修正が必要な場合は確認のうえ反映します。ご連絡はお問い合わせページからお願いします。
 				</p>
-
-				<section>
-					<h2>「奪われたい」の真意</h2>
-					<p>
-						会食や忖度、空気を読むための会議など、仕事の中には「本当に必要なのだろうか」と感じる場面があります。
-						もちろん人の手で向き合うべきこともありますが、テクノロジーに任せられることは、できるだけ任せてよいと考えています。
-					</p>
-					<p>
-						「AIに仕事を奪われる」という表現には、不安な響きがあるかもしれません。
-						このサイトが注目しているのは、その先にある「本当に向き合いたい仕事へ集中できる環境」です。
-						そうした前向きな意味を込めて、「AIに仕事を奪われたい」という名前を掲げています。
-					</p>
-				</section>
 
 				<section>
 					<h2>書いてる人</h2>
 					<p class="author-name">{SITE_AUTHOR}</p>
 					<p class="author-role">{SITE_AUTHOR_DESCRIPTION}</p>
 					<p>
-						消防士として約10年、命に関わる現場に携わってきました。
-						その後、独学でプログラミングを学び、NFT関連プロジェクトへの参画をきっかけにソフトウェア開発の道へ進みました。
-						自分のコードで仕組みを形にできることに強く惹かれ、現在の仕事につながっています。
+						消防士として約10年、命に関わる現場に携わったあと、独学でプログラミングを学び、ソフトウェア開発の仕事に移りました。現在はフルスタック開発に携わりながら、AI業界とプロダクトの変化を継続的に追っています。
 					</p>
 					<p>
-						現在はSNSマーケティング会社でフルスタック開発に携わりながら、海外のAIニュースや主要プロダクトのアップデートを継続的に追っています。
-						「昨日までは難しかったことが、今日には現実になっている」という変化の速さに、今も強い面白さを感じています。
-					</p>
-					<p>
-						このブログでは、単なる翻訳や要約ではなく、「発表のどこが本質か」「日本の開発組織やスタートアップにどう効くか」を追加で整理することを自分の役割にしています。
+						このサイトでは、製品更新、価格改定、競争動向、制度や規制の変化など、事業と開発の判断に関わるテーマを中心に扱っています。
 					</p>
 				</section>
 
 				<section>
-					<h2>このブログが大事にしていること</h2>
-					<ul class="principles">
-						<li>公式ブログ、公式ドキュメント、changelog、論文など一次ソースを優先する</li>
-						<li>ただの要約で終わらせず、日本市場への意味と実務上の含意を加える</li>
-						<li>検索流入だけを狙った量産ではなく、読者が「何が変わったか」を短時間でつかめる記事を出す</li>
-						<li>誤りや更新があれば修正し、訂正導線を残す</li>
-					</ul>
-				</section>
-
-				<section>
-					<h2>記事の作り方</h2>
-					<p>
-						記事は、まず一次ソースの確認から始めます。公式発表、製品ドキュメント、価格ページ、研究論文、規制文書などを先に読み、必要な場合だけ補助的に二次ソースを参照します。
-					</p>
-					<p>
-						そのうえで、「何が起きたか」だけでなく、「どの読者に関係するのか」「競争環境や導入判断にどう影響するのか」を加えて整理します。翻訳調の言い換えだけで終わる記事は出さない方針です。
-					</p>
-				</section>
-
-				<section>
-					<h2>よく追いかけてる領域</h2>
+					<h2>扱うテーマ</h2>
 					<ul>
-						<li>AIコーディングツール（Claude Code, GitHub Copilot, Cursor あたり）</li>
-						<li>LLM・基盤モデルの動き（OpenAI, Google, Anthropic, Meta など）</li>
-						<li>AI開発インフラとオープンソース</li>
-						<li>AI × 実務活用のトレンド</li>
+						<li>AIモデル、API、AIコーディングツール</li>
+						<li>価格改定、プロダクト戦略、競争動向</li>
+						<li>AIインフラ、オープンソース、開発ワークフロー</li>
+						<li>日本市場に関わる制度や規制の変化</li>
 					</ul>
 				</section>
 
 				<section>
-					<h2>透明性と訂正について</h2>
+					<h2>更新と訂正</h2>
 					<p>
-						記事末尾には出典を明記し、後から情報が変わった場合は更新します。誤りのご指摘や補足提案は、<a href="/contact">お問い合わせページ</a>から受け付けています。
-					</p>
-					<p>
-						また、記事制作の考え方やAI利用方針は、<a href="/editorial-policy">編集方針ページ</a>にまとめています。広告やアフィリエイトを掲載する場合も、編集判断は独立して行います。
+						記事の内容は公開時点で確認できた情報に基づいています。公開後に更新や修正が必要になった場合は、確認のうえ本文または更新履歴に反映します。誤りや改善点があれば、<a href="/contact">お問い合わせページ</a>からご連絡ください。
 					</p>
 				</section>
 
@@ -98,8 +58,8 @@ const personLd = personJsonLd();
 					<h2>リンク</h2>
 					<ul>
 						<li><a href={GITHUB_URL} target="_blank" rel="noopener">GitHub</a></li>
-						<li><a href="/editorial-policy">編集方針</a></li>
 						<li><a href="/contact">お問い合わせ</a></li>
+						<li><a href="/privacy">プライバシーポリシー</a></li>
 					</ul>
 				</section>
 			</article>
@@ -135,9 +95,5 @@ const personLd = personJsonLd();
 
 	ul {
 		padding-left: 1.5em;
-	}
-
-	.principles li {
-		margin-bottom: 0.65rem;
 	}
 </style>
