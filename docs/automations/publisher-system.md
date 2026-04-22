@@ -13,9 +13,12 @@
 
 全 automation は次の shared path を使う。
 
-- `PUBLISHER_DATA_ROOT="${CODEX_HOME:-$HOME/.codex}/publisher-data/ai-ubawaretai"`
+- `PUBLISHER_DATA_ROOT="$HOME/.codex/publish/ai-ubawaretai-shared"`
 - `PUBLISHER_STATE_PATH="$PUBLISHER_DATA_ROOT/publisher-state.jsonl"`
 - `PUBLISHER_STAGING_DIR="$PUBLISHER_DATA_ROOT/staging"`
+
+各 automation の `cwds` には、専用 clone に加えてこの shared dir も含める。
+これで queue / state の読み書きを automation の許可範囲内に置く。
 
 `state` は公開済み・却下済み・保留中の候補履歴。
 `staging` は候補ごとの作業ディレクトリ。
@@ -114,3 +117,4 @@
 - それ以外の差分が出たら publish 中止
 - `git push origin main` で fast-forward できない場合は最新を取り直して再判定
 - 連続失敗時は無理に retry loop しないで inbox item を残す
+- `preflight` の fetch が外部ネットワークで失敗した場合は、ローカル fallback fetch target で `origin/main` を更新して継続する

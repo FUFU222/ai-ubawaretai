@@ -87,14 +87,19 @@ function resolveFetchTarget({ cwd, remoteName = 'origin', execFileSyncImpl = exe
 	if (httpsRemoteUrl) {
 		return {
 			target: httpsRemoteUrl,
-			refspec: `main:refs/remotes/${remoteName}/main`,
+			refspec: `+main:refs/remotes/${remoteName}/main`,
 		};
 	}
 
 	return {
 		target: remoteName,
-		refspec: 'main',
+		refspec: '+main:refs/remotes/origin/main',
 	};
+}
+
+function normalizeFetchTarget(target) {
+	if (!target) return '';
+	return resolve(target);
 }
 
 function runGitWithRetry(commandArgs, options = {}) {
@@ -228,6 +233,7 @@ export function preflight({
 	statePath,
 	skipInstall = false,
 	skipChecks = false,
+	fallbackFetchTarget = null,
 	execFileSyncImpl = execFileSync,
 	retryDelayMs = 1500,
 } = {}) {
@@ -236,14 +242,31 @@ export function preflight({
 		statePath: resolvedStatePath,
 	} = resolvePublisherContext({ memoryPath, statePath, ensureState: true });
 	const fetchSpec = resolveFetchTarget({ cwd, execFileSyncImpl });
+	const resolvedFallbackFetchTarget = normalizeFetchTarget(fallbackFetchTarget);
+	let fetchSource = fetchSpec.target;
 
 	ensureCleanWorktree(cwd, { execFileSyncImpl });
-	runGitWithRetry(['fetch', fetchSpec.target, fetchSpec.refspec], {
-		cwd,
-		stdio: 'inherit',
-		execFileSyncImpl,
-		retryDelayMs,
-	});
+	try {
+		runGitWithRetry(['fetch', fetchSpec.target, fetchSpec.refspec], {
+			cwd,
+			stdio: 'inherit',
+			execFileSyncImpl,
+			retryDelayMs,
+		});
+	} catch (error) {
+		if (!resolvedFallbackFetchTarget) {
+			throw error;
+		}
+		process.stderr.write(
+			`primary fetch failed in ${cwd}: ${errorText(error)}\nfalling back to local fetch target: ${resolvedFallbackFetchTarget}\n`,
+		);
+		run('git', ['fetch', resolvedFallbackFetchTarget, fetchSpec.refspec], {
+			cwd,
+			stdio: 'inherit',
+			execFileSyncImpl,
+		});
+		fetchSource = resolvedFallbackFetchTarget;
+	}
 	ensureOnMain(cwd, { execFileSyncImpl });
 	run('git', ['merge', '--ff-only', 'origin/main'], { cwd, execFileSyncImpl });
 
@@ -267,6 +290,7 @@ export function preflight({
 			memoryPath: resolvedMemoryPath,
 			statePath: resolvedStatePath,
 		}),
+		fetchSource,
 		installedDependencies: installed,
 	};
 }
@@ -360,6 +384,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 					statePath: args.state,
 					skipInstall: Boolean(args['skip-install']),
 					skipChecks: Boolean(args['skip-checks']),
+					fallbackFetchTarget: args['fallback-fetch-target'] || null,
 				}),
 			);
 		} else if (command === 'clean') {

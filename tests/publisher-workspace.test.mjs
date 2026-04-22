@@ -118,7 +118,7 @@ test('preflight retries a transient git fetch failure before succeeding', async 
 		let fetchAttempts = 0;
 
 		function flakyExec(command, args, options = {}) {
-			if (command === 'git' && args[0] === 'fetch' && args[1] === 'origin' && args[2] === 'main') {
+			if (command === 'git' && args[0] === 'fetch' && args[1] === 'origin' && args[2] === '+main:refs/remotes/origin/main') {
 				fetchAttempts += 1;
 				if (fetchAttempts === 1) {
 					const error = new Error('simulated fetch failure');
@@ -162,7 +162,7 @@ test('preflight prefers derived HTTPS fetch target for GitHub SSH remotes', asyn
 				if (args[1] === 'https://github.com/FUFU222/ai-ubawaretai.git') {
 					return originalExecFileSync(
 						'git',
-						['fetch', remoteDir, 'main:refs/remotes/origin/main'],
+						['fetch', remoteDir, '+main:refs/remotes/origin/main'],
 						options,
 					);
 				}
@@ -203,7 +203,7 @@ test('preflight updates origin/main when using derived HTTPS fetch target', asyn
 				if (args[1] === 'https://github.com/FUFU222/ai-ubawaretai.git') {
 					return originalExecFileSync(
 						'git',
-						['fetch', remoteDir, 'main:refs/remotes/origin/main'],
+						['fetch', remoteDir, '+main:refs/remotes/origin/main'],
 						options,
 					);
 				}
@@ -223,7 +223,7 @@ test('preflight updates origin/main when using derived HTTPS fetch target', asyn
 		assert.deepEqual(seenFetchArgs, [
 			[
 				'https://github.com/FUFU222/ai-ubawaretai.git',
-				'main:refs/remotes/origin/main',
+				'+main:refs/remotes/origin/main',
 			],
 		]);
 	} finally {
@@ -390,6 +390,50 @@ test('preflight can initialize structured state without legacy memory file', asy
 		assert.equal(report.branch, 'main');
 		assert.equal(readFileSync(statePath, 'utf8'), '');
 		assert.equal(report.statePath, statePath);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('preflight falls back to an explicit local fetch target when the primary remote is unavailable', async () => {
+	const { root, remoteDir, workerDir } = setupRepos();
+
+	try {
+		git(workerDir, ['remote', 'set-url', 'origin', 'git@github.com:FUFU222/ai-ubawaretai.git']);
+
+		const { preflight } = await import(moduleUrl);
+		const originalExecFileSync = execFileSync;
+		const seenFetchTargets = [];
+
+		function flakyPrimaryExec(command, args, options = {}) {
+			if (command === 'git' && args[0] === 'fetch') {
+				seenFetchTargets.push(args[1]);
+				if (args[1] === 'https://github.com/FUFU222/ai-ubawaretai.git') {
+					const error = new Error('simulated primary fetch failure');
+					error.stderr = 'fatal: Could not resolve host: github.com';
+					throw error;
+				}
+			}
+
+			return originalExecFileSync(command, args, options);
+		}
+
+		const report = preflight({
+			cwd: workerDir,
+			statePath: join(root, 'shared', 'publisher-state.jsonl'),
+			skipInstall: true,
+			skipChecks: true,
+			fallbackFetchTarget: remoteDir,
+			execFileSyncImpl: flakyPrimaryExec,
+		});
+
+		assert.deepEqual(seenFetchTargets, [
+			'https://github.com/FUFU222/ai-ubawaretai.git',
+			remoteDir,
+		]);
+		assert.equal(report.fetchSource, remoteDir);
+		assert.equal(git(workerDir, ['rev-parse', 'HEAD']), git(workerDir, ['rev-parse', 'origin/main']));
+		assert.equal(git(workerDir, ['show', 'HEAD:README.md']).trim(), 'updated upstream');
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}
