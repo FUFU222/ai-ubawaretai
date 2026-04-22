@@ -25,7 +25,7 @@ automation の専用 clone 内で、次の local path だけを使う。
 
 - `PUBLISHER_STATE_PATH="$PWD/.publisher-runtime/publisher-state.jsonl"`
 - `PUBLISHER_STAGING_DIR="$PWD/.publisher-staging"`
-- `PUBLISHER_FALLBACK_FETCH_TARGET="/Users/fufu/code/ai-ubawaretai"`
+- `PUBLISHER_SYNC_TARGET="/Users/fufu/.codex/publish/ai-ubawaretai-sync.git"`
 
 `.publisher-runtime/` と `.publisher-staging/` は gitignore 対象にする。
 
@@ -44,8 +44,10 @@ automation の専用 clone 内で、次の local path だけを使う。
 ### 1. 同期
 
 - `preflight` を実行する
-- GitHub fetch に失敗したら `PUBLISHER_FALLBACK_FETCH_TARGET` で継続する
-- remote は HTTPS を優先し、SSH 依存を避ける
+- まず `PUBLISHER_SYNC_TARGET` から `origin/main` を更新する
+- `PUBLISHER_SYNC_TARGET` は publisher 自身が更新する local mirror とする
+- GitHub への fetch は常用しない。local mirror が使えないときだけ例外対応にする
+- `git remote set-url` のような毎回の remote 上書きはしない
 
 ### 2. 復旧
 
@@ -74,10 +76,12 @@ automation の専用 clone 内で、次の local path だけを使う。
 ### 6. 公開
 
 - `scripts/publisher-content.mjs promote` を実行する
-- `npm test`
-- `npm run build`
+- `scripts/publisher-workspace.mjs classify-publish-diff` で差分を確認する
+- 差分が publish 対象 3 ファイルだけなら `npm run build` だけを実行する
+- 差分がそれ以外に広がった場合は publish 中止。publish-flow 自体を直す run だけが full test を許される
 - `git add` / `git commit`
-- `git push origin main`
+- まず `git push origin main`
+- 成功したら `PUBLISHER_SYNC_TARGET` にも同じ `main` を push して local mirror を更新する
 
 ### 7. 失敗分析
 
@@ -105,10 +109,16 @@ automation の専用 clone 内で、次の local path だけを使う。
 
 ## Reporting
 
-最終サマリは毎回日本語で書く。
+最終サマリは毎回日本語で短く書く。
 
-- `実行結果`
-- `失敗分析`
-- `復旧処理`
-- `公開結果`
-- `次回の引き継ぎ`
+- 必須は `実行結果`
+- `失敗分析` は失敗時だけ出す
+- `復旧処理` は recovery を実施した run だけ出す
+- `公開結果` は publish を試した run だけ出す
+- `次回の引き継ぎ` は未完了タスクが残るときだけ出す
+
+## Memory Rules
+
+- `memory.md` は durable note だけを残す
+- routine success / failure の run log は memory に積み増さない
+- inbox summary に出した内容をそのまま memory に複写しない
