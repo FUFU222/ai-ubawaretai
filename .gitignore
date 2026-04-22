@@ -28,3 +28,4 @@ pnpm-debug.log*
 
 # automation staging
 .publisher-staging/
+.publisher-runtime/

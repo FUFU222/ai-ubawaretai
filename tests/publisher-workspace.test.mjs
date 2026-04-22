@@ -395,6 +395,33 @@ test('preflight can initialize structured state without legacy memory file', asy
 	}
 });
 
+test('preflight reports a local commit ahead of origin/main without failing', async () => {
+	const { root, workerDir } = setupRepos();
+	const statePath = join(root, 'shared', 'publisher-state.jsonl');
+
+	try {
+		git(workerDir, ['pull', '--ff-only', 'origin', 'main']);
+		git(workerDir, ['config', 'user.name', 'Codex Test']);
+		git(workerDir, ['config', 'user.email', 'codex@example.com']);
+		writeFileSync(join(workerDir, 'LOCAL_ONLY.md'), 'pending publish\n');
+		git(workerDir, ['add', 'LOCAL_ONLY.md']);
+		git(workerDir, ['commit', '-m', 'pending local commit']);
+
+		const { preflight } = await import(moduleUrl);
+		const report = preflight({
+			cwd: workerDir,
+			statePath,
+			skipInstall: true,
+			skipChecks: true,
+		});
+
+		assert.equal(report.aheadOfOriginMain, true);
+		assert.notEqual(report.head, report.originMain);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('preflight falls back to an explicit local fetch target when the primary remote is unavailable', async () => {
 	const { root, remoteDir, workerDir } = setupRepos();
 

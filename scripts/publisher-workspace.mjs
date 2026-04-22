@@ -181,6 +181,14 @@ function ensureNodeModules(cwd, options = {}) {
 	return true;
 }
 
+function isAncestorCommit(ancestor, descendant, { cwd, execFileSyncImpl = execFileSync } = {}) {
+	if (!ancestor || !descendant) return false;
+	return commandSucceeds('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+		cwd,
+		execFileSyncImpl,
+	});
+}
+
 export function listStagedCandidates({ cwd = process.cwd(), stagingDir = '.publisher-staging' } = {}) {
 	const resolvedStagingDir = resolve(cwd, stagingDir);
 	if (!existsSync(resolvedStagingDir)) {
@@ -272,7 +280,8 @@ export function preflight({
 
 	const head = run('git', ['rev-parse', 'HEAD'], { cwd, execFileSyncImpl });
 	const originMain = run('git', ['rev-parse', 'origin/main'], { cwd, execFileSyncImpl });
-	if (head !== originMain) {
+	const aheadOfOriginMain = head !== originMain && isAncestorCommit(originMain, head, { cwd, execFileSyncImpl });
+	if (head !== originMain && !aheadOfOriginMain) {
 		throw new Error(`workspace base mismatch: HEAD=${head} origin/main=${originMain}`);
 	}
 
@@ -290,6 +299,7 @@ export function preflight({
 			memoryPath: resolvedMemoryPath,
 			statePath: resolvedStatePath,
 		}),
+		aheadOfOriginMain,
 		fetchSource,
 		installedDependencies: installed,
 	};
