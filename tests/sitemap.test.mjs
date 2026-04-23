@@ -16,8 +16,11 @@ test('build emits a curated sitemap.xml route', () => {
 	assert.ok(existsSync(sitemapPath), 'dist/sitemap.xml should exist after build');
 	assert.match(sitemap, /<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
 	assert.match(sitemap, /https:\/\/ai-ubawaretai\.com\/blog\//);
+	assert.match(sitemap, /https:\/\/ai-ubawaretai\.com\/about\//);
 	assert.doesNotMatch(sitemap, /https:\/\/ai-ubawaretai\.com\/article-levels\//);
 	assert.doesNotMatch(sitemap, /https:\/\/ai-ubawaretai\.com\/blog\/page\/2\//);
+	assert.doesNotMatch(sitemap, /https:\/\/ai-ubawaretai\.com\/contact\//);
+	assert.doesNotMatch(sitemap, /https:\/\/ai-ubawaretai\.com\/privacy\//);
 });
 
 test('source metadata points crawlers to sitemap.xml and blocks article-level fragments', () => {

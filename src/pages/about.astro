@@ -2,31 +2,39 @@
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { GITHUB_URL, SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, SITE_TITLE } from '../consts';
-import { personJsonLd } from '../utils/jsonld';
+import {
+	ABOUT_PAGE_DESCRIPTION,
+	ABOUT_PAGE_TITLE,
+	GITHUB_URL,
+	SITE_AUTHOR,
+	SITE_AUTHOR_DESCRIPTION,
+} from '../consts';
+import { aboutPageJsonLd, organizationJsonLd, personJsonLd } from '../utils/jsonld';
 
 const personLd = personJsonLd();
-const aboutDescription =
-	'このサイトは、AI・ソフトウェア・プロダクトの更新を追い、日本の事業・開発の現場でどう受け止めるべきかを整理するブログです。';
+const organizationLd = organizationJsonLd();
+const aboutPageLd = aboutPageJsonLd();
 ---
 
 <!doctype html>
 <html lang="ja">
 	<head>
-		<BaseHead title={`About | ${SITE_TITLE}`} description={aboutDescription} />
+		<BaseHead title={ABOUT_PAGE_TITLE} description={ABOUT_PAGE_DESCRIPTION} />
+		<script type="application/ld+json" set:html={JSON.stringify(organizationLd)} />
 		<script type="application/ld+json" set:html={JSON.stringify(personLd)} />
+		<script type="application/ld+json" set:html={JSON.stringify(aboutPageLd)} />
 	</head>
 	<body>
 		<Header />
 		<main>
 			<article class="about">
-				<h1>About</h1>
+				<h1>このサイトについて</h1>
 				<p class="about-lead">
-					このサイトは、AI・ソフトウェア・プロダクトの更新を追い、日本の事業・開発の現場でどう受け止めるべきかを整理するブログです。扱うテーマは、AIモデル、API、開発ツール、価格改定、競争動向、規制や制度の変化などです。公開情報を確認したうえで、変更点だけでなく、誰に関係するのか、導入判断や実務にどんな影響があるのかを簡潔にまとめます。内容の更新や修正が必要な場合は確認のうえ反映します。ご連絡はお問い合わせページからお願いします。
+					「AIに仕事を奪われたい」は、AI・ソフトウェア・プロダクトの更新を追い、日本の事業・開発の現場でどう受け止めるべきかを整理するブログです。扱うテーマは、AIモデル、API、開発ツール、価格改定、競争動向、規制や制度の変化などです。公開情報を確認したうえで、変更点だけでなく、誰に関係するのか、導入判断や実務にどんな影響があるのかを簡潔にまとめます。内容の更新や修正が必要な場合は確認のうえ反映します。ご連絡はお問い合わせページからお願いします。
 				</p>
 
 				<section>
-					<h2>書いてる人</h2>
+					<h2>運営者</h2>
 					<p class="author-name">{SITE_AUTHOR}</p>
 					<p class="author-role">{SITE_AUTHOR_DESCRIPTION}</p>
 					<p>
@@ -57,7 +65,7 @@ const aboutDescription =
 				<section>
 					<h2>リンク</h2>
 					<ul>
-							<li><a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a></li>
+						<li><a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a></li>
 						<li><a href="/contact">お問い合わせ</a></li>
 						<li><a href="/privacy">プライバシーポリシー</a></li>
 					</ul>

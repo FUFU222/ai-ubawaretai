@@ -13,6 +13,8 @@ test('build output includes security headers, security.txt, and noindex utility 
 	const headersPath = join(rootDir, 'dist', '_headers');
 	const securityTxtPath = join(rootDir, 'dist', '.well-known', 'security.txt');
 	const notFoundHtml = readFileSync(join(rootDir, 'dist', '404.html'), 'utf8');
+	const contactHtml = readFileSync(join(rootDir, 'dist', 'contact', 'index.html'), 'utf8');
+	const privacyHtml = readFileSync(join(rootDir, 'dist', 'privacy', 'index.html'), 'utf8');
 	const paginatedArchiveHtml = readFileSync(join(rootDir, 'dist', 'blog', 'page', '2', 'index.html'), 'utf8');
 	const headers = readFileSync(headersPath, 'utf8');
 
@@ -22,5 +24,7 @@ test('build output includes security headers, security.txt, and noindex utility 
 	assert.match(headers, /X-Frame-Options: DENY/);
 	assert.match(headers, /\/article-levels\/\*/);
 	assert.match(notFoundHtml, /<meta name="robots" content="noindex,follow,noarchive,max-image-preview:large,max-snippet:-1,max-video-preview:-1">/);
+	assert.match(contactHtml, /<meta name="robots" content="noindex,follow,noarchive,max-image-preview:large,max-snippet:-1,max-video-preview:-1">/);
+	assert.match(privacyHtml, /<meta name="robots" content="noindex,follow,noarchive,max-image-preview:large,max-snippet:-1,max-video-preview:-1">/);
 	assert.match(paginatedArchiveHtml, /<meta name="robots" content="noindex,follow,noarchive,max-image-preview:large,max-snippet:-1,max-video-preview:-1">/);
 });

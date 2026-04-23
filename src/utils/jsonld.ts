@@ -1,4 +1,8 @@
 import {
+	ABOUT_PAGE_DESCRIPTION,
+	ABOUT_PAGE_TITLE,
+	HOME_PAGE_DESCRIPTION,
+	SITE_DOMAIN,
 	GITHUB_URL,
 	SITE_AUTHOR,
 	SITE_AUTHOR_DESCRIPTION,
@@ -7,6 +11,26 @@ import {
 	SITE_TITLE,
 	SITE_URL,
 } from '../consts';
+
+const organizationId = `${SITE_URL}/#organization`;
+const websiteId = `${SITE_URL}/#website`;
+
+export function organizationJsonLd() {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'Organization',
+		'@id': organizationId,
+		name: SITE_TITLE,
+		alternateName: SITE_DOMAIN,
+		description: HOME_PAGE_DESCRIPTION,
+		url: SITE_URL,
+		logo: {
+			'@type': 'ImageObject',
+			url: `${SITE_URL}/favicon.svg`,
+		},
+		sameAs: [GITHUB_URL],
+	};
+}
 
 export function personJsonLd() {
 	return {
@@ -17,9 +41,7 @@ export function personJsonLd() {
 		url: `${SITE_URL}/about`,
 		jobTitle: 'フルスタックエンジニア',
 		worksFor: {
-			'@type': 'Organization',
-			name: SITE_TITLE,
-			url: SITE_URL,
+			'@id': organizationId,
 		},
 		sameAs: [GITHUB_URL],
 	};
@@ -29,14 +51,31 @@ export function websiteJsonLd() {
 	return {
 		'@context': 'https://schema.org',
 		'@type': 'WebSite',
+		'@id': websiteId,
 		name: SITE_TITLE,
+		alternateName: SITE_DOMAIN,
 		description: SITE_DESCRIPTION,
 		url: SITE_URL,
 		inLanguage: SITE_LANGUAGE,
 		publisher: {
-			'@type': 'Person',
-			name: SITE_AUTHOR,
-			url: `${SITE_URL}/about`,
+			'@id': organizationId,
+		},
+	};
+}
+
+export function aboutPageJsonLd() {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'AboutPage',
+		name: ABOUT_PAGE_TITLE,
+		description: ABOUT_PAGE_DESCRIPTION,
+		url: `${SITE_URL}/about`,
+		inLanguage: SITE_LANGUAGE,
+		isPartOf: {
+			'@id': websiteId,
+		},
+		about: {
+			'@id': organizationId,
 		},
 	};
 }
@@ -63,9 +102,7 @@ export function articleJsonLd(params: {
 			url: `${SITE_URL}/about`,
 		},
 		publisher: {
-			'@type': 'Organization',
-			name: SITE_TITLE,
-			url: SITE_URL,
+			'@id': organizationId,
 		},
 		mainEntityOfPage: {
 			'@type': 'WebPage',

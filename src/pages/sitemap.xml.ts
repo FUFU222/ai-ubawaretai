@@ -39,8 +39,6 @@ export const GET: APIRoute = async ({ site }) => {
 		{ loc: new URL('/blog/', siteUrl).href, ...(latestPostDate && { lastmod: latestPostDate }) },
 		{ loc: new URL('/category/', siteUrl).href, ...(latestPostDate && { lastmod: latestPostDate }) },
 		{ loc: new URL('/about/', siteUrl).href },
-		{ loc: new URL('/contact/', siteUrl).href },
-		{ loc: new URL('/privacy/', siteUrl).href },
 		...allPosts.map((post) => ({
 			loc: new URL(`/blog/${post.id}/`, siteUrl).href,
 			lastmod: post.data.updatedDate ?? post.data.pubDate,

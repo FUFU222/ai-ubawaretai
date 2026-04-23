@@ -1,5 +1,14 @@
 export const SITE_TITLE = 'AIに仕事を奪われたい';
-export const SITE_DESCRIPTION = 'AI業界の最新ニュースを現役エンジニアの視点で読み解く';
+export const SITE_DOMAIN = 'ai-ubawaretai.com';
+export const SITE_TAGLINE = 'AI・ソフトウェア・プロダクトの更新を、日本の事業と開発の文脈で読み解くブログ';
+export const SITE_DESCRIPTION =
+	'「AIに仕事を奪われたい」は、OpenAIやGoogleなどAI・ソフトウェア・プロダクトの更新を、日本の事業と開発の文脈で読み解くブログです。';
+export const HOME_PAGE_TITLE = `${SITE_TITLE} | AIニュースを開発者目線で読み解く`;
+export const HOME_PAGE_DESCRIPTION =
+	'OpenAIやGoogleなどAI・ソフトウェア・プロダクトの更新を、日本の事業と開発の文脈で読み解くブログです。現役エンジニア視点で変化の意味を整理します。';
+export const ABOUT_PAGE_TITLE = `このサイトについて | ${SITE_TITLE}`;
+export const ABOUT_PAGE_DESCRIPTION =
+	'「AIに仕事を奪われたい」の運営方針と執筆者プロフィール。AI・ソフトウェア・プロダクトの更新を、日本の事業・開発の現場でどう受け止めるかを整理しています。';
 export const SITE_AUTHOR = 'Akira';
 export const SITE_AUTHOR_DESCRIPTION = 'AI・ソフトウェア・プロダクト動向を追いながら、調査と実装を行っています。';
 export const SITE_URL = 'https://ai-ubawaretai.com';

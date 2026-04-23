@@ -1,5 +1,5 @@
 ---
-import { SITE_TITLE } from '../consts';
+import { SITE_TAGLINE, SITE_TITLE } from '../consts';
 
 const year = new Date().getFullYear();
 ---
@@ -9,15 +9,15 @@ const year = new Date().getFullYear();
 		<div class="footer-nav">
 			<p class="footer-eyebrow">Information</p>
 			<div class="footer-link-grid">
-				<a href="/about">About</a>
+				<a href="/about">このサイトについて</a>
 				<a href="/contact">お問い合わせ</a>
 				<a href="/privacy">プライバシーポリシー</a>
 			</div>
 		</div>
 		<div class="footer-meta">
 			<p class="footer-site-title">{SITE_TITLE}</p>
-			<p class="tagline">AI・ソフトウェア・プロダクトの更新を、日本の事業と開発の文脈で整理するブログです。</p>
-			<p class="copyright">&copy; {year} {SITE_TITLE}. All rights reserved.</p>
+			<p class="tagline">{SITE_TAGLINE}です。</p>
+			<p class="copyright" data-nosnippet>&copy; {year} {SITE_TITLE}. All rights reserved.</p>
 		</div>
 	</div>
 </footer>

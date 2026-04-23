@@ -15,7 +15,10 @@ const supplementalTags = tagSummaries.filter((tag) => !tag.isIndexable);
 <!doctype html>
 <html lang="ja">
 	<head>
-		<BaseHead title={`タグ | ${SITE_TITLE}`} description="企業名やテーマから記事を探せるタグ一覧ページ" />
+		<BaseHead
+			title={`タグ一覧 | ${SITE_TITLE}`}
+			description="企業名やテーマごとに記事を探せるタグ一覧です。OpenAI、Google、Anthropic、開発ツール、音声AIなどで横断できます。"
+		/>
 	</head>
 	<body>
 		<Header />
