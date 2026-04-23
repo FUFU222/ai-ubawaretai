@@ -97,9 +97,12 @@ function resolveFetchTarget({ cwd, remoteName = 'origin', execFileSyncImpl = exe
 	};
 }
 
-function normalizeFetchTarget(target) {
-	if (!target) return '';
-	return resolve(target);
+function normalizeFetchTarget(target, cwd = process.cwd()) {
+	const value = String(target || '').trim();
+	if (!value) return '';
+	if (/^(https?|ssh):\/\//.test(value)) return value;
+	if (/^[A-Za-z0-9_.-]+$/.test(value)) return value;
+	return resolve(cwd, value);
 }
 
 function runGitWithRetry(commandArgs, options = {}) {
@@ -235,12 +238,59 @@ export function getWorkspaceStatus({ cwd = process.cwd(), memoryPath = null, sta
 	};
 }
 
+function parseStatusPath(line) {
+	if (!line) return '';
+	if (line.startsWith('?? ')) return line.slice(3);
+
+	const pathFragment = line.slice(3).trim();
+	const renamedParts = pathFragment.split(' -> ');
+	return renamedParts.at(-1) || '';
+}
+
+function listChangedPaths(cwd, options = {}) {
+	const status = run('git', ['status', '--porcelain', '--untracked-files=all'], { cwd, ...options });
+	if (!status) return [];
+
+	return status
+		.split('\n')
+		.map((line) => parseStatusPath(line))
+		.filter(Boolean)
+		.sort();
+}
+
+export function classifyPublishDiff({ cwd = process.cwd(), slug, execFileSyncImpl = execFileSync } = {}) {
+	if (!slug) {
+		throw new Error('slug is required');
+	}
+
+	const expectedPaths = [
+		`src/content/blog/${slug}.md`,
+		`src/content/blog-levels/${slug}/child.md`,
+		`src/content/blog-levels/${slug}/expert.md`,
+	].sort();
+	const changedPaths = listChangedPaths(cwd, { execFileSyncImpl });
+	const unexpectedPaths = changedPaths.filter((path) => !expectedPaths.includes(path));
+	const missingPaths = expectedPaths.filter((path) => !changedPaths.includes(path));
+	const articleOnly = changedPaths.length === expectedPaths.length && unexpectedPaths.length === 0 && missingPaths.length === 0;
+
+	return {
+		slug,
+		changedPaths,
+		expectedPaths,
+		unexpectedPaths,
+		missingPaths,
+		articleOnly,
+		requiresFullTest: !articleOnly,
+	};
+}
+
 export function preflight({
 	cwd = process.cwd(),
 	memoryPath,
 	statePath,
 	skipInstall = false,
 	skipChecks = false,
+	fetchTarget = null,
 	fallbackFetchTarget = null,
 	execFileSyncImpl = execFileSync,
 	retryDelayMs = 1500,
@@ -249,8 +299,13 @@ export function preflight({
 		memoryPath: resolvedMemoryPath,
 		statePath: resolvedStatePath,
 	} = resolvePublisherContext({ memoryPath, statePath, ensureState: true });
-	const fetchSpec = resolveFetchTarget({ cwd, execFileSyncImpl });
-	const resolvedFallbackFetchTarget = normalizeFetchTarget(fallbackFetchTarget);
+	const fetchSpec = fetchTarget
+		? {
+				target: normalizeFetchTarget(fetchTarget, cwd),
+				refspec: '+main:refs/remotes/origin/main',
+			}
+		: resolveFetchTarget({ cwd, execFileSyncImpl });
+	const resolvedFallbackFetchTarget = normalizeFetchTarget(fallbackFetchTarget, cwd);
 	let fetchSource = fetchSpec.target;
 
 	ensureCleanWorktree(cwd, { execFileSyncImpl });
@@ -394,7 +449,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 					statePath: args.state,
 					skipInstall: Boolean(args['skip-install']),
 					skipChecks: Boolean(args['skip-checks']),
+					fetchTarget: args['fetch-target'] || null,
 					fallbackFetchTarget: args['fallback-fetch-target'] || null,
+				}),
+			);
+		} else if (command === 'classify-publish-diff') {
+			printJson(
+				classifyPublishDiff({
+					cwd: args.cwd || process.cwd(),
+					slug: args.slug,
 				}),
 			);
 		} else if (command === 'clean') {

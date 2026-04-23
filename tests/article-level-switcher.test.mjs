@@ -40,7 +40,11 @@ test('build exposes article level switcher for every article', () => {
 	assert.match(supportedArticle, /document\.readyState === 'loading'/);
 	assert.match(supportedArticle, /DOMContentLoaded/);
 	assert.match(supportedArticle, /DOMParser/);
+	assert.match(supportedArticle, /sanitizeHtml/);
+	assert.match(supportedArticle, /replaceChildren/);
+	assert.match(supportedArticle, /Rejected article level route/);
 	assert.match(supportedArticle, /updateToc/);
+	assert.doesNotMatch(supportedArticle, /prose\.innerHTML = html/);
 	assert.match(supportedCss, /article-level-menu[^\{]+\[hidden\]\{display:none\}/);
 	assert.match(supportedCss, /--article-level-progress/);
 	assert.match(supportedNewsArticle, /解説レベル/);

@@ -22,7 +22,7 @@ const amazonUrl = `https://www.amazon.co.jp/dp/${asin}?tag=${tag}`;
 	<div class="amazon-card-body">
 		<p class="amazon-card-title">{title}</p>
 		{price && <p class="amazon-card-price">{price}</p>}
-		<a href={amazonUrl} target="_blank" rel="nofollow noopener" class="amazon-card-btn">
+			<a href={amazonUrl} target="_blank" rel="nofollow noopener noreferrer" class="amazon-card-btn">
 			Amazonで見る
 		</a>
 	</div>

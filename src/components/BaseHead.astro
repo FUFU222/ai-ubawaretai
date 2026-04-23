@@ -1,17 +1,35 @@
 ---
 import '../styles/global.css';
-import { SITE_AUTHOR, SITE_TITLE } from '../consts';
+import { DEFAULT_ROBOTS, SITE_AUTHOR, SITE_LOCALE, SITE_TITLE, SITEMAP_PATH } from '../consts';
 
 interface Props {
 	title: string;
 	description: string;
 	image?: string;
 	type?: 'website' | 'article';
+	robots?: string;
+	canonical?: string | false;
+	includeAnalytics?: boolean;
+	includeAdNetwork?: boolean;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const { title, description, image = '/header_image.webp', type = 'website' } = Astro.props;
+const {
+	title,
+	description,
+	image = '/header_image.webp',
+	type = 'website',
+	robots = DEFAULT_ROBOTS,
+	canonical,
+	includeAnalytics = true,
+	includeAdNetwork = false,
+} = Astro.props;
+const canonicalHref = canonical === false ? null : canonical ?? canonicalURL.toString();
 const ogImageURL = image.startsWith('http') ? image : new URL(image, Astro.site);
+const pageUrl = canonicalHref ? new URL(canonicalHref, Astro.site) : Astro.url;
+const isNoindex = robots.includes('noindex');
+const shouldIncludeAnalytics = includeAnalytics && !isNoindex;
+const shouldIncludeAdNetwork = includeAdNetwork && !isNoindex;
 ---
 
 <!-- Theme (FOUC prevention) -->
@@ -28,7 +46,7 @@ const ogImageURL = image.startsWith('http') ? image : new URL(image, Astro.site)
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="sitemap" href="/sitemap.xml" />
+<link rel="sitemap" href={SITEMAP_PATH} />
 <link
 	rel="alternate"
 	type="application/rss+xml"
@@ -47,39 +65,55 @@ const ogImageURL = image.startsWith('http') ? image : new URL(image, Astro.site)
 />
 
 <!-- Canonical URL -->
-<link rel="canonical" href={canonicalURL} />
+{canonicalHref && <link rel="canonical" href={canonicalHref} />}
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>
 <meta name="title" content={title} />
 <meta name="description" content={description} />
 <meta name="author" content={SITE_AUTHOR} />
+<meta name="robots" content={robots} />
+<meta name="googlebot" content={robots} />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={type} />
-<meta property="og:url" content={Astro.url} />
+<meta property="og:url" content={pageUrl} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={ogImageURL} />
 <meta property="og:site_name" content={SITE_TITLE} />
-<meta property="og:locale" content="ja_JP" />
+<meta property="og:locale" content={SITE_LOCALE} />
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={Astro.url} />
+<meta property="twitter:url" content={pageUrl} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={ogImageURL} />
 
-<!-- Google tag (gtag.js) -->
-<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-VR3G1S5SKY"></script>
-<script is:inline>
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-VR3G1S5SKY');
-</script>
+{
+	shouldIncludeAnalytics && (
+		<>
+			<!-- Google tag (gtag.js) -->
+			<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-VR3G1S5SKY"></script>
+			<script is:inline>
+				window.dataLayer = window.dataLayer || [];
+				function gtag(){dataLayer.push(arguments);}
+				gtag('js', new Date());
+				gtag('config', 'G-VR3G1S5SKY');
+			</script>
+		</>
+	)
+}
 
-<!-- Google AdSense -->
-<script is:inline async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5853088582174174"
-	crossorigin="anonymous"></script>
+{
+	shouldIncludeAdNetwork && (
+		<script
+			is:inline
+			async
+			src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5853088582174174"
+			crossorigin="anonymous"
+		></script>
+	)
+}

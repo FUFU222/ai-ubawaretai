@@ -1,0 +1,5 @@
+Contact: https://ai-ubawaretai.com/contact/
+Canonical: https://ai-ubawaretai.com/.well-known/security.txt
+Policy: https://ai-ubawaretai.com/privacy/
+Preferred-Languages: ja, en
+Expires: 2027-04-22T00:00:00.000Z

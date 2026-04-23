@@ -1,4 +1,12 @@
-import { SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, SITE_TITLE, GITHUB_URL, SITE_URL } from '../consts';
+import {
+	GITHUB_URL,
+	SITE_AUTHOR,
+	SITE_AUTHOR_DESCRIPTION,
+	SITE_DESCRIPTION,
+	SITE_LANGUAGE,
+	SITE_TITLE,
+	SITE_URL,
+} from '../consts';
 
 export function personJsonLd() {
 	return {
@@ -14,6 +22,22 @@ export function personJsonLd() {
 			url: SITE_URL,
 		},
 		sameAs: [GITHUB_URL],
+	};
+}
+
+export function websiteJsonLd() {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'WebSite',
+		name: SITE_TITLE,
+		description: SITE_DESCRIPTION,
+		url: SITE_URL,
+		inLanguage: SITE_LANGUAGE,
+		publisher: {
+			'@type': 'Person',
+			name: SITE_AUTHOR,
+			url: `${SITE_URL}/about`,
+		},
 	};
 }
 

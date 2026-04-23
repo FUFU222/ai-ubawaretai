@@ -1,6 +1,11 @@
-User-agent: *
+import type { APIRoute } from 'astro';
+import { SITE_URL, SITEMAP_PATH } from '../consts';
+
+function buildRobotsTxt(sitemapURL: URL) {
+	return `User-agent: *
 Allow: /
-Sitemap: https://ai-ubawaretai.com/sitemap.xml
+Disallow: /article-levels/
+Sitemap: ${sitemapURL.href}
 
 # AI Search Crawlers (allow citation in AI search results)
 User-agent: ChatGPT-User
@@ -33,3 +38,15 @@ Disallow: /
 
 User-agent: anthropic-ai
 Disallow: /
+`;
+}
+
+export const GET: APIRoute = ({ site }) => {
+	const sitemapURL = new URL(SITEMAP_PATH, site ?? SITE_URL);
+
+	return new Response(buildRobotsTxt(sitemapURL), {
+		headers: {
+			'Content-Type': 'text/plain; charset=utf-8',
+		},
+	});
+};
