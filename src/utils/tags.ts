@@ -1,5 +1,5 @@
 import type { CollectionEntry } from 'astro:content';
-import { NEWS_LABEL } from '../consts';
+import { INDEXABLE_TAG_MIN_POSTS, NEWS_LABEL } from '../consts';
 
 export type BlogEntry = CollectionEntry<'blog'>;
 
@@ -8,6 +8,7 @@ export type TagSummary = {
 	label: string;
 	count: number;
 	latestPubDate: Date;
+	isIndexable: boolean;
 };
 
 export function getTagPath(tag: string) {
@@ -16,6 +17,10 @@ export function getTagPath(tag: string) {
 
 export function getPrimaryTag(tags: string[] = []) {
 	return tags[0] ?? NEWS_LABEL;
+}
+
+export function isTagIndexable(count: number) {
+	return count >= INDEXABLE_TAG_MIN_POSTS;
 }
 
 export function getTagSummaries(posts: BlogEntry[]) {
@@ -33,16 +38,22 @@ export function getTagSummaries(posts: BlogEntry[]) {
 				continue;
 			}
 
-			summaries.set(tag, {
-				slug: tag,
-				label: tag,
-				count: 1,
-				latestPubDate: post.data.pubDate,
-			});
+				summaries.set(tag, {
+					slug: tag,
+					label: tag,
+					count: 1,
+					latestPubDate: post.data.pubDate,
+					isIndexable: true,
+				});
+			}
 		}
-	}
 
-	return Array.from(summaries.values()).sort((left, right) => {
+	return Array.from(summaries.values())
+		.map((summary) => ({
+			...summary,
+			isIndexable: isTagIndexable(summary.count),
+		}))
+		.sort((left, right) => {
 		const countDiff = right.count - left.count;
 		if (countDiff !== 0) {
 			return countDiff;
@@ -53,6 +64,6 @@ export function getTagSummaries(posts: BlogEntry[]) {
 			return dateDiff;
 		}
 
-		return left.label.localeCompare(right.label, 'ja');
-	});
+			return left.label.localeCompare(right.label, 'ja');
+		});
 }

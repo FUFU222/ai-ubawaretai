@@ -38,10 +38,10 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 				type="button"
 				aria-expanded="false"
 				aria-haspopup="true"
+				aria-label={`解説レベル: ${ARTICLE_LEVEL_LABELS.standard}`}
 				data-article-level-trigger
 			>
 				<span class="article-level-trigger-copy">
-					<span class="article-level-trigger-label">解説レベル</span>
 					<span class="article-level-current" data-article-level-current>{ARTICLE_LEVEL_LABELS.standard}</span>
 				</span>
 				<svg
@@ -98,43 +98,46 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 	.article-level-card {
 		display: flex;
 		flex-direction: column;
-		gap: 0.45rem;
+		align-items: flex-start;
+		gap: 0.55rem;
 		width: min(100%, 320px);
-		padding: 0.55rem;
-		border: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
-		border-radius: 18px;
-		background: color-mix(in srgb, var(--color-bg-card) 86%, transparent);
-		backdrop-filter: blur(14px);
-		-webkit-backdrop-filter: blur(14px);
-		box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
 		pointer-events: auto;
 		transform: translate3d(var(--article-level-shift-x), var(--article-level-shift-y), 0)
 			scale(var(--article-level-scale));
 		transform-origin: top left;
 		will-change: transform;
-		transition:
-			transform 0.14s linear,
-			padding 0.18s ease,
-			border-radius 0.18s ease,
-			box-shadow 0.18s ease;
+		transition: transform 0.14s linear, gap 0.18s ease;
 	}
 
 	.article-level-eyebrow {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.38rem 0.78rem;
+		border-radius: 999px;
 		font-size: 0.7rem;
 		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--color-text-muted);
-		padding: 0 0.35rem;
+		letter-spacing: 0.05em;
+		color: white;
+		background: linear-gradient(
+			135deg,
+			var(--color-primary-dark) 0%,
+			var(--color-primary) 52%,
+			color-mix(in srgb, var(--color-primary-light) 72%, white) 100%
+		);
+		box-shadow:
+			0 10px 24px rgba(37, 99, 235, 0.18),
+			inset 0 1px 0 rgba(255, 255, 255, 0.18);
+		line-height: 1;
 		opacity: calc(1 - var(--article-level-progress));
 		transform: translateY(calc(-4px * var(--article-level-progress)));
 		transition: opacity 0.18s ease, transform 0.18s ease, max-height 0.18s ease;
-		max-height: calc(1rem * (1 - var(--article-level-progress)));
+		max-height: calc(2rem * (1 - var(--article-level-progress)));
 		overflow: hidden;
 	}
 
 	.article-level-anchor {
 		position: relative;
+		width: 100%;
 	}
 
 	.article-level-trigger {
@@ -144,23 +147,34 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		gap: 0.9rem;
 		width: 100%;
 		min-height: 50px;
-		padding: 0.8rem 0.95rem;
-		border: 1px solid color-mix(in srgb, var(--color-primary-light) 28%, var(--color-border));
-		border-radius: 14px;
-		background: color-mix(in srgb, var(--color-bg) 18%, var(--color-bg-card));
-		color: var(--color-text-heading);
+		padding: 0.9rem 1rem;
+		border: none;
+		border-radius: 16px;
+		background: linear-gradient(
+			135deg,
+			var(--color-primary-dark) 0%,
+			var(--color-primary) 56%,
+			color-mix(in srgb, var(--color-primary-light) 70%, white) 100%
+		);
+		color: white;
+		box-shadow:
+			0 18px 40px rgba(37, 99, 235, 0.2),
+			inset 0 1px 0 rgba(255, 255, 255, 0.2);
 		cursor: pointer;
-		transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+		transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
 	}
 
 	.article-level-trigger:hover {
-		border-color: color-mix(in srgb, var(--color-primary-light) 48%, var(--color-border));
-		background: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg-card));
+		transform: translateY(-1px);
+		box-shadow:
+			0 22px 44px rgba(37, 99, 235, 0.24),
+			inset 0 1px 0 rgba(255, 255, 255, 0.26);
+		filter: saturate(1.06);
 	}
 
 	.article-level-trigger:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--color-primary-light) 72%, white);
-		outline-offset: 2px;
+		outline: 3px solid color-mix(in srgb, var(--color-primary-light) 68%, white);
+		outline-offset: 3px;
 	}
 
 	.article-level-trigger:disabled {
@@ -171,28 +185,21 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
-		gap: 0.15rem;
+		justify-content: center;
+		gap: 0;
 		min-width: 0;
 	}
 
-	.article-level-trigger-label {
-		font-size: 0.72rem;
-		color: var(--color-text-muted);
-		opacity: calc(1 - var(--article-level-progress));
-		max-height: calc(0.95rem * (1 - var(--article-level-progress)) + 0.05rem);
-		overflow: hidden;
-		transition: opacity 0.18s ease, max-height 0.18s ease;
-	}
-
 	.article-level-current {
-		font-size: 0.95rem;
+		font-size: 1rem;
 		font-weight: 700;
-		color: var(--color-text-heading);
+		color: white;
+		letter-spacing: 0.01em;
 	}
 
 	.article-level-chevron {
 		flex: none;
-		color: var(--color-text-muted);
+		color: rgba(255, 255, 255, 0.86);
 		transition: transform 0.18s ease;
 	}
 
@@ -204,12 +211,14 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		display: grid;
 		gap: 0.35rem;
 		padding: 0.4rem;
-		border: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+		border: 1px solid color-mix(in srgb, var(--color-primary-light) 26%, var(--color-border));
 		border-radius: 16px;
-		background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
+		background: color-mix(in srgb, var(--color-bg-card) 96%, transparent);
 		backdrop-filter: blur(16px);
 		-webkit-backdrop-filter: blur(16px);
-		box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+		box-shadow:
+			0 20px 42px rgba(15, 23, 42, 0.16),
+			0 10px 26px rgba(37, 99, 235, 0.1);
 		transform-origin: top center;
 		animation: article-level-menu-in 0.18s ease-out;
 	}
@@ -244,9 +253,15 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 	}
 
 	.article-level-option.active {
-		background: color-mix(in srgb, var(--color-primary) 14%, var(--color-bg-card));
-		border-color: color-mix(in srgb, var(--color-primary-light) 42%, var(--color-border));
-		color: var(--color-primary-light);
+		background: linear-gradient(
+			135deg,
+			var(--color-primary-dark) 0%,
+			var(--color-primary) 56%,
+			color-mix(in srgb, var(--color-primary-light) 72%, white) 100%
+		);
+		border-color: transparent;
+		color: white;
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 	}
 
 	.article-level-shell.is-open .article-level-chevron {
@@ -254,9 +269,7 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 	}
 
 	.article-level-shell.is-compact .article-level-card {
-		padding: 0.4rem;
-		border-radius: 14px;
-		box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+		gap: 0.35rem;
 	}
 
 	.article-level-shell.is-compact .article-level-eyebrow {
@@ -267,17 +280,15 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 	}
 
 	.article-level-shell.is-compact .article-level-trigger {
-		min-height: 44px;
-		padding-block: 0.65rem;
-	}
-
-	.article-level-shell.is-compact .article-level-trigger-label {
-		opacity: 0;
-		max-height: 0;
+		min-height: 46px;
+		padding-block: 0.75rem;
+		box-shadow:
+			0 14px 30px rgba(37, 99, 235, 0.18),
+			inset 0 1px 0 rgba(255, 255, 255, 0.18);
 	}
 
 	.article-level-shell.is-loading .article-level-trigger {
-		border-color: color-mix(in srgb, var(--color-primary-light) 42%, var(--color-border));
+		filter: saturate(0.92);
 	}
 
 	@keyframes article-level-menu-in {
@@ -352,15 +363,15 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			const tocNav = toc instanceof HTMLElement ? toc.querySelector('[data-article-level-toc-nav]') : null;
 			const tocList = toc instanceof HTMLElement ? toc.querySelector('[data-article-level-toc-list]') : null;
 
-			const routes = JSON.parse(root.dataset.articleLevelRoutes || '{}');
-			const storageKey = root.dataset.articleLevelStorageKey || 'preferred-article-level';
-			const defaultLevel = root.dataset.articleDefaultLevel || 'standard';
+				const routes = JSON.parse(root.dataset.articleLevelRoutes || '{}');
+				const storageKey = root.dataset.articleLevelStorageKey || 'preferred-article-level';
+				const defaultLevel = root.dataset.articleDefaultLevel || 'standard';
 			const labels = Object.fromEntries(
 				options.map((option) => [option.getAttribute('data-level'), option.textContent?.trim() ?? '']),
 			);
-			const cache = {
-				standard: prose.innerHTML,
-			};
+				const cache = {
+					standard: prose.innerHTML,
+				};
 
 			let activeLevel = defaultLevel;
 			let requestToken = 0;
@@ -375,10 +386,90 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			const dockViewportMinWidth = 1200;
 			const compactThreshold = 0.72;
 
-			const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+				const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-			const getHeaderHeight = () =>
-				parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '60', 10);
+				const allowedProtocols = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+				const blockedSelectors = [
+					'script',
+					'style',
+					'iframe',
+					'object',
+					'embed',
+					'form',
+					'input',
+					'button',
+					'textarea',
+					'select',
+					'meta',
+					'base',
+				].join(',');
+
+				const isSafeUrl = (value) => {
+					const trimmed = value.trim();
+
+					if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('/')) {
+						return true;
+					}
+
+					try {
+						const parsed = new URL(trimmed, window.location.origin);
+						return allowedProtocols.has(parsed.protocol);
+					} catch {
+						return false;
+					}
+				};
+
+				const sanitizeHtml = (html) => {
+					const parser = new DOMParser();
+					const doc = parser.parseFromString(html, 'text/html');
+
+					doc.querySelectorAll(blockedSelectors).forEach((node) => node.remove());
+
+					doc.body.querySelectorAll('*').forEach((element) => {
+						Array.from(element.attributes).forEach((attribute) => {
+							const name = attribute.name.toLowerCase();
+							const value = attribute.value;
+
+							if (name.startsWith('on') || name === 'srcdoc' || name === 'formaction') {
+								element.removeAttribute(attribute.name);
+								return;
+							}
+
+							if (name === 'target' && value === '_blank') {
+								const relTokens = new Set(
+									(element.getAttribute('rel') || '')
+										.split(/\s+/)
+										.filter(Boolean),
+								);
+								relTokens.add('noopener');
+								relTokens.add('noreferrer');
+								element.setAttribute('rel', Array.from(relTokens).join(' '));
+								return;
+							}
+
+							if ((name === 'href' || name === 'src' || name === 'poster' || name === 'xlink:href') && !isSafeUrl(value)) {
+								element.removeAttribute(attribute.name);
+							}
+						});
+					});
+
+					return doc.body.innerHTML;
+				};
+
+				const replaceProseHtml = (html) => {
+					const parser = new DOMParser();
+					const doc = parser.parseFromString(html, 'text/html');
+					const fragment = document.createDocumentFragment();
+
+					Array.from(doc.body.childNodes).forEach((node) => {
+						fragment.append(node.cloneNode(true));
+					});
+
+					prose.replaceChildren(fragment);
+				};
+
+				const getHeaderHeight = () =>
+					parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '60', 10);
 
 			const getStaticDocumentTop = (element) => {
 				let top = 0;
@@ -400,7 +491,9 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 			const setActiveLevel = (level) => {
 				activeLevel = level;
-				current.textContent = labels[level] || labels.standard || '標準';
+				const levelLabel = labels[level] || labels.standard || '標準';
+				current.textContent = levelLabel;
+				trigger.setAttribute('aria-label', `解説レベル: ${levelLabel}`);
 
 				options.forEach((option) => {
 					const isActive = option.getAttribute('data-level') === level;
@@ -544,23 +637,23 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 				});
 			};
 
-			const animateSwap = (html) => {
-				if (prefersReducedMotion) {
-					prose.innerHTML = html;
-					updateToc(html);
-					measureLayout();
-					queueUpdateMotion();
+				const animateSwap = (html) => {
+					if (prefersReducedMotion) {
+						replaceProseHtml(html);
+						updateToc(html);
+						measureLayout();
+						queueUpdateMotion();
 					return;
 				}
 
 				prose.classList.remove('is-level-switching-in');
-				prose.classList.add('is-level-switching-out');
+					prose.classList.add('is-level-switching-out');
 
-				window.setTimeout(() => {
-					prose.innerHTML = html;
-					updateToc(html);
-					measureLayout();
-					prose.classList.remove('is-level-switching-out');
+					window.setTimeout(() => {
+						replaceProseHtml(html);
+						updateToc(html);
+						measureLayout();
+						prose.classList.remove('is-level-switching-out');
 					prose.classList.add('is-level-switching-in');
 					queueUpdateMotion();
 
@@ -575,24 +668,30 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 					return cache[level];
 				}
 
-				const route = routes[level];
+					const route = routes[level];
 
-				if (!route) {
-					throw new Error(`Missing article level route for ${level}`);
-				}
+					if (!route) {
+						throw new Error(`Missing article level route for ${level}`);
+					}
 
-				const response = await fetch(route, {
-					headers: { 'X-Requested-With': 'article-level-switcher' },
-				});
+					const routeUrl = new URL(route, window.location.origin);
+
+					if (routeUrl.origin !== window.location.origin || !routeUrl.pathname.startsWith('/article-levels/')) {
+						throw new Error(`Rejected article level route for ${level}`);
+					}
+
+					const response = await fetch(routeUrl, {
+						headers: { 'X-Requested-With': 'article-level-switcher' },
+					});
 
 				if (!response.ok) {
 					throw new Error(`Failed to fetch article level ${level}`);
 				}
 
-				const html = await response.text();
-				cache[level] = html;
-				return html;
-			};
+					const html = sanitizeHtml(await response.text());
+					cache[level] = html;
+					return html;
+				};
 
 			const prefetchAdditionalLevels = () => {
 				Object.keys(routes).forEach((level) => {

@@ -44,12 +44,12 @@ const { products } = Astro.props;
 					</div>
 				)}
 				{product.link && (
-					<a
-						href={product.link}
-						target="_blank"
-						rel="nofollow noopener"
-						class="compare-btn"
-					>
+						<a
+							href={product.link}
+							target="_blank"
+							rel="nofollow noopener noreferrer"
+							class="compare-btn"
+						>
 						{product.linkLabel || '詳細を見る'}
 					</a>
 				)}

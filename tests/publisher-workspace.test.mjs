@@ -466,6 +466,97 @@ test('preflight falls back to an explicit local fetch target when the primary re
 	}
 });
 
+test('preflight prefers an explicit local fetch target over the configured remote', async () => {
+	const { root, remoteDir, workerDir } = setupRepos();
+
+	try {
+		git(workerDir, ['remote', 'set-url', 'origin', 'git@github.com:FUFU222/ai-ubawaretai.git']);
+
+		const { preflight } = await import(moduleUrl);
+		const originalExecFileSync = execFileSync;
+		const seenFetchTargets = [];
+
+		function localFirstExec(command, args, options = {}) {
+			if (command === 'git' && args[0] === 'fetch') {
+				seenFetchTargets.push(args[1]);
+				if (args[1] === remoteDir) {
+					return originalExecFileSync(
+						'git',
+						['fetch', remoteDir, '+main:refs/remotes/origin/main'],
+						options,
+					);
+				}
+			}
+
+			return originalExecFileSync(command, args, options);
+		}
+
+		const report = preflight({
+			cwd: workerDir,
+			statePath: join(root, 'shared', 'publisher-state.jsonl'),
+			skipInstall: true,
+			skipChecks: true,
+			fetchTarget: remoteDir,
+			execFileSyncImpl: localFirstExec,
+		});
+
+		assert.deepEqual(seenFetchTargets, [remoteDir]);
+		assert.equal(report.fetchSource, remoteDir);
+		assert.equal(git(workerDir, ['rev-parse', 'HEAD']), git(workerDir, ['rev-parse', 'origin/main']));
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('classifyPublishDiff returns article-only when only promoted article files changed', async () => {
+	const { root, workerDir } = setupRepos();
+
+	try {
+		const slug = 'automation-diff-check';
+		mkdirSync(join(workerDir, 'src', 'content', 'blog'), { recursive: true });
+		const levelsDir = join(workerDir, 'src', 'content', 'blog-levels', slug);
+		mkdirSync(levelsDir, { recursive: true });
+		writeFileSync(join(workerDir, 'src', 'content', 'blog', `${slug}.md`), '# main\n');
+		writeFileSync(join(levelsDir, 'child.md'), '# child\n');
+		writeFileSync(join(levelsDir, 'expert.md'), '# expert\n');
+
+		const { classifyPublishDiff } = await import(moduleUrl);
+		const report = classifyPublishDiff({ cwd: workerDir, slug });
+
+		assert.equal(report.articleOnly, true);
+		assert.equal(report.requiresFullTest, false);
+		assert.deepEqual(report.unexpectedPaths, []);
+		assert.deepEqual(report.missingPaths, []);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('classifyPublishDiff requires full test coverage when unexpected files changed', async () => {
+	const { root, workerDir } = setupRepos();
+
+	try {
+		const slug = 'automation-diff-check';
+		mkdirSync(join(workerDir, 'src', 'content', 'blog'), { recursive: true });
+		const levelsDir = join(workerDir, 'src', 'content', 'blog-levels', slug);
+		mkdirSync(levelsDir, { recursive: true });
+		mkdirSync(join(workerDir, 'src', 'components'), { recursive: true });
+		writeFileSync(join(workerDir, 'src', 'content', 'blog', `${slug}.md`), '# main\n');
+		writeFileSync(join(levelsDir, 'child.md'), '# child\n');
+		writeFileSync(join(levelsDir, 'expert.md'), '# expert\n');
+		writeFileSync(join(workerDir, 'src', 'components', 'Unexpected.astro'), '<div />\n');
+
+		const { classifyPublishDiff } = await import(moduleUrl);
+		const report = classifyPublishDiff({ cwd: workerDir, slug });
+
+		assert.equal(report.articleOnly, false);
+		assert.equal(report.requiresFullTest, true);
+		assert.deepEqual(report.unexpectedPaths, ['src/components/Unexpected.astro']);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('status can read staged candidates from an explicit shared staging directory', async () => {
 	const { root, workerDir } = setupRepos();
 	const stagingDir = join(root, 'shared', 'staging');

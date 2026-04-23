@@ -8,6 +8,8 @@ import { getTagPath, getTagSummaries } from '../../utils/tags';
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 const tagSummaries = getTagSummaries(allPosts);
+const featuredTags = tagSummaries.filter((tag) => tag.isIndexable);
+const supplementalTags = tagSummaries.filter((tag) => !tag.isIndexable);
 ---
 
 <!doctype html>
@@ -26,27 +28,45 @@ const tagSummaries = getTagSummaries(allPosts);
 				</p>
 			</section>
 
-			{
-				tagSummaries.length === 0 ? (
-					<p class="category-empty">表示できるタグがまだありません。</p>
-				) : (
-					<div class="category-list">
-						{
-							tagSummaries.map(({ slug, label, count }) => (
-								<a href={getTagPath(slug)} class="category-card">
-									<div class="category-copy">
-										<span class="category-label">{label}</span>
+				{
+					featuredTags.length === 0 ? (
+						<p class="category-empty">表示できるタグがまだありません。</p>
+					) : (
+						<div class="category-list">
+							{
+								featuredTags.map(({ slug, label, count }) => (
+									<a href={getTagPath(slug)} class="category-card">
+										<div class="category-copy">
+											<span class="category-label">{label}</span>
 									</div>
 									<span class="category-count">{count}件</span>
 								</a>
 							))
 						}
-					</div>
-				)
-			}
-		</main>
-		<Footer />
-	</body>
+						</div>
+					)
+				}
+
+				{
+					supplementalTags.length > 0 && (
+						<details class="supplemental-tags">
+							<summary>その他のタグ</summary>
+							<div class="supplemental-tag-list">
+								{
+									supplementalTags.map(({ slug, label, count }) => (
+										<a href={getTagPath(slug)} class="supplemental-tag-pill">
+											<span>{label}</span>
+											<span>{count}</span>
+										</a>
+									))
+								}
+							</div>
+						</details>
+					)
+				}
+			</main>
+			<Footer />
+		</body>
 </html>
 
 <style>
@@ -81,13 +101,53 @@ const tagSummaries = getTagSummaries(allPosts);
 		padding: 2rem 0;
 	}
 
-	.category-list {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 1rem;
-	}
+		.category-list {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 1rem;
+		}
 
-	.category-card {
+		.supplemental-tags {
+			margin-top: 1.5rem;
+			padding-top: 1.25rem;
+			border-top: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+		}
+
+		.supplemental-tags summary {
+			cursor: pointer;
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--color-text-heading);
+		}
+
+		.supplemental-tag-list {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.65rem;
+			margin-top: 1rem;
+		}
+
+		.supplemental-tag-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.45rem;
+			padding: 0.45rem 0.75rem;
+			border-radius: 999px;
+			border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent);
+			background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
+			font-size: 0.82rem;
+			font-weight: 600;
+			color: var(--color-text-muted);
+			text-decoration: none;
+		}
+
+		.supplemental-tag-pill:hover {
+			color: var(--color-primary-light);
+			border-color: color-mix(in srgb, var(--color-primary-light) 45%, var(--color-border));
+			text-decoration: none;
+		}
+
+		.category-card {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;

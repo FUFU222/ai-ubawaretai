@@ -2,16 +2,18 @@
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { SITE_TITLE } from '../consts';
+import { NOINDEX_ROBOTS, SITE_TITLE } from '../consts';
 ---
 
 <!doctype html>
 <html lang="ja">
 	<head>
-		<BaseHead
-			title={`ページが見つかりません | ${SITE_TITLE}`}
-			description="お探しのページは見つかりませんでした。"
-		/>
+			<BaseHead
+				title={`ページが見つかりません | ${SITE_TITLE}`}
+				description="お探しのページは見つかりませんでした。"
+				robots={NOINDEX_ROBOTS}
+				includeAnalytics={false}
+			/>
 	</head>
 	<body>
 		<Header />

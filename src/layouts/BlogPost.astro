@@ -58,11 +58,16 @@ const breadcrumbLd = breadcrumbJsonLd([
 ---
 
 <html lang="ja">
-	<head>
-		<BaseHead title={`${title} | ${SITE_TITLE}`} description={description} type="article" />
-		<script type="application/ld+json" set:html={JSON.stringify(articleLd)} />
-		<script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
-	</head>
+		<head>
+			<BaseHead
+				title={`${title} | ${SITE_TITLE}`}
+				description={description}
+				type="article"
+				includeAdNetwork={true}
+			/>
+			<script type="application/ld+json" set:html={JSON.stringify(articleLd)} />
+			<script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
+		</head>
 
 	<body>
 		<Header />
@@ -163,7 +168,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 		margin-bottom: 2rem;
 	}
 
-	.hero-image img {
+	.hero-image :global(img) {
 		width: 100%;
 		height: auto;
 		border-radius: 12px;

@@ -29,12 +29,17 @@ test('category index reflects actual tags, auto-creates tag pages, and links art
 		const categoryIndex = readFileSync(join(rootDir, 'dist', 'category', 'index.html'), 'utf8');
 		const dynamicTagPage = join(rootDir, 'dist', 'category', 'TaxonomyFixtureTag', 'index.html');
 		const articlePage = readFileSync(join(rootDir, 'dist', 'blog', '__tag-auto-test', 'index.html'), 'utf8');
+		const dynamicTagHtml = readFileSync(dynamicTagPage, 'utf8');
 
 		assert.match(categoryIndex, /タグ/);
 		assert.match(categoryIndex, /TaxonomyFixtureTag/);
 		assert.match(categoryIndex, /半導体/);
 		assert.match(categoryIndex, /1件/);
 		assert.equal(existsSync(dynamicTagPage), true, 'expected dynamic tag page build output');
+		assert.match(
+			dynamicTagHtml,
+			/<meta name="robots" content="noindex,follow,noarchive,max-image-preview:large,max-snippet:-1,max-video-preview:-1">/,
+		);
 		assert.match(articlePage, /href="\/category\/TaxonomyFixtureTag\/"/);
 		assert.match(articlePage, /href="\/category\/%E5%8D%8A%E5%B0%8E%E4%BD%93\/"/);
 		assert.doesNotMatch(categoryIndex, /Category Guide/);
