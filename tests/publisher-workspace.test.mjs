@@ -532,6 +532,38 @@ test('classifyPublishDiff returns article-only when only promoted article files 
 	}
 });
 
+test('classifyPublishDiff returns article-only for tracked article edits', async () => {
+	const { root, workerDir } = setupRepos();
+
+	try {
+		const slug = 'automation-diff-check-tracked';
+		mkdirSync(join(workerDir, 'src', 'content', 'blog'), { recursive: true });
+		const levelsDir = join(workerDir, 'src', 'content', 'blog-levels', slug);
+		mkdirSync(levelsDir, { recursive: true });
+		writeFileSync(join(workerDir, 'src', 'content', 'blog', `${slug}.md`), '# main v1\n');
+		writeFileSync(join(levelsDir, 'child.md'), '# child v1\n');
+		writeFileSync(join(levelsDir, 'expert.md'), '# expert v1\n');
+		git(workerDir, ['config', 'user.name', 'Codex Test']);
+		git(workerDir, ['config', 'user.email', 'codex@example.com']);
+		git(workerDir, ['add', 'src/content/blog', 'src/content/blog-levels']);
+		git(workerDir, ['commit', '-m', 'seed tracked article files']);
+
+		writeFileSync(join(workerDir, 'src', 'content', 'blog', `${slug}.md`), '# main v2\n');
+		writeFileSync(join(levelsDir, 'child.md'), '# child v2\n');
+		writeFileSync(join(levelsDir, 'expert.md'), '# expert v2\n');
+
+		const { classifyPublishDiff } = await import(moduleUrl);
+		const report = classifyPublishDiff({ cwd: workerDir, slug });
+
+		assert.equal(report.articleOnly, true);
+		assert.equal(report.requiresFullTest, false);
+		assert.deepEqual(report.unexpectedPaths, []);
+		assert.deepEqual(report.missingPaths, []);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('classifyPublishDiff requires full test coverage when unexpected files changed', async () => {
 	const { root, workerDir } = setupRepos();
 

@@ -248,7 +248,14 @@ function parseStatusPath(line) {
 }
 
 function listChangedPaths(cwd, options = {}) {
-	const status = run('git', ['status', '--porcelain', '--untracked-files=all'], { cwd, ...options });
+	const { execFileSyncImpl = execFileSync, ...spawnOptions } = options;
+	const output = execFileSyncImpl('git', ['status', '--porcelain', '--untracked-files=all'], {
+		encoding: 'utf8',
+		stdio: ['ignore', 'pipe', 'pipe'],
+		cwd,
+		...spawnOptions,
+	});
+	const status = typeof output === 'string' ? output.replace(/\n$/, '') : '';
 	if (!status) return [];
 
 	return status
