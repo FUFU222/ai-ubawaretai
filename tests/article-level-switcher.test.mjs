@@ -23,6 +23,7 @@ test('build exposes article level switcher for every article', () => {
 	const supportedCss = Array.from(supportedArticle.matchAll(/href="(\/_astro\/[^"]+\.css)"/g))
 		.map((match) => readFileSync(join(rootDir, 'dist', match[1].slice(1)), 'utf8'))
 		.join('\n');
+	const switcherSource = readFileSync(join(rootDir, 'src', 'components', 'ArticleLevelSwitcher.astro'), 'utf8');
 
 	assert.match(supportedArticle, /解説レベル/);
 	assert.match(supportedArticle, /やさしく/);
@@ -47,6 +48,10 @@ test('build exposes article level switcher for every article', () => {
 	assert.doesNotMatch(supportedArticle, /prose\.innerHTML = html/);
 	assert.match(supportedCss, /article-level-menu[^\{]+\[hidden\]\{display:none\}/);
 	assert.match(supportedCss, /--article-level-progress/);
+	assert.match(switcherSource, /getDesktopRailMetrics/);
+	assert.match(switcherSource, /preferredLeft > maxLeft/);
+	assert.match(switcherSource, /is-dock-disabled/);
+	assert.doesNotMatch(switcherSource, /transform 0\.14s linear/);
 	assert.match(supportedNewsArticle, /解説レベル/);
 	assert.match(supportedNewsArticle, /data-article-level-switcher/);
 	assert.match(supportedNewsArticle, /data-article-level-behavior="dock-on-read"/);

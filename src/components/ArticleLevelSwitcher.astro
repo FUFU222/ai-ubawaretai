@@ -106,7 +106,16 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			scale(var(--article-level-scale));
 		transform-origin: top left;
 		will-change: transform;
-		transition: transform 0.14s linear, gap 0.18s ease;
+		transition: gap 0.18s ease;
+	}
+
+	.article-level-shell.is-dock-disabled {
+		position: static;
+		z-index: auto;
+	}
+
+	.article-level-shell.is-dock-disabled .article-level-card {
+		transform: none;
 	}
 
 	.article-level-eyebrow {
@@ -565,8 +574,30 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 				}
 			};
 
-			const getDesktopProgress = () => {
-				if (!(article instanceof HTMLElement) || !(toc instanceof HTMLElement) || window.innerWidth < dockViewportMinWidth) {
+			const getDesktopRailMetrics = () => {
+				if (!(article instanceof HTMLElement) || window.innerWidth < dockViewportMinWidth) {
+					return null;
+				}
+
+				const shellRect = root.getBoundingClientRect();
+				const articleRect = article.getBoundingClientRect();
+				const cardWidth = card.offsetWidth;
+				const baseLeft = shellRect.left + Math.max((root.clientWidth - cardWidth) / 2, 0);
+				const preferredLeft = articleRect.right + dockGap;
+				const maxLeft = window.innerWidth - cardWidth - dockViewportPadding;
+
+				if (preferredLeft > maxLeft) {
+					return null;
+				}
+
+				return {
+					baseLeft,
+					targetLeft: preferredLeft,
+				};
+			};
+
+			const getDesktopProgress = (railMetrics) => {
+				if (!railMetrics || !(toc instanceof HTMLElement)) {
 					return 0;
 				}
 
@@ -589,33 +620,28 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			};
 
 			const updateMotion = () => {
-				const progress = getDesktopProgress();
-				const desktopRailEnabled = window.innerWidth >= dockViewportMinWidth && article instanceof HTMLElement;
+				const railMetrics = getDesktopRailMetrics();
+				const desktopRailEnabled = Boolean(railMetrics);
+				const desktopDockDisabled = window.innerWidth >= 769 && !desktopRailEnabled;
+				const progress = getDesktopProgress(railMetrics);
 				const scale = desktopRailEnabled ? 1 - progress * 0.12 : 1;
 				const shiftY = desktopRailEnabled ? -6 * progress : 0;
 
+				root.classList.toggle('is-dock-disabled', desktopDockDisabled);
 				root.style.setProperty('--article-level-progress', progress.toFixed(3));
 				root.style.setProperty('--article-level-scale', scale.toFixed(3));
 				root.style.setProperty('--article-level-shift-y', `${shiftY.toFixed(2)}px`);
 
 				let shiftX = 0;
 
-				if (desktopRailEnabled && progress > 0) {
-					const shellRect = root.getBoundingClientRect();
-					const articleRect = article.getBoundingClientRect();
-					const cardWidth = card.offsetWidth;
-					const baseLeft = shellRect.left + Math.max((root.clientWidth - cardWidth) / 2, 0);
-					const preferredLeft = articleRect.right + dockGap;
-					const maxLeft = window.innerWidth - cardWidth - dockViewportPadding;
-					const targetLeft = Math.max(baseLeft, Math.min(preferredLeft, maxLeft));
-
-					shiftX = (targetLeft - baseLeft) * progress;
+				if (railMetrics && progress > 0) {
+					shiftX = railMetrics.targetLeft - railMetrics.baseLeft;
 				}
 
 				root.style.setProperty('--article-level-shift-x', `${shiftX.toFixed(2)}px`);
 				root.setAttribute(
 					'data-article-level-placement',
-					progress >= 0.98 ? 'right-rail' : progress > 0 ? 'inline-floating' : 'inline',
+					railMetrics && progress > 0 ? 'right-rail' : 'inline',
 				);
 				setCompact(progress);
 
