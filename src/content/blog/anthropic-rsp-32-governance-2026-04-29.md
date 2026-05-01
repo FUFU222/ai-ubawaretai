@@ -5,6 +5,8 @@ pubDate: '2026-04-30'
 category: 'news'
 tags: ['Anthropic', 'AIガバナンス', 'RSP', 'LTBT', 'AI安全性', '企業導入']
 draft: false
+series: 'anthropic-rsp-2026'
+seriesTitle: 'Anthropic Responsible Scaling Policy 動向 2026'
 ---
 
 Anthropic が **2026年4月29日** に **Responsible Scaling Policy 3.2（RSP 3.2）** を有効化した。今回の更新は新モデル公開でも新料金でもない。主題は、**危険度の高いモデル評価を誰がどこまで監督するか** という統治の話だ。

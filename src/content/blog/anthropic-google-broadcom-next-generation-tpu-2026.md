@@ -5,6 +5,7 @@ pubDate: '2026-04-10'
 category: 'news'
 tags: ['Anthropic', 'Claude', 'Google Cloud', 'Broadcom', 'TPU', 'AIインフラ', 'Vertex AI', 'マルチクラウド', '日本市場']
 draft: false
+series: 'anthropic-japan-2026'
 ---
 
 Anthropicが2026年4月6日、GoogleとBroadcomと組んで**次世代TPU容量を複数ギガワット規模で確保する新契約**を結んだと発表した。稼働開始は2027年予定。しかも同じ発表の中で、Claude関連の**年換算売上が300億ドルを超えた**こと、**年100万ドル超を使う顧客が1000社を超えた**ことまで明かしている。

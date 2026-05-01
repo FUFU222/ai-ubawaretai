@@ -5,6 +5,7 @@ pubDate: '2026-04-23'
 category: 'news'
 tags: ['Anthropic', 'AWS', 'Claude', 'Amazon Bedrock', 'AIガバナンス', '日本市場']
 draft: false
+series: 'anthropic-japan-2026'
 ---
 
 AmazonとAnthropicが2026年4月に協業拡大を発表し、その中で `Claude Platform on AWS` が前面に出てきた。表面的には「AmazonがAnthropicへ追加出資した」「Trainiumの大型契約が決まった」というニュースに見えやすい。しかし、日本の開発組織や事業会社にとって本当に重要なのは別の部分だ。**AnthropicのネイティブなClaude Platformを、AWSアカウント、IAM、CloudTrail、AWS請求のまま扱える入口が示された**ことで、Claude導入の社内説明がかなり変わる可能性がある。

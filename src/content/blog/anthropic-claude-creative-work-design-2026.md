@@ -5,6 +5,7 @@ pubDate: '2026-04-29'
 category: 'news'
 tags: ['Anthropic', 'Claude Design', 'Canva', 'Blender', 'クリエイティブAI', 'プロトタイピング']
 draft: false
+series: 'anthropic-japan-2026'
 ---
 
 Anthropic が **2026年4月28日** に公開した **Claude for Creative Work** は、単なる「画像を作れるAI」の話ではない。Anthropic は Blender、Adobe、Affinity by Canva、Autodesk Fusion、SketchUp、Splice などにまたがるコネクタ群を打ち出し、さらにその上流に **Claude Design** を置くことで、**企画の初稿、プロトタイピング、制作、そして実装 handoff までを一つの流れでつなぐ** 方向を明確にした。

@@ -5,6 +5,8 @@ pubDate: '2026-04-24'
 category: 'news'
 tags: ['Anthropic', 'NEC', 'Claude Code', 'AIエージェント', '日本企業', '人材育成']
 draft: false
+series: 'anthropic-japan-2026'
+seriesTitle: 'Anthropic 日本市場展開 2026'
 ---
 
 AnthropicとNECが、2026年4月23日から24日にかけて公表した戦略協業は、よくある「提携しました」で終わる種類の発表ではない。一次ソースを読むと、今回の中身はかなり具体的だ。**NECがAnthropicの日本発グローバルパートナーになり、金融・製造・自治体向けの業種別AIソリューションを共同開発しつつ、NECグループ約3万人へClaudeを展開し、Claude CodeとClaude Coworkまで含めてAIネイティブな体制を作る** と明示されている。
