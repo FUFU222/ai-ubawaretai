@@ -5,6 +5,7 @@ pubDate: "2026-04-09"
 category: "news"
 tags: ["GitHub", "GitHub Copilot", "Autopilot", "VS Code", "Copilot CLI", "cloud agent", "AIエージェント", "開発者ツール"]
 draft: false
+series: 'github-copilot-2026'
 ---
 
 GitHubが2026年4月8日に出した[「GitHub Copilot in Visual Studio Code, March Releases」](https://github.blog/changelog/2026-04-08-github-copilot-in-visual-studio-code-march-releases/)を見て、正直最初は「月例まとめか」と思った。でも中身はかなり違う。今回の本質は、GitHub CopilotがIDEの中で提案するだけの相棒から、**VS Code、CLI、cloud agent、GitHub Mobileをまたいで仕事を分担する開発エージェント基盤**へ寄ってきたことだ。特にAutopilotの登場は大きい。AIが承認待ちで止まらず、自分で再試行し、完了まで走り切る前提がついにStable系リリースへ入ってきたからだ。

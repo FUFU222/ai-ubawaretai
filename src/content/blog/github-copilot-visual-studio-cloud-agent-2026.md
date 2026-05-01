@@ -5,6 +5,7 @@ pubDate: '2026-05-01'
 category: 'news'
 tags: ['GitHub Copilot', 'Visual Studio', 'Cloud Agent', '.NET', 'AI開発']
 draft: false
+series: 'github-copilot-2026'
 ---
 
 GitHub Copilotの **Visual Studio 2026 April update** は、日本の.NET開発チームにとって見逃しにくい更新だ。2026年4月30日にGitHub changelogで要点が整理され、Visual Studio側では4月14日公開の April Update 18.5.0 に具体機能が入っている。重要なのは、Copilotが少し賢くなったという話ではなく、**Visual Studio から cloud agent を直接起動し、非同期で issue から pull request まで進める導線** が見えてきたことだ。

@@ -5,6 +5,7 @@ pubDate: '2026-04-25'
 category: 'news'
 tags: ['GitHub', 'GitHub Copilot', 'JetBrains', 'AIコーディング', '開発者ツール', 'セキュリティ']
 draft: false
+series: 'github-copilot-2026'
 ---
 
 GitHubが2026年4月24日に公開した更新で、**GitHub Copilot for JetBrains IDEs に inline agent mode のプレビュー、Next Edit Suggestions の強化、global auto-approve** が一度に入った。GitHub Copilot JetBrains inline agent mode とは何かを一言でいえば、**JetBrains のエディタ内で、Copilot にファイル編集やコマンド実行を伴うエージェント的な作業を、チャットパネルへ移らず始められるようにした** ということだ。

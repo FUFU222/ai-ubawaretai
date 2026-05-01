@@ -5,6 +5,7 @@ pubDate: '2026-04-14'
 category: 'news'
 tags: ['GitHub', 'GitHub Copilot', 'データレジデンシー', 'FedRAMP', 'コンプライアンス', 'AI開発', 'エンタープライズAI']
 draft: false
+series: 'github-copilot-2026'
 ---
 
 GitHubが2026年4月13日、**GitHub Copilotのデータレジデンシー対応を米国とEUで一般提供し、米国向けにはFedRAMP Moderate準拠モデルの利用制限も正式提供**した。見た目はコンプライアンス機能の拡張だが、実際にはもっと大きい。**Copilotが「便利なAI補助」から「地域制約つきで本番導入できる企業向け基盤」へ一段進んだ**という話だからだ。

@@ -5,6 +5,8 @@ pubDate: '2026-04-25'
 category: 'news'
 tags: ['GitHub', 'GitHub Copilot', 'GPT-5.5', 'AIコーディング', '開発者ツール', 'エンタープライズAI']
 draft: false
+series: 'github-copilot-2026'
+seriesTitle: 'GitHub Copilot 2026 アップデート総まとめ'
 ---
 
 GitHub CopilotでGPT-5.5が一般提供された。2026年4月24日にGitHubが公開したChangelogによると、**GitHub CopilotでGPT-5.5が順次ロールアウト**され、Copilot Pro+、Copilot Business、Copilot Enterpriseの利用者が対象になる。GitHub Copilot GPT-5.5 一般提供で何が変わるのかを一言で言えば、**OpenAIの新モデルが「GitHubの開発現場向け配布面」に乗り、IDE、CLI、cloud agent、GitHub.comまで含めて同じ判断軸で使えるようになった**ことだ。

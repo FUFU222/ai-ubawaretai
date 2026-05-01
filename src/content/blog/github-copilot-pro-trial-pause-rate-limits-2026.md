@@ -5,6 +5,7 @@ pubDate: '2026-04-13'
 category: 'news'
 tags: ['GitHub', 'GitHub Copilot', 'Copilot Pro', 'Copilot Pro+', 'レート制限', '無料トライアル', '開発者ツール']
 draft: false
+series: 'github-copilot-2026'
 ---
 
 GitHubが2026年4月10日に出した二つの告知は、見た目以上に重い。ひとつは**新しいGitHub Copilot Pro無料トライアルの一時停止**。もうひとつは**Copilot Pro+向けの新しいレート制限導入と、Claude Opus 4.6 Fastの終了**だ。どちらも表向きは「サービス品質を守るため」の運用変更だが、実際には**AIコーディング市場が“機能拡張フェーズ”から“容量と採算を管理するフェーズ”へ入った**ことを示している。

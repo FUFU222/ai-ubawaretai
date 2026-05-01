@@ -5,6 +5,7 @@ pubDate: '2026-04-28'
 category: 'news'
 tags: ['GitHub Copilot', 'GitHub Actions', 'コードレビュー', '開発生産性', 'SaaSコスト管理', '自動レビュー', '日本企業', 'AIエージェント']
 draft: false
+series: 'github-copilot-2026'
 ---
 
 GitHubが**2026年4月27日**、GitHub Copilot code reviewの課金方法を見直すと発表しました。ポイントは単純ですが重いです。**2026年6月1日**から、Copilot code reviewはこれまでのCopilot側の利用量だけでなく、**GitHub Actions minutesも消費する**ようになります。しかも対象はprivate repositoryで動くレビューです。

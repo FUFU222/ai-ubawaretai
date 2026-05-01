@@ -61,6 +61,13 @@ automation の専用 clone 内で、次の local path だけを使う。
 - pending candidate がない場合だけ新規候補を 1 件選ぶ
 - 一次ソース優先、二次ソースは補助
 - 完璧な独自性待ちではなく、一次ソースの確かさと実務価値を優先する
+- 取り上げ対象の優先順位は次のとおり
+  - 第1優先(常時拾う): Anthropic / Claude、OpenAI / Codex / ChatGPT、Google / Gemini
+  - 第2優先(価値が高ければ拾う): GitHub Copilot、Cursor、Meta(Llama)、xAI、Microsoft(Claude/OpenAI 連携面のみ)、AWS Bedrock(Claude/モデル提供面のみ)
+  - 第3優先(個別判断): その他のベンダー、規制・政策、研究論文
+- 第1優先のベンダーは「平凡なアップデート」でも記事化候補とする
+- 第2優先以下は、価格・プラン・GA・廃止・ガバナンス変更・日本市場直結のように実務影響が明確なときだけ拾う
+- 同 run で第1優先と第2優先の候補が同程度の質なら、第1優先を選ぶ
 - クラスタ判定: 直近 7 日間の `git log --pretty=format:'%s' src/content/blog/` を確認し、同じ第一タグ・ベンダーの記事が 3 本以上あるなら、新規候補は次のいずれかでなければならない
   - 既存 `series:` slug に紐付ける
   - 新規 `series:` slug を提案して同クラスタの将来記事も束ねる

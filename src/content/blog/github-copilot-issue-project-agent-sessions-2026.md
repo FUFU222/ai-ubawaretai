@@ -5,6 +5,7 @@ pubDate: '2026-04-25'
 category: 'news'
 tags: ['GitHub Copilot', 'GitHub Projects', 'GitHub Issues', 'Cloud Agent', 'AIエージェント', '開発生産性', '監査ログ', '日本市場']
 draft: false
+series: 'github-copilot-2026'
 ---
 
 GitHubが**2026年4月23日**、GitHub Copilotの**cloud agent sessionをissuesとprojectsから直接見て操作できる更新**を公開しました。見た目は小さなUI改善に見えますが、実際にはもう少し重い話です。これまでCopilotのagent作業はAgentsタブや専用画面で追う色が強かったのに対し、今回の更新で**IssueとProjectの運用画面そのものにagentの進捗が入ってきた**からです。

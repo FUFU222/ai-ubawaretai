@@ -5,6 +5,7 @@ pubDate: '2026-04-05'
 category: 'news'
 tags: ['GitHub', 'GitHub Copilot', 'Copilot SDK', 'AIエージェント', '開発者ツール', 'BYOK', 'OpenTelemetry']
 draft: false
+series: 'github-copilot-2026'
 ---
 
 GitHubが2026年4月2日、**GitHub Copilot SDK**をパブリックプレビューとして公開した。これにより、これまでGitHub Copilot CLIやCopilot cloud agentの中で使われていたエージェント実行基盤を、TypeScript、Python、Go、.NET、Javaから直接呼び出せるようになった。要するに、企業や開発チームが自前で複雑なAIエージェント基盤を組まなくても、GitHubの実運用ランタイムを自社アプリや社内ワークフローに埋め込めるようになったということだ。
