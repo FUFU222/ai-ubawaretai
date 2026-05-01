@@ -7,29 +7,66 @@ import GenerativeHero from './GenerativeHero.astro';
 interface Props {
 	currentId: string;
 	tags: string[];
+	category?: string;
+	limit?: number;
 }
 
-const { currentId, tags } = Astro.props;
+const { currentId, tags, category, limit = 6 } = Astro.props;
+
+const TAG_WEIGHT = 3;
+const CATEGORY_WEIGHT = 1;
+const RECENCY_HALF_LIFE_DAYS = 60;
+const MAX_RECENCY_BONUS = 0.9;
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const candidates = allPosts.filter((p) => p.id !== currentId);
 
-const scored = allPosts
-	.filter((p) => p.id !== currentId)
+const now = Date.now();
+
+function recencyBonus(post: CollectionEntry<'blog'>) {
+	const ageDays = Math.max(0, (now - post.data.pubDate.getTime()) / (1000 * 60 * 60 * 24));
+	return MAX_RECENCY_BONUS * Math.exp(-ageDays / RECENCY_HALF_LIFE_DAYS);
+}
+
+const scored = candidates
 	.map((post) => {
-		const commonTags = post.data.tags.filter((t) => tags.includes(t));
-		return { post, score: commonTags.length };
+		const sharedTags = post.data.tags.filter((t) => tags.includes(t)).length;
+		const sameCategory = category && post.data.category === category ? 1 : 0;
+		const baseScore = sharedTags * TAG_WEIGHT + sameCategory * CATEGORY_WEIGHT;
+		const score = baseScore > 0 ? baseScore + recencyBonus(post) : 0;
+		return { post, score };
 	})
 	.filter((s) => s.score > 0)
-	.sort((a, b) => b.score - a.score || b.post.data.pubDate.getTime() - a.post.data.pubDate.getTime())
-	.slice(0, 3);
+	.sort(
+		(a, b) =>
+			b.score - a.score || b.post.data.pubDate.getTime() - a.post.data.pubDate.getTime(),
+	);
 
-const fallback = allPosts
-	.filter((post) => post.id !== currentId)
-	.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
-	.slice(0, 3)
-	.map((post) => ({ post }));
+const picks: CollectionEntry<'blog'>[] = scored.slice(0, limit).map((s) => s.post);
 
-const relatedPosts = scored.length > 0 ? scored : fallback;
+if (picks.length < limit) {
+	const pickedIds = new Set(picks.map((p) => p.id));
+	const sameCategoryFallback = candidates
+		.filter((p) => !pickedIds.has(p.id) && category && p.data.category === category)
+		.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+	for (const post of sameCategoryFallback) {
+		if (picks.length >= limit) break;
+		picks.push(post);
+		pickedIds.add(post.id);
+	}
+
+	if (picks.length < limit) {
+		const latestFallback = candidates
+			.filter((p) => !pickedIds.has(p.id))
+			.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+		for (const post of latestFallback) {
+			if (picks.length >= limit) break;
+			picks.push(post);
+		}
+	}
+}
+
+const relatedPosts = picks;
 ---
 
 {
@@ -37,7 +74,7 @@ const relatedPosts = scored.length > 0 ? scored : fallback;
 		<section class="related-posts">
 			<h2>あわせて読みたい</h2>
 			<div class="related-grid">
-				{relatedPosts.map(({ post }) => (
+				{relatedPosts.map((post) => (
 					<a href={`/blog/${post.id}/`} class="related-card">
 						<div class="related-thumb">
 							<GenerativeHero seed={post.data.title} alt={post.data.title} loading="lazy" />
@@ -120,7 +157,13 @@ const relatedPosts = scored.length > 0 ? scored : fallback;
 		overflow: hidden;
 	}
 
-	@media (max-width: 768px) {
+	@media (max-width: 900px) {
+		.related-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 600px) {
 		.related-grid {
 			grid-template-columns: 1fr;
 		}

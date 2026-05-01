@@ -1,0 +1,204 @@
+---
+import { getCollection } from 'astro:content';
+import { getSeriesForPost, getSeriesPath } from '../utils/series';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	currentId: string;
+}
+
+const { currentId } = Astro.props;
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const currentPost = allPosts.find((post) => post.id === currentId);
+const series = currentPost ? getSeriesForPost(currentPost, allPosts) : undefined;
+---
+
+{
+	series && series.posts.length > 1 && (
+		<nav class="series-nav" aria-label={`シリーズ: ${series.title}`}>
+			<header class="series-header">
+				<span class="series-eyebrow">📚 シリーズ</span>
+				<h2 class="series-title">
+					<a href={getSeriesPath(series.slug)}>{series.title}</a>
+				</h2>
+				<p class="series-meta">全{series.posts.length}記事</p>
+			</header>
+			<ol class="series-list">
+				{series.posts.map((post, index) => {
+					const isCurrent = post.id === currentId;
+					const isPillar = post.data.pillar;
+					return (
+						<li class:list={['series-item', { 'is-current': isCurrent }]}>
+							<span class="series-index">{String(index + 1).padStart(2, '0')}</span>
+							{isCurrent ? (
+								<span class="series-link is-current-link">
+									<span class="series-item-title">{post.data.title}</span>
+									<span class="series-badges">
+										{isPillar && <span class="series-badge series-badge-pillar">ピラー</span>}
+										<span class="series-badge series-badge-current">この記事</span>
+									</span>
+								</span>
+							) : (
+								<a href={`/blog/${post.id}/`} class="series-link">
+									<span class="series-item-title">{post.data.title}</span>
+									<span class="series-badges">
+										{isPillar && <span class="series-badge series-badge-pillar">ピラー</span>}
+										<FormattedDate date={post.data.pubDate} />
+									</span>
+								</a>
+							)}
+						</li>
+					);
+				})}
+			</ol>
+		</nav>
+	)
+}
+
+<style>
+	.series-nav {
+		margin: 1.5rem 0 2rem;
+		padding: 1.1rem 1.25rem;
+		border: 1px solid color-mix(in srgb, var(--color-primary, #3b82f6) 32%, var(--color-border));
+		border-radius: 14px;
+		background: color-mix(in srgb, var(--color-primary, #3b82f6) 6%, var(--color-bg-card));
+	}
+
+	.series-header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.5rem 0.85rem;
+		margin-bottom: 0.85rem;
+	}
+
+	.series-eyebrow {
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		color: var(--color-text-muted);
+		text-transform: uppercase;
+	}
+
+	.series-title {
+		margin: 0;
+		font-size: 1.05rem;
+		line-height: 1.4;
+	}
+
+	.series-title a {
+		color: var(--color-text-heading);
+		text-decoration: none;
+	}
+
+	.series-title a:hover {
+		color: var(--color-primary-light, #60a5fa);
+		text-decoration: underline;
+	}
+
+	.series-meta {
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--color-text-muted);
+	}
+
+	.series-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		counter-reset: series-counter;
+	}
+
+	.series-item {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.5rem 0.65rem;
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--color-bg-card) 65%, transparent);
+		border: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+	}
+
+	.series-item.is-current {
+		background: color-mix(in srgb, var(--color-primary, #3b82f6) 14%, var(--color-bg-card));
+		border-color: color-mix(in srgb, var(--color-primary, #3b82f6) 45%, var(--color-border));
+	}
+
+	.series-index {
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--color-text-muted);
+		font-variant-numeric: tabular-nums;
+		min-width: 2ch;
+	}
+
+	.series-link {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		min-width: 0;
+		text-decoration: none;
+		color: var(--color-text);
+	}
+
+	a.series-link:hover .series-item-title {
+		color: var(--color-primary-light, #60a5fa);
+		text-decoration: underline;
+	}
+
+	.series-item-title {
+		font-size: 0.92rem;
+		line-height: 1.5;
+		font-weight: 600;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.is-current-link .series-item-title {
+		color: var(--color-text-heading);
+	}
+
+	.series-badges {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.72rem;
+		color: var(--color-text-muted);
+		flex-shrink: 0;
+	}
+
+	.series-badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.1rem 0.45rem;
+		border-radius: 999px;
+		font-size: 0.68rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+	}
+
+	.series-badge-pillar {
+		background: color-mix(in srgb, #f59e0b 22%, transparent);
+		color: #d97706;
+	}
+
+	.series-badge-current {
+		background: color-mix(in srgb, var(--color-primary, #3b82f6) 22%, transparent);
+		color: var(--color-primary, #3b82f6);
+	}
+
+	@media (max-width: 600px) {
+		.series-item-title {
+			white-space: normal;
+		}
+	}
+</style>

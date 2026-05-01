@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { SITE_URL } from '../consts';
+import { getSeriesPath, getSeriesSummaries } from '../utils/series';
 import { getTagPath, getTagSummaries } from '../utils/tags';
 
 type SitemapEntry = {
@@ -32,6 +33,7 @@ export const GET: APIRoute = async ({ site }) => {
 		(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 	);
 	const tagSummaries = getTagSummaries(allPosts).filter((tag) => tag.isIndexable);
+	const seriesSummaries = getSeriesSummaries(allPosts);
 	const latestPostDate = allPosts[0]?.data.updatedDate ?? allPosts[0]?.data.pubDate;
 
 	const entries: SitemapEntry[] = [
@@ -48,6 +50,10 @@ export const GET: APIRoute = async ({ site }) => {
 		...tagSummaries.map((tag) => ({
 			loc: new URL(getTagPath(tag.slug), siteUrl).href,
 			lastmod: tag.latestPubDate,
+		})),
+		...seriesSummaries.map((series) => ({
+			loc: new URL(getSeriesPath(series.slug), siteUrl).href,
+			lastmod: series.latestPubDate,
 		})),
 	];
 

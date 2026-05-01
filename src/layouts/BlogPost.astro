@@ -9,6 +9,7 @@ import AdSense from '../components/AdSense.astro';
 import BackToTop from '../components/BackToTop.astro';
 import ReadingTime from '../components/ReadingTime.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
+import SeriesNav from '../components/SeriesNav.astro';
 import TOC from '../components/TOC.astro';
 import { SITE_AUTHOR, SITE_TITLE } from '../consts';
 import ArticleLevelSwitcher from '../components/ArticleLevelSwitcher.astro';
@@ -98,6 +99,8 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 				{showArticleLevelSwitcher && id && <ArticleLevelSwitcher articleId={id} availability={articleLevels} />}
 
+				{id && <SeriesNav currentId={id} />}
+
 				{headings && headings.length > 0 && <TOC headings={headings} />}
 
 				<AdSense label="記事上" format="horizontal" />
@@ -148,7 +151,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 					</div>
 				</section>
 
-				<RelatedPosts currentId={id ?? ''} tags={tags ?? []} />
+				<RelatedPosts currentId={id ?? ''} tags={tags ?? []} category={category} />
 			</article>
 		</main>
 		<BackToTop />
