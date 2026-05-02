@@ -49,6 +49,9 @@ test('build exposes article level switcher for every article', () => {
 	assert.doesNotMatch(supportedArticle, /prose\.innerHTML = html/);
 	assert.match(supportedCss, /article-level-menu[^\{]+\[hidden\]\{display:none\}/);
 	assert.match(supportedCss, /article-level-scrim[^\{]+\[hidden\]\{display:none\}/);
+	assert.match(switcherSource, /background: rgba\(15, 23, 42, 0\.3\)/);
+	assert.match(switcherSource, /backdrop-filter: blur\(3px\) saturate\(0\.92\)/);
+	assert.match(switcherSource, /-webkit-backdrop-filter: blur\(3px\) saturate\(0\.92\)/);
 	assert.match(supportedCss, /--article-level-progress/);
 	assert.match(switcherSource, /scrim\.addEventListener\('click'/);
 	assert.match(switcherSource, /getDesktopRailMetrics/);
