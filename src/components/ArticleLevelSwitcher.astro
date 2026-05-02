@@ -30,6 +30,13 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 	data-article-level-storage-key="preferred-article-level"
 	data-article-level-placement="inline"
 >
+	<button
+		class="article-level-scrim"
+		type="button"
+		aria-label="解説レベルの選択を閉じる"
+		hidden
+		data-article-level-scrim
+	></button>
 	<div class="article-level-card">
 		<p class="article-level-eyebrow">解説レベル</p>
 		<div class="article-level-anchor">
@@ -96,6 +103,8 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 	}
 
 	.article-level-card {
+		position: relative;
+		z-index: 2;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
@@ -107,6 +116,22 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		transform-origin: top left;
 		will-change: transform;
 		transition: gap 0.18s ease;
+	}
+
+	.article-level-scrim {
+		position: fixed;
+		inset: 0;
+		z-index: 1;
+		padding: 0;
+		border: 0;
+		background: rgba(15, 23, 42, 0.14);
+		cursor: pointer;
+		pointer-events: auto;
+		animation: article-level-scrim-in 0.16s ease-out;
+	}
+
+	.article-level-scrim[hidden] {
+		display: none;
 	}
 
 	.article-level-shell.is-dock-disabled {
@@ -214,6 +239,7 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 	.article-level-menu {
 		position: absolute;
+		z-index: 3;
 		left: 0;
 		right: 0;
 		top: calc(100% + 0.55rem);
@@ -311,6 +337,15 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		}
 	}
 
+	@keyframes article-level-scrim-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
 	@media (max-width: 768px) {
 		.article-level-shell {
 			top: calc(var(--header-height) + 0.65rem);
@@ -334,6 +369,10 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		.article-level-menu {
 			animation: none;
 		}
+
+		.article-level-scrim {
+			animation: none;
+		}
 	}
 </style>
 
@@ -350,12 +389,14 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			const trigger = root.querySelector('[data-article-level-trigger]');
 			const current = root.querySelector('[data-article-level-current]');
 			const menu = root.querySelector('[data-article-level-menu]');
+			const scrim = root.querySelector('[data-article-level-scrim]');
 			const options = Array.from(root.querySelectorAll('[data-article-level-option]'));
 
 			if (
 				!(trigger instanceof HTMLButtonElement) ||
 				!(current instanceof HTMLElement) ||
 				!(menu instanceof HTMLElement) ||
+				!(scrim instanceof HTMLButtonElement) ||
 				options.length === 0
 			) {
 				return;
@@ -496,6 +537,7 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 				root.classList.toggle('is-open', isOpen);
 				trigger.setAttribute('aria-expanded', String(isOpen));
 				menu.hidden = !isOpen;
+				scrim.hidden = !isOpen;
 			};
 
 			const setActiveLevel = (level) => {
@@ -790,6 +832,10 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 
 			trigger.addEventListener('click', () => {
 				setOpen(!root.classList.contains('is-open'));
+			});
+
+			scrim.addEventListener('click', () => {
+				setOpen(false);
 			});
 
 			options.forEach((option) => {

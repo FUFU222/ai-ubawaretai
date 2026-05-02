@@ -32,6 +32,7 @@ test('build exposes article level switcher for every article', () => {
 	assert.doesNotMatch(supportedArticle, /幼児向け/);
 	assert.doesNotMatch(supportedArticle, /玄人向け/);
 	assert.match(supportedArticle, /data-article-level-switcher/);
+	assert.match(supportedArticle, /data-article-level-scrim/);
 	assert.match(supportedArticle, /data-article-level-behavior="dock-on-read"/);
 	assert.match(supportedArticle, /data-article-level-target/);
 	assert.match(supportedArticle, /data-article-level-article/);
@@ -47,7 +48,9 @@ test('build exposes article level switcher for every article', () => {
 	assert.match(supportedArticle, /updateToc/);
 	assert.doesNotMatch(supportedArticle, /prose\.innerHTML = html/);
 	assert.match(supportedCss, /article-level-menu[^\{]+\[hidden\]\{display:none\}/);
+	assert.match(supportedCss, /article-level-scrim[^\{]+\[hidden\]\{display:none\}/);
 	assert.match(supportedCss, /--article-level-progress/);
+	assert.match(switcherSource, /scrim\.addEventListener\('click'/);
 	assert.match(switcherSource, /getDesktopRailMetrics/);
 	assert.match(switcherSource, /preferredLeft > maxLeft/);
 	assert.match(switcherSource, /is-dock-disabled/);
