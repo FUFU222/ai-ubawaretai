@@ -17,6 +17,7 @@
 	--font-sans: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
 	--font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 	--max-width: 768px;
+	--wide-width: 1280px;
 	--header-height: 60px;
 	--header-bg: rgba(15, 23, 42, 0.85);
 }

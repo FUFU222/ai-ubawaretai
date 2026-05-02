@@ -30,7 +30,8 @@ const year = new Date().getFullYear();
 	}
 
 	.footer-inner {
-		max-width: var(--max-width);
+		width: calc(100% - 2rem);
+		max-width: var(--wide-width);
 		margin: 0 auto;
 		text-align: center;
 		display: grid;
@@ -115,6 +116,10 @@ const year = new Date().getFullYear();
 	}
 
 	@media (max-width: 480px) {
+		.footer-inner {
+			width: 100%;
+		}
+
 		.footer-link-grid a {
 			min-height: 2.8rem;
 		}

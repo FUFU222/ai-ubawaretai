@@ -95,47 +95,49 @@ const websiteLd = websiteJsonLd();
 				)
 			}
 
-			<section class="topic-radar">
-				<div class="section-heading with-link">
-					<div>
-						<p class="section-eyebrow">Topics</p>
-						<h2>注目テーマ</h2>
+			<div class="home-secondary-grid">
+				<section class="topic-radar">
+					<div class="section-heading with-link">
+						<div>
+							<p class="section-eyebrow">Topics</p>
+							<h2>注目テーマ</h2>
+						</div>
+						<a href="/category">すべてのタグ</a>
 					</div>
-					<a href="/category">すべてのタグ</a>
-				</div>
-				<div class="topic-list">
-					{
-						tagSummaries.map(({ slug, label, count }) => (
-							<a href={getTagPath(slug)} class="topic-link">
-								<span>{label}</span>
-								<small>{count}件</small>
-							</a>
-						))
-					}
-				</div>
-			</section>
+					<div class="topic-list">
+						{
+							tagSummaries.map(({ slug, label, count }) => (
+								<a href={getTagPath(slug)} class="topic-link">
+									<span>{label}</span>
+									<small>{count}件</small>
+								</a>
+							))
+						}
+					</div>
+				</section>
 
-			<section class="latest-dispatch">
-				<div class="section-heading with-link">
-					<div>
-						<p class="section-eyebrow">Latest</p>
-						<h2>最新</h2>
+				<section class="latest-dispatch">
+					<div class="section-heading with-link">
+						<div>
+							<p class="section-eyebrow">Latest</p>
+							<h2>最新</h2>
+						</div>
+						<a href="/blog">記事一覧へ</a>
 					</div>
-					<a href="/blog">記事一覧へ</a>
-				</div>
-				<div class="dispatch-list">
-					{
-						latestPosts.map((post) => (
-							<a href={`/blog/${post.id}/`} class="dispatch-row">
-								<span>
-									<FormattedDate date={post.data.pubDate} />
-								</span>
-								<strong>{post.data.title}</strong>
-							</a>
-						))
-					}
-				</div>
-			</section>
+					<div class="dispatch-list">
+						{
+							latestPosts.map((post) => (
+								<a href={`/blog/${post.id}/`} class="dispatch-row">
+									<span>
+										<FormattedDate date={post.data.pubDate} />
+									</span>
+									<strong>{post.data.title}</strong>
+								</a>
+							))
+						}
+					</div>
+				</section>
+			</div>
 		</main>
 		<Footer />
 	</body>
@@ -144,10 +146,14 @@ const websiteLd = websiteJsonLd();
 <style>
 	main {
 		--home-accent: #f59e0b;
+		--home-desktop-width: 1280px;
+		width: min(var(--home-desktop-width), calc(100% - 3rem));
+		max-width: none;
+		padding: 2.35rem 0;
 	}
 
 	.radar-hero {
-		padding: 1.5rem 0 1.75rem;
+		padding: 2rem 0 1.9rem;
 		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
 	}
 
@@ -163,9 +169,9 @@ const websiteLd = websiteJsonLd();
 
 	.radar-hero-grid {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-columns: minmax(0, 1fr) minmax(12rem, auto);
 		align-items: center;
-		gap: 1.25rem;
+		gap: 2rem;
 	}
 
 	.radar-hero h1 {
@@ -203,8 +209,7 @@ const websiteLd = websiteJsonLd();
 	}
 
 	.radar-board,
-	.topic-radar,
-	.latest-dispatch {
+	.home-secondary-grid {
 		margin-top: 2.25rem;
 	}
 
@@ -234,8 +239,8 @@ const websiteLd = websiteJsonLd();
 
 	.lead-layout {
 		display: grid;
-		grid-template-columns: 1.1fr 1fr;
-		gap: 1rem;
+		grid-template-columns: minmax(0, 1.15fr) minmax(22rem, 0.85fr);
+		gap: 1.35rem;
 		align-items: start;
 	}
 
@@ -302,10 +307,17 @@ const websiteLd = websiteJsonLd();
 	.next-reads {
 		grid-column: 2;
 		grid-row: 1 / span 2;
-		padding: 1rem;
+		padding: 1.15rem;
 		border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
 		border-radius: 8px;
 		background: color-mix(in srgb, var(--color-bg-card) 70%, transparent);
+	}
+
+	.home-secondary-grid {
+		display: grid;
+		grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
+		gap: 2rem;
+		align-items: start;
 	}
 
 	.next-list,
@@ -348,14 +360,15 @@ const websiteLd = websiteJsonLd();
 	}
 
 	.topic-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.65rem;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: 1rem;
 	}
 
 	.topic-link {
 		display: inline-flex;
 		align-items: center;
+		justify-content: space-between;
 		gap: 0.5rem;
 		padding: 0.45rem 0;
 		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
@@ -382,8 +395,15 @@ const websiteLd = websiteJsonLd();
 	}
 
 	@media (max-width: 768px) {
+		main {
+			width: var(--max-width);
+			max-width: calc(100% - 2rem);
+			padding: 1.5rem 1rem;
+		}
+
 		.radar-hero-grid,
 		.lead-layout,
+		.home-secondary-grid,
 		.dispatch-row {
 			grid-template-columns: 1fr;
 		}
@@ -396,6 +416,10 @@ const websiteLd = websiteJsonLd();
 		.next-reads {
 			grid-column: auto;
 			grid-row: auto;
+		}
+
+		.topic-list {
+			grid-template-columns: 1fr;
 		}
 	}
 </style>

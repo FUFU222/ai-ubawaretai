@@ -11,10 +11,16 @@ test('build uses structured footer sections and trust-oriented About copy', () =
 	execFileSync('npm', ['run', 'build'], { cwd: rootDir, stdio: 'pipe' });
 
 	const aboutHtml = readFileSync(join(rootDir, 'dist', 'about', 'index.html'), 'utf8');
+	const globalCss = readFileSync(join(rootDir, 'src', 'styles', 'global.css'), 'utf8');
+	const headerSource = readFileSync(join(rootDir, 'src', 'components', 'Header.astro'), 'utf8');
+	const footerSource = readFileSync(join(rootDir, 'src', 'components', 'Footer.astro'), 'utf8');
 
 	assert.match(aboutHtml, /class="footer-link-grid"/);
 	assert.match(aboutHtml, /class="footer-meta"/);
 	assert.match(aboutHtml, /class="footer-eyebrow"/);
+	assert.match(globalCss, /--wide-width: 1280px/);
+	assert.match(headerSource, /max-width: var\(--wide-width\)/);
+	assert.match(footerSource, /max-width: var\(--wide-width\)/);
 
 	assert.match(aboutHtml, /日本の事業・開発の現場でどう受け止めるべきかを整理するブログ/);
 	assert.match(aboutHtml, /更新と訂正/);
