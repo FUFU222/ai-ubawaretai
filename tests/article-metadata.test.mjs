@@ -16,6 +16,8 @@ test('build renders article info with author, updated date, and source links', (
 	);
 
 	assert.match(articleHtml, /記事情報/);
+	assert.match(articleHtml, /Article Brief/);
+	assert.match(articleHtml, /class="article-header article-brief"/);
 	assert.match(articleHtml, /著者/);
 	assert.match(articleHtml, /更新日/);
 	assert.match(articleHtml, /出典リンク/);

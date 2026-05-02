@@ -21,52 +21,50 @@ const supplementalTags = tagSummaries.filter((tag) => !tag.isIndexable);
 		<Header />
 		<main>
 			<section class="category-hero">
-				<p class="category-eyebrow">Tag Guide</p>
+				<p class="category-eyebrow">Topic Index</p>
 				<h1>タグ</h1>
 				<p class="category-lead">
 					OpenAI や Anthropic のような企業名、半導体や音声AIのようなテーマ別に記事を探せます。
 				</p>
 			</section>
 
-				{
-					featuredTags.length === 0 ? (
-						<p class="category-empty">表示できるタグがまだありません。</p>
-					) : (
-						<div class="category-list">
-							{
-								featuredTags.map(({ slug, label, count }) => (
-									<a href={getTagPath(slug)} class="category-card">
-										<div class="category-copy">
-											<span class="category-label">{label}</span>
-									</div>
-									<span class="category-count">{count}件</span>
+			{
+				featuredTags.length === 0 ? (
+					<p class="category-empty">表示できるタグがまだありません。</p>
+				) : (
+					<div class="topic-index">
+						{
+							featuredTags.map(({ slug, label, count }) => (
+								<a href={getTagPath(slug)} class="topic-row">
+									<span class="topic-name">{label}</span>
+									<span class="topic-count">{count}件</span>
 								</a>
 							))
 						}
-						</div>
-					)
-				}
+					</div>
+				)
+			}
 
-				{
-					supplementalTags.length > 0 && (
-						<details class="supplemental-tags">
-							<summary>その他のタグ</summary>
-							<div class="supplemental-tag-list">
-								{
-									supplementalTags.map(({ slug, label, count }) => (
-										<a href={getTagPath(slug)} class="supplemental-tag-pill">
-											<span>{label}</span>
-											<span>{count}</span>
-										</a>
-									))
-								}
-							</div>
-						</details>
-					)
-				}
-			</main>
-			<Footer />
-		</body>
+			{
+				supplementalTags.length > 0 && (
+					<details class="supplemental-tags">
+						<summary>その他のタグ</summary>
+						<div class="topic-pill-list">
+							{
+								supplementalTags.map(({ slug, label, count }) => (
+									<a href={getTagPath(slug)} class="topic-pill">
+										<span>{label}</span>
+										<span>{count}件</span>
+									</a>
+								))
+							}
+						</div>
+					</details>
+				)
+			}
+		</main>
+		<Footer />
+	</body>
 </html>
 
 <style>
@@ -101,96 +99,80 @@ const supplementalTags = tagSummaries.filter((tag) => !tag.isIndexable);
 		padding: 2rem 0;
 	}
 
-		.category-list {
-			display: grid;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 1rem;
-		}
+	.topic-index {
+		border-top: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+	}
 
-		.supplemental-tags {
-			margin-top: 1.5rem;
-			padding-top: 1.25rem;
-			border-top: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
-		}
-
-		.supplemental-tags summary {
-			cursor: pointer;
-			font-size: 0.9rem;
-			font-weight: 700;
-			color: var(--color-text-heading);
-		}
-
-		.supplemental-tag-list {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.65rem;
-			margin-top: 1rem;
-		}
-
-		.supplemental-tag-pill {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.45rem;
-			padding: 0.45rem 0.75rem;
-			border-radius: 999px;
-			border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent);
-			background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
-			font-size: 0.82rem;
-			font-weight: 600;
-			color: var(--color-text-muted);
-			text-decoration: none;
-		}
-
-		.supplemental-tag-pill:hover {
-			color: var(--color-primary-light);
-			border-color: color-mix(in srgb, var(--color-primary-light) 45%, var(--color-border));
-			text-decoration: none;
-		}
-
-		.category-card {
+	.topic-row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		padding: 1.15rem 1.25rem;
-		background:
-			linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 94%, white 6%), var(--color-bg-card));
-		border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
-		border-radius: 14px;
+		padding: 1rem 0;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
 		text-decoration: none;
 		transition:
-			border-color 0.2s ease,
-			transform 0.2s ease,
-			box-shadow 0.2s ease,
-			background-color 0.2s ease;
+			border-color 0.18s ease,
+			padding-left 0.18s ease,
+			color 0.18s ease;
 	}
 
-	.category-card:hover {
-		border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border));
-		background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg-card));
-		box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-		transform: translateY(-2px);
+	.topic-row:hover {
+		padding-left: 0.35rem;
+		border-color: color-mix(in srgb, #f59e0b 55%, var(--color-border));
 		text-decoration: none;
 	}
 
-	.category-copy {
-		min-width: 0;
-	}
-
-	.category-label {
+	.topic-name {
 		font-size: 1.05rem;
-		font-weight: 600;
+		font-weight: 700;
 		color: var(--color-text-heading);
 	}
 
-	.category-count {
+	.topic-count {
 		flex: none;
-		padding: 0.25rem 0.65rem;
-		border-radius: 999px;
-		background: color-mix(in srgb, var(--color-primary) 12%, transparent);
 		font-size: 0.8rem;
 		font-weight: 700;
-		color: var(--color-primary-light);
+		color: #b45309;
+	}
+
+	.supplemental-tags {
+		margin-top: 1.5rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+	}
+
+	.supplemental-tags summary {
+		cursor: pointer;
+		font-size: 0.9rem;
+		font-weight: 700;
+		color: var(--color-text-heading);
+	}
+
+	.topic-pill-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+		margin-top: 1rem;
+	}
+
+	.topic-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.4rem 0.65rem;
+		border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent);
+		border-radius: 8px;
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--color-text-muted);
+		text-decoration: none;
+	}
+
+	.topic-pill:hover {
+		color: #b45309;
+		border-color: color-mix(in srgb, #f59e0b 45%, var(--color-border));
+		text-decoration: none;
 	}
 
 	@media (max-width: 768px) {
@@ -199,8 +181,8 @@ const supplementalTags = tagSummaries.filter((tag) => !tag.isIndexable);
 			padding-bottom: 1.1rem;
 		}
 
-		.category-list {
-			grid-template-columns: 1fr;
+		.topic-row {
+			align-items: flex-start;
 		}
 	}
 </style>

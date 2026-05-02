@@ -74,10 +74,8 @@ const breadcrumbLd = breadcrumbJsonLd([
 		<Header />
 		<main>
 			<article data-article-level-article>
-				<div class="hero-image">
-					<GenerativeHero seed={title} alt={title} loading="eager" />
-				</div>
-				<div class="article-header">
+				<div class="article-header article-brief">
+					<p class="article-eyebrow">Article Brief</p>
 					<div class="meta">
 						<a href={taxonomyPath} class="category-badge">{taxonomyBadgeLabel}</a>
 						<a href="/about" class="author-link">{SITE_AUTHOR}</a>
@@ -95,6 +93,9 @@ const breadcrumbLd = breadcrumbJsonLd([
 							</div>
 						)
 					}
+				</div>
+				<div class="hero-image">
+					<GenerativeHero seed={title} alt={title} loading="eager" />
 				</div>
 
 				{showArticleLevelSwitcher && id && <ArticleLevelSwitcher articleId={id} availability={articleLevels} />}
@@ -168,17 +169,28 @@ const breadcrumbLd = breadcrumbJsonLd([
 	}
 
 	.hero-image {
-		margin-bottom: 2rem;
+		margin: 0 0 2rem;
 	}
 
 	.hero-image :global(img) {
 		width: 100%;
 		height: auto;
-		border-radius: 12px;
+		border-radius: 8px;
 	}
 
 	.article-header {
-		margin-bottom: 2rem;
+		margin-bottom: 1.4rem;
+		padding-bottom: 1.25rem;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
+	}
+
+	.article-eyebrow {
+		margin: 0 0 0.45rem;
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
 	}
 
 	.meta {
@@ -194,8 +206,8 @@ const breadcrumbLd = breadcrumbJsonLd([
 	.category-badge {
 		display: inline-block;
 		padding: 0.2em 0.6em;
-		background-color: rgba(59, 130, 246, 0.15);
-		color: var(--color-primary-light);
+		background-color: color-mix(in srgb, #f59e0b 14%, transparent);
+		color: #b45309;
 		border-radius: 4px;
 		font-size: 0.8rem;
 		font-weight: 600;
@@ -255,10 +267,9 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 	.article-info-box {
 		margin-top: 2rem;
-		padding: 1.25rem;
-		border: 1px solid var(--color-border);
-		border-radius: 14px;
-		background: color-mix(in srgb, var(--color-bg-card) 88%, transparent);
+		padding: 1.25rem 0;
+		border-top: 1px solid var(--color-border);
+		border-bottom: 1px solid var(--color-border);
 	}
 
 	.article-info-box h2 {
@@ -289,10 +300,8 @@ const breadcrumbLd = breadcrumbJsonLd([
 	}
 
 	.article-facts div {
-		padding: 0.85rem 0.95rem;
-		border-radius: 12px;
-		border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
-		background: color-mix(in srgb, var(--color-bg-card) 72%, transparent);
+		padding: 0.85rem 0;
+		border-top: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
 	}
 
 	.article-facts dt {
@@ -347,8 +356,8 @@ const breadcrumbLd = breadcrumbJsonLd([
 		align-items: center;
 		justify-content: center;
 		padding: 0.45rem 0.7rem;
-		border-radius: 999px;
-		background: rgba(59, 130, 246, 0.08);
+		border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+		border-radius: 8px;
 		font-size: 0.85rem;
 		text-decoration: none;
 	}

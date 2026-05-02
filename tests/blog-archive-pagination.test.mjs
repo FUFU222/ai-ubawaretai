@@ -14,9 +14,11 @@ test('build paginates the blog archive and limits the first page payload', () =>
 	const secondPagePath = join(rootDir, 'dist', 'blog', 'page', '2', 'index.html');
 
 	assert.equal(existsSync(secondPagePath), true, 'expected a second archive page');
+	assert.match(firstPageHtml, /AI Dispatch/);
+	assert.match(firstPageHtml, /class="archive-dispatch"/);
 	assert.match(firstPageHtml, /記事一覧ページネーション/);
 	assert.match(firstPageHtml, /href="\/blog\/page\/2"/);
 
-	const cardCount = (firstPageHtml.match(/class="post-item"/g) ?? []).length;
-	assert.ok(cardCount <= 12, `expected at most 12 posts on the first page, got ${cardCount}`);
+	const dispatchCount = (firstPageHtml.match(/class="dispatch-item"/g) ?? []).length;
+	assert.ok(dispatchCount <= 12, `expected at most 12 posts on the first page, got ${dispatchCount}`);
 });

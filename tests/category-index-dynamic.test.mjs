@@ -31,11 +31,17 @@ test('category index reflects actual tags, auto-creates tag pages, and links art
 		const articlePage = readFileSync(join(rootDir, 'dist', 'blog', '__tag-auto-test', 'index.html'), 'utf8');
 		const dynamicTagHtml = readFileSync(dynamicTagPage, 'utf8');
 
+		assert.match(categoryIndex, /Topic Index/);
 		assert.match(categoryIndex, /タグ/);
 		assert.match(categoryIndex, /TaxonomyFixtureTag/);
 		assert.match(categoryIndex, /半導体/);
 		assert.match(categoryIndex, /1件/);
+		assert.match(categoryIndex, /class="topic-index"/);
+		assert.match(categoryIndex, /class="topic-row"/);
 		assert.equal(existsSync(dynamicTagPage), true, 'expected dynamic tag page build output');
+		assert.match(dynamicTagHtml, /Topic Dispatch/);
+		assert.match(dynamicTagHtml, /class="topic-post-list"/);
+		assert.match(dynamicTagHtml, /class="topic-post-row"/);
 		assert.match(
 			dynamicTagHtml,
 			/<meta name="robots" content="noindex,follow,noarchive,max-image-preview:large,max-snippet:-1,max-video-preview:-1">/,
@@ -43,6 +49,7 @@ test('category index reflects actual tags, auto-creates tag pages, and links art
 		assert.match(articlePage, /href="\/category\/TaxonomyFixtureTag\/"/);
 		assert.match(articlePage, /href="\/category\/%E5%8D%8A%E5%B0%8E%E4%BD%93\/"/);
 		assert.doesNotMatch(categoryIndex, /Category Guide/);
+		assert.doesNotMatch(categoryIndex, /category-card/);
 	} finally {
 		rmSync(fixturePath, { force: true });
 	}

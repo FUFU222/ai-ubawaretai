@@ -14,6 +14,9 @@ const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 const posts = allPosts
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 6);
+const featuredPost = posts[0];
+const nextPosts = posts.slice(1, 4);
+const latestPosts = posts.slice(1, 6);
 const tagSummaries = getTagSummaries(allPosts)
 	.filter((tag) => tag.isIndexable)
 	.slice(0, 12);
@@ -31,66 +34,103 @@ const websiteLd = websiteJsonLd();
 		</head>
 	<body>
 		<Header />
-		<div class="hero-banner">
-			<img
-				src="/header_image.webp"
-				alt="AIに仕事を奪われたい - エンジニアがAIツールを使いこなすイラスト"
-				width="1200"
-				height="670"
-				class="hero-banner-img"
-				loading="eager"
-			/>
-		</div>
 		<main>
-			<section class="hero">
-				<h1>{SITE_TITLE}</h1>
-				<p class="hero-sub">
-					AI業界の最新ニュースを
-					<br class="hero-sub-break" />
-					現役エンジニアの視点で読み解く
-				</p>
-				<p class="hero-lead">
-					AI・ソフトウェア・プロダクトの更新を、日本の事業と開発の文脈で整理しています。
-				</p>
-				<div class="hero-actions">
-					<a href="/blog" class="hero-action-primary">記事一覧を見る</a>
-					<a href="/about" class="hero-action-secondary">About</a>
+			<section class="radar-hero">
+				<p class="radar-kicker">AI News Radar</p>
+				<div class="radar-hero-grid">
+					<div>
+						<h1>{SITE_TITLE}</h1>
+						<p class="radar-lead">
+							いま追うべきAIニュースを、日本の開発現場と事業判断に引き寄せて読む。
+						</p>
+					</div>
+					<div class="radar-actions" aria-label="主要導線">
+						<a href="/blog">最新記事を読む</a>
+						<a href="/category">テーマで追う</a>
+					</div>
 				</div>
 			</section>
 
-			<section class="latest">
-				<h2 class="section-title">最新の記事</h2>
-				<div class="post-grid">
+			{
+				featuredPost && (
+					<section class="radar-board" aria-labelledby="first-read-title">
+						<div class="section-heading">
+							<p class="section-eyebrow">First Read</p>
+							<h2 id="first-read-title">最初に読む</h2>
+						</div>
+						<div class="lead-layout">
+							<a href={`/blog/${featuredPost.id}/`} class="featured-story">
+								<div class="featured-image">
+									<GenerativeHero seed={featuredPost.data.title} alt={featuredPost.data.title} />
+								</div>
+							</a>
+							<div class="featured-copy">
+								<CategoryBadge label={`#${getPrimaryTag(featuredPost.data.tags)}`} class="post-category-badge" />
+								<h3>
+									<a href={`/blog/${featuredPost.id}/`}>{featuredPost.data.title}</a>
+								</h3>
+								<p>{featuredPost.data.description}</p>
+								<span>
+									<FormattedDate date={featuredPost.data.pubDate} />
+								</span>
+							</div>
+							<aside class="next-reads" aria-labelledby="next-reads-title">
+								<div class="section-heading compact">
+									<p class="section-eyebrow">Next Reads</p>
+									<h2 id="next-reads-title">次に読む</h2>
+								</div>
+								<div class="next-list">
+									{nextPosts.map((post) => (
+										<a href={`/blog/${post.id}/`} class="next-item">
+											<span>
+												<FormattedDate date={post.data.pubDate} />
+											</span>
+											<strong>{post.data.title}</strong>
+										</a>
+									))}
+								</div>
+							</aside>
+						</div>
+					</section>
+				)
+			}
+
+			<section class="topic-radar">
+				<div class="section-heading with-link">
+					<div>
+						<p class="section-eyebrow">Topics</p>
+						<h2>注目テーマ</h2>
+					</div>
+					<a href="/category">すべてのタグ</a>
+				</div>
+				<div class="topic-list">
 					{
-						posts.map((post) => (
-							<a href={`/blog/${post.id}/`} class="post-card">
-								<div class="post-image">
-									<GenerativeHero seed={post.data.title} alt={post.data.title} />
-								</div>
-								<div class="post-card-body">
-									<CategoryBadge label={`#${getPrimaryTag(post.data.tags)}`} class="post-category-badge" />
-									<h3 class="post-title">{post.data.title}</h3>
-									<p class="post-date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</div>
+						tagSummaries.map(({ slug, label, count }) => (
+							<a href={getTagPath(slug)} class="topic-link">
+								<span>{label}</span>
+								<small>{count}件</small>
 							</a>
 						))
 					}
 				</div>
-				<div class="more-link">
-					<a href="/blog">すべての記事を見る &rarr;</a>
-				</div>
 			</section>
 
-			<section class="categories">
-				<h2 class="section-title">タグ</h2>
-				<div class="category-grid">
+			<section class="latest-dispatch">
+				<div class="section-heading with-link">
+					<div>
+						<p class="section-eyebrow">Latest</p>
+						<h2>最新</h2>
+					</div>
+					<a href="/blog">記事一覧へ</a>
+				</div>
+				<div class="dispatch-list">
 					{
-						tagSummaries.map(({ slug, label, count }) => (
-							<a href={getTagPath(slug)} class="category-card">
-								<span>{label}</span>
-								<span class="category-count">{count}件</span>
+						latestPosts.map((post) => (
+							<a href={`/blog/${post.id}/`} class="dispatch-row">
+								<span>
+									<FormattedDate date={post.data.pubDate} />
+								</span>
+								<strong>{post.data.title}</strong>
 							</a>
 						))
 					}
@@ -102,118 +142,117 @@ const websiteLd = websiteJsonLd();
 </html>
 
 <style>
-	.hero {
-		text-align: center;
-		padding: 2rem 0;
+	main {
+		--home-accent: #f59e0b;
 	}
 
-	.hero-banner {
-		width: 100%;
-		height: 200px;
-		overflow: hidden;
+	.radar-hero {
+		padding: 1.5rem 0 1.75rem;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
 	}
 
-	.hero-banner-img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		object-position: center 35%;
-		display: block;
+	.radar-kicker,
+	.section-eyebrow {
+		margin: 0 0 0.45rem;
+		color: var(--home-accent);
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 	}
 
-	.hero h1 {
-		font-size: 2rem;
-		background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+	.radar-hero-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 1.25rem;
 	}
 
-	.hero-sub {
+	.radar-hero h1 {
+		margin: 0;
+		font-size: clamp(1.7rem, 4vw, 2.35rem);
+		letter-spacing: 0;
+	}
+
+	.radar-lead {
+		max-width: 37rem;
+		margin: 0.65rem 0 0;
 		color: var(--color-text-muted);
-		font-size: 1rem;
-		margin-top: 0.5rem;
-	}
-
-	.hero-lead {
-		margin: 0.9rem auto 0;
-		max-width: 42rem;
 		font-size: 0.98rem;
-		line-height: 1.8;
-		color: var(--color-text-muted);
+		line-height: 1.85;
 	}
 
-	.hero-actions {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		margin-top: 1.15rem;
-		flex-wrap: wrap;
+	.radar-actions {
+		display: grid;
+		gap: 0.55rem;
+		min-width: 9rem;
 	}
 
-	.hero-actions a {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-width: 8.5rem;
-		padding: 0.7rem 1rem;
-		border-radius: 999px;
-		font-size: 0.9rem;
+	.radar-actions a,
+	.section-heading.with-link > a {
+		color: var(--color-text-heading);
+		font-size: 0.86rem;
 		font-weight: 700;
 		text-decoration: none;
 	}
 
-	.hero-action-primary {
-		background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
-		color: white;
+	.radar-actions a::after,
+	.section-heading.with-link > a::after {
+		content: ' ->';
+		color: var(--home-accent);
 	}
 
-	.hero-action-secondary {
-		background: color-mix(in srgb, var(--color-bg-card) 90%, transparent);
-		border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
-		color: var(--color-text-heading);
+	.radar-board,
+	.topic-radar,
+	.latest-dispatch {
+		margin-top: 2.25rem;
 	}
 
-	.hero-sub-break {
-		display: none;
+	.section-heading {
+		margin-bottom: 1rem;
 	}
 
-	.section-title {
-		font-size: 1.25rem;
-		margin-bottom: 1.25rem;
-		padding-bottom: 0.4rem;
-		border-bottom: 2px solid var(--color-border);
+	.section-heading h2 {
+		margin: 0;
+		padding: 0;
+		border: 0;
+		font-size: 1.18rem;
 	}
 
-	.post-grid {
+	.section-heading.compact {
+		margin-bottom: 0.8rem;
+	}
+
+	.section-heading.with-link {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		gap: 1rem;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+		padding-bottom: 0.8rem;
+	}
+
+	.lead-layout {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 1.25rem;
+		grid-template-columns: 1.1fr 1fr;
+		gap: 1rem;
+		align-items: start;
 	}
 
-	.post-card {
+	.featured-story {
 		display: block;
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border);
-		border-radius: 8px;
 		overflow: hidden;
-		text-decoration: none;
-		transition: border-color 0.2s, transform 0.2s;
-	}
-
-	.post-card:hover {
-		border-color: var(--color-primary);
-		transform: translateY(-2px);
+		border-radius: 8px;
+		border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
 		text-decoration: none;
 	}
 
-	.post-image {
+	.featured-image {
 		aspect-ratio: 1200 / 630;
 		overflow: hidden;
 	}
 
-	.post-image :global(img) {
+	.featured-image :global(img) {
 		width: 100%;
 		height: 100%;
 		display: block;
@@ -221,91 +260,142 @@ const websiteLd = websiteJsonLd();
 		border-radius: 0;
 	}
 
-	.post-card-body {
-		padding: 1rem;
+	.featured-copy {
+		grid-column: 1;
+		padding-top: 0.95rem;
 	}
 
 	:global(.post-category-badge) {
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.55rem;
 	}
 
-	.post-title {
-		font-size: 0.95rem;
-		line-height: 1.5;
-		color: var(--color-text-heading);
-		margin-bottom: 0.4rem;
-		border-bottom: none;
-		padding-bottom: 0;
-	}
-
-	.post-date {
-		font-size: 0.8rem;
-		color: var(--color-text-muted);
+	.featured-copy h3 {
 		margin: 0;
+		font-size: 1.25rem;
+		line-height: 1.55;
 	}
 
-	.more-link {
-		text-align: center;
-		margin-top: 1.5rem;
-	}
-
-	.more-link a {
-		color: var(--color-primary-light);
-		font-size: 0.9rem;
-	}
-
-	.categories {
-		margin-top: 3rem;
-	}
-
-	.category-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0.75rem;
-	}
-
-	.category-card {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-		padding: 1rem;
-		background-color: var(--color-bg-card);
-		border: 1px solid var(--color-border);
-		border-radius: 8px;
+	.featured-copy h3 a {
 		color: var(--color-text-heading);
-		font-weight: 600;
-		font-size: 0.9rem;
 		text-decoration: none;
-		transition: border-color 0.2s;
 	}
 
-	.category-count {
-		flex: none;
-		font-size: 0.78rem;
+	.featured-copy h3 a:hover {
+		color: var(--color-primary-light);
+		text-decoration: none;
+	}
+
+	.featured-copy p {
+		margin: 0.65rem 0 0;
 		color: var(--color-text-muted);
+		font-size: 0.92rem;
+		line-height: 1.8;
 	}
 
-	.category-card:hover {
-		border-color: var(--color-primary);
+	.featured-copy span {
+		display: inline-block;
+		margin-top: 0.65rem;
+		color: var(--color-text-muted);
+		font-size: 0.78rem;
+	}
+
+	.next-reads {
+		grid-column: 2;
+		grid-row: 1 / span 2;
+		padding: 1rem;
+		border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--color-bg-card) 70%, transparent);
+	}
+
+	.next-list,
+	.dispatch-list {
+		display: grid;
+		gap: 0;
+	}
+
+	.next-item,
+	.dispatch-row {
+		display: grid;
+		gap: 0.3rem;
+		padding: 0.85rem 0;
+		border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
 		text-decoration: none;
+	}
+
+	.next-item:first-child,
+	.dispatch-row:first-child {
+		border-top: 0;
+		padding-top: 0;
+	}
+
+	.next-item span,
+	.dispatch-row span {
+		color: var(--color-text-muted);
+		font-size: 0.75rem;
+	}
+
+	.next-item strong,
+	.dispatch-row strong {
+		color: var(--color-text-heading);
+		font-size: 0.92rem;
+		line-height: 1.55;
+	}
+
+	.next-item:hover strong,
+	.dispatch-row:hover strong {
+		color: var(--color-primary-light);
+	}
+
+	.topic-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.65rem;
+	}
+
+	.topic-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.45rem 0;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+		color: var(--color-text-heading);
+		font-size: 0.9rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.topic-link small {
+		color: var(--color-text-muted);
+		font-size: 0.72rem;
+		font-weight: 600;
+	}
+
+	.topic-link:hover {
+		color: var(--color-primary-light);
+		text-decoration: none;
+	}
+
+	.dispatch-row {
+		grid-template-columns: 7.5rem minmax(0, 1fr);
+		align-items: baseline;
 	}
 
 	@media (max-width: 768px) {
-		.post-grid {
+		.radar-hero-grid,
+		.lead-layout,
+		.dispatch-row {
 			grid-template-columns: 1fr;
 		}
 
-		.category-grid {
-			grid-template-columns: repeat(2, 1fr);
+		.radar-actions {
+			display: flex;
+			flex-wrap: wrap;
 		}
 
-		.hero h1 {
-			font-size: 1.5rem;
-		}
-
-		.hero-sub-break {
-			display: block;
+		.next-reads {
+			grid-column: auto;
+			grid-row: auto;
 		}
 	}
 </style>
