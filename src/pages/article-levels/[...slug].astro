@@ -4,14 +4,18 @@ export const partial = true;
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
+	const publishedArticles = await getCollection('blog', ({ data }) => !data.draft);
+	const publishedArticleIds = new Set(publishedArticles.map((article) => article.id));
 	const entries = await getCollection('blogLevels');
 
-	return entries.map((entry) => ({
-		params: {
-			slug: `${entry.data.article}/${entry.data.level}`,
-		},
-		props: { entry },
-	}));
+	return entries
+		.filter((entry) => publishedArticleIds.has(entry.data.article))
+		.map((entry) => ({
+			params: {
+				slug: `${entry.data.article}/${entry.data.level}`,
+			},
+			props: { entry },
+		}));
 }
 
 type Props = {

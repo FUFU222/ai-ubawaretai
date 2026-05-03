@@ -2,6 +2,7 @@
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { getArticleLevelAvailability } from '../../utils/articleLevels';
+import { getTagSummaries } from '../../utils/tags';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -16,11 +17,22 @@ const post = Astro.props;
 const { Content, headings } = await render(post);
 const blogLevels = await getCollection('blogLevels', ({ data }) => data.article === post.id);
 const articleLevels = getArticleLevelAvailability(blogLevels, post.id);
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const indexableTags = getTagSummaries(allPosts)
+	.filter((tag) => tag.isIndexable)
+	.map((tag) => tag.slug);
 
 // rawContentを取得（読了時間計算用）
 const rawContent = post.body ?? '';
 ---
 
-<BlogPost {...post.data} id={post.id} headings={headings} rawContent={rawContent} articleLevels={articleLevels}>
+<BlogPost
+	{...post.data}
+	id={post.id}
+	headings={headings}
+	rawContent={rawContent}
+	articleLevels={articleLevels}
+	indexableTags={indexableTags}
+>
 	<Content />
 </BlogPost>

@@ -9,7 +9,6 @@ import { getTagPath, getTagSummaries } from '../../utils/tags';
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 const tagSummaries = getTagSummaries(allPosts);
 const featuredTags = tagSummaries.filter((tag) => tag.isIndexable);
-const supplementalTags = tagSummaries.filter((tag) => !tag.isIndexable);
 ---
 
 <!doctype html>
@@ -45,23 +44,6 @@ const supplementalTags = tagSummaries.filter((tag) => !tag.isIndexable);
 				)
 			}
 
-			{
-				supplementalTags.length > 0 && (
-					<details class="supplemental-tags">
-						<summary>その他のタグ</summary>
-						<div class="topic-pill-list">
-							{
-								supplementalTags.map(({ slug, label, count }) => (
-									<a href={getTagPath(slug)} class="topic-pill">
-										<span>{label}</span>
-										<span>{count}件</span>
-									</a>
-								))
-							}
-						</div>
-					</details>
-				)
-			}
 		</main>
 		<Footer />
 	</body>
@@ -134,45 +116,6 @@ const supplementalTags = tagSummaries.filter((tag) => !tag.isIndexable);
 		font-size: 0.8rem;
 		font-weight: 700;
 		color: #b45309;
-	}
-
-	.supplemental-tags {
-		margin-top: 1.5rem;
-		padding-top: 1.25rem;
-		border-top: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
-	}
-
-	.supplemental-tags summary {
-		cursor: pointer;
-		font-size: 0.9rem;
-		font-weight: 700;
-		color: var(--color-text-heading);
-	}
-
-	.topic-pill-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.55rem;
-		margin-top: 1rem;
-	}
-
-	.topic-pill {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.45rem;
-		padding: 0.4rem 0.65rem;
-		border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent);
-		border-radius: 8px;
-		font-size: 0.82rem;
-		font-weight: 600;
-		color: var(--color-text-muted);
-		text-decoration: none;
-	}
-
-	.topic-pill:hover {
-		color: #b45309;
-		border-color: color-mix(in srgb, #f59e0b 45%, var(--color-border));
-		text-decoration: none;
 	}
 
 	@media (max-width: 768px) {

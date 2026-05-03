@@ -4,6 +4,7 @@ description: 'フランスのMistral AIがテキスト読み上げモデル Voxt
 pubDate: '2026-03-27'
 category: 'news'
 tags: ['Mistral', 'TTS', 'オープンソース', '音声AI']
+draft: true
 ---
 
 Mistral AIが音声生成の世界に殴り込みをかけた。3月26日にリリースされたVoxtral TTSは、テキストを自然な音声に変換するオープンソースモデルだ。Apache 2.0ライセンス。つまり、誰でも自由に使える。

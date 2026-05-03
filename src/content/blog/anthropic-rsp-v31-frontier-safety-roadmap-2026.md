@@ -5,6 +5,7 @@ pubDate: '2026-04-02'
 category: 'news'
 tags: ['Anthropic', 'AI安全', 'ガバナンス', 'ポリシー', 'フロンティアモデル']
 series: 'anthropic-rsp-2026'
+draft: true
 ---
 
 Anthropicが4月2日、**Responsible Scaling Policy（RSP）をv3.1へ更新**した。いかにも政策文書らしいニュースなので見落とされやすいが、これはフロンティアAI企業の安全運用を追っている人ならかなり重要だ。

@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { DEFAULT_ROBOTS, SITE_AUTHOR, SITE_LOCALE, SITE_TITLE, SITEMAP_PATH } from '../consts';
+import { ADSENSE_ACCOUNT, DEFAULT_ROBOTS, SITE_AUTHOR, SITE_LOCALE, SITE_TITLE, SITEMAP_PATH } from '../consts';
 
 interface Props {
 	title: string;
@@ -55,6 +55,7 @@ const shouldIncludeAdNetwork = includeAdNetwork && !isNoindex;
 />
 <meta name="generator" content={Astro.generator} />
 <meta name="google-site-verification" content="HAReWTLRUj-fhdtwtzgQmBP-_uqtRhS_JqLE-B0yXms" />
+<meta name="google-adsense-account" content={ADSENSE_ACCOUNT} />
 
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />

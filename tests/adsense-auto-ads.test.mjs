@@ -11,7 +11,7 @@ test('production build keeps AdSense script but removes placeholder ad boxes', (
 	execFileSync('npm', ['run', 'build'], { cwd: rootDir, stdio: 'pipe' });
 
 	const articleHtml = readFileSync(
-		join(rootDir, 'dist', 'blog', 'claude-code-review', 'index.html'),
+		join(rootDir, 'dist', 'blog', 'openai-cloudflare-agent-cloud-gpt54-codex-2026', 'index.html'),
 		'utf8',
 	);
 

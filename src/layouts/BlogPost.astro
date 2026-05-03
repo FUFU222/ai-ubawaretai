@@ -15,7 +15,7 @@ import { SITE_AUTHOR, SITE_TITLE } from '../consts';
 import ArticleLevelSwitcher from '../components/ArticleLevelSwitcher.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '../utils/jsonld';
 import { hasArticleLevelSwitcher, type ArticleLevelAvailability } from '../utils/articleLevels';
-import { getCategoryLabel, getCategoryPath } from '../utils/categories';
+import { getCategoryLabel } from '../utils/categories';
 import { getPrimaryTag, getTagPath } from '../utils/tags';
 import { extractSourceLinks } from '../utils/source-links';
 
@@ -24,11 +24,13 @@ type Props = CollectionEntry<'blog'>['data'] & {
 	headings?: Array<{ depth: number; slug: string; text: string }>;
 	rawContent?: string;
 	articleLevels?: ArticleLevelAvailability;
+	indexableTags?: string[];
 };
 
 const { title, description, pubDate, updatedDate, heroImage, category, tags, id, headings, rawContent } =
 	Astro.props;
 const articleLevels = Astro.props.articleLevels ?? {};
+const indexableTagSet = new Set(Astro.props.indexableTags ?? tags ?? []);
 
 const siteUrl = Astro.site?.toString() ?? '';
 const articleUrl = `${siteUrl}blog/${id}/`;
@@ -36,7 +38,7 @@ const categoryLabel = getCategoryLabel(category);
 const hasPrimaryTag = Boolean(tags && tags.length > 0);
 const primaryTag = getPrimaryTag(tags ?? []);
 const taxonomyLabel = hasPrimaryTag ? primaryTag : categoryLabel;
-const taxonomyPath = hasPrimaryTag ? getTagPath(primaryTag) : getCategoryPath(category);
+const taxonomyPath = hasPrimaryTag && indexableTagSet.has(primaryTag) ? getTagPath(primaryTag) : '/category/';
 const taxonomyBadgeLabel = hasPrimaryTag ? `#${primaryTag}` : categoryLabel;
 const showArticleLevelSwitcher = id ? hasArticleLevelSwitcher(articleLevels) : false;
 const displayUpdatedDate = updatedDate ?? pubDate;
@@ -88,7 +90,11 @@ const breadcrumbLd = breadcrumbJsonLd([
 						tags && tags.length > 0 && (
 							<div class="tags">
 								{tags.map((tag) => (
-									<a href={getTagPath(tag)} class="tag">#{tag}</a>
+									indexableTagSet.has(tag) ? (
+										<a href={getTagPath(tag)} class="tag">#{tag}</a>
+									) : (
+										<span class="tag tag-static">#{tag}</span>
+									)
 								))}
 							</div>
 						)
@@ -250,6 +256,10 @@ const breadcrumbLd = breadcrumbJsonLd([
 	.tag:hover {
 		color: var(--color-primary-light);
 		text-decoration: none;
+	}
+
+	.tag-static:hover {
+		color: var(--color-text-muted);
 	}
 
 	.prose {

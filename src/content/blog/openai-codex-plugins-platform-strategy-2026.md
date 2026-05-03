@@ -4,7 +4,7 @@ description: 'OpenAIがCodexにプラグイン機能を追加。Slack・Figma・
 pubDate: '2026-03-31'
 category: 'news'
 tags: ['OpenAI', 'Codex', 'AI エージェント', '開発ツール', 'MCP']
-draft: false
+draft: true
 ---
 
 OpenAIがCodexにプラグイン機能を追加した。[公式チェンジログ](https://developers.openai.com/codex/changelog)によると、3月25日付でプラグインが「first-class workflow」として導入され、翌26日にはCLI v0.117.0でプラグイン対応が正式リリースされている。

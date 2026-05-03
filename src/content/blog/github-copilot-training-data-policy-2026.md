@@ -5,6 +5,7 @@ pubDate: '2026-03-27'
 category: 'news'
 tags: ['GitHub Copilot', 'プライバシー', 'AI学習データ']
 series: 'github-copilot-2026'
+draft: true
 ---
 
 GitHubがまた一歩踏み込んだ。3月25日、Copilot Free・Pro・Pro+ユーザーの「インタラクションデータ」をAIモデルの学習に使うとプライバシーポリシーを改定した。4月24日から適用される。デフォルトで有効。つまり、何もしなければあなたのコードは学習データになる。

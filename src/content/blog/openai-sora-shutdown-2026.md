@@ -4,6 +4,7 @@ description: 'OpenAIがAI動画生成アプリSoraのサービス終了を発表
 pubDate: '2026-03-26'
 category: 'news'
 tags: ['OpenAI', 'Sora', 'AI動画', 'ロボティクス']
+draft: true
 ---
 
 OpenAIがSoraを畳む。ローンチからわずか6ヶ月。AI動画生成という華やかな舞台から、ロボティクスと世界シミュレーションへ。この決断はかなり大胆だけど、数字を見ると納得感がある。

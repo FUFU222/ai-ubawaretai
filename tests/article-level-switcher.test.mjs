@@ -7,19 +7,27 @@ import { fileURLToPath } from 'node:url';
 
 const rootDir = fileURLToPath(new URL('..', import.meta.url));
 
+function isPublishedArticle(entry) {
+	const source = readFileSync(join(rootDir, 'src', 'content', 'blog', entry), 'utf8');
+	return !/^draft:\s*true\s*$/m.test(source);
+}
+
 test('build exposes article level switcher for every article', () => {
 	execFileSync('npm', ['run', 'build'], { cwd: rootDir, stdio: 'pipe' });
 
 	const slugs = readdirSync(join(rootDir, 'src', 'content', 'blog'))
 		.filter((entry) => /\.(md|mdx)$/.test(entry))
+		.filter(isPublishedArticle)
 		.map((entry) => entry.replace(/\.(md|mdx)$/, ''))
 		.sort();
-	const supportedArticle = readFileSync(join(rootDir, 'dist', 'blog', 'chatgpt-workflow-guide', 'index.html'), 'utf8');
-	const supportedNewsArticle = readFileSync(join(rootDir, 'dist', 'blog', 'openai-sora-shutdown-2026', 'index.html'), 'utf8');
-	const childFragmentPath = join(rootDir, 'dist', 'article-levels', 'chatgpt-workflow-guide', 'child', 'index.html');
-	const expertFragmentPath = join(rootDir, 'dist', 'article-levels', 'chatgpt-workflow-guide', 'expert', 'index.html');
-	const childNewsFragmentPath = join(rootDir, 'dist', 'article-levels', 'openai-sora-shutdown-2026', 'child', 'index.html');
-	const expertNewsFragmentPath = join(rootDir, 'dist', 'article-levels', 'openai-sora-shutdown-2026', 'expert', 'index.html');
+	const supportedSlug = 'openai-cloudflare-agent-cloud-gpt54-codex-2026';
+	const supportedNewsSlug = 'cursor-security-review-beta-2026';
+	const supportedArticle = readFileSync(join(rootDir, 'dist', 'blog', supportedSlug, 'index.html'), 'utf8');
+	const supportedNewsArticle = readFileSync(join(rootDir, 'dist', 'blog', supportedNewsSlug, 'index.html'), 'utf8');
+	const childFragmentPath = join(rootDir, 'dist', 'article-levels', supportedSlug, 'child', 'index.html');
+	const expertFragmentPath = join(rootDir, 'dist', 'article-levels', supportedSlug, 'expert', 'index.html');
+	const childNewsFragmentPath = join(rootDir, 'dist', 'article-levels', supportedNewsSlug, 'child', 'index.html');
+	const expertNewsFragmentPath = join(rootDir, 'dist', 'article-levels', supportedNewsSlug, 'expert', 'index.html');
 	const supportedCss = Array.from(supportedArticle.matchAll(/href="(\/_astro\/[^"]+\.css)"/g))
 		.map((match) => readFileSync(join(rootDir, 'dist', match[1].slice(1)), 'utf8'))
 		.join('\n');
@@ -82,8 +90,8 @@ test('build exposes article level switcher for every article', () => {
 	const childNewsFragment = readFileSync(childNewsFragmentPath, 'utf8');
 	const expertNewsFragment = readFileSync(expertNewsFragmentPath, 'utf8');
 
-	assert.match(childFragment, /ChatGPTは仕事を手伝ってくれる道具/);
-	assert.match(expertFragment, /レビュー観点の抽出/);
-	assert.match(childNewsFragment, /Soraという動画を作るアプリをやめる/);
-	assert.match(expertNewsFragment, /世界シミュレーション資産の転用/);
+	assert.match(childFragment, /Cloudflare/);
+	assert.match(expertFragment, /Agent Cloud/);
+	assert.match(childNewsFragment, /Cursor/);
+	assert.match(expertNewsFragment, /security review/i);
 });

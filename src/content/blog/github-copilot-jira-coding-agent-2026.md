@@ -5,6 +5,7 @@ pubDate: '2026-03-27'
 category: 'news'
 tags: ['GitHub Copilot', 'Jira', 'AI エージェント', '開発ツール']
 series: 'github-copilot-2026'
+draft: true
 ---
 
 GitHub Copilot coding agentがJiraと直接つながった。3月5日にパブリックプレビューとして公開され、3月25日には早くも機能強化のアップデートが入っている。やっていることはシンプルで、Jiraのチケットを Copilot にアサインすると、自律的にコードを書いてドラフトPRを作ってくれる。
