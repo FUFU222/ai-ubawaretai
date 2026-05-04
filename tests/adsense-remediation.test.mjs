@@ -53,7 +53,10 @@ test('AdSense account metadata and strengthened trust copy are rendered', () => 
 	assert.match(aboutHtml, /編集方針/);
 	assert.match(aboutHtml, /AIの利用/);
 	assert.match(aboutHtml, /一次情報/);
+	assert.match(aboutHtml, /https:\/\/x\.com\/fufu_phoenix/);
 	assert.match(contactHtml, /GitHubプロフィール/);
+	assert.match(contactHtml, /Xアカウント/);
+	assert.match(contactHtml, /https:\/\/x\.com\/fufu_phoenix/);
 	assert.match(contactHtml, /訂正依頼/);
 	assert.match(privacyHtml, /Google AdSense/);
 	assert.match(privacyHtml, /Cookie/);

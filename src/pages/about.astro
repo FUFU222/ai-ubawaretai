@@ -2,7 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { GITHUB_URL, SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, SITE_TITLE } from '../consts';
+import { GITHUB_URL, SITE_AUTHOR, SITE_AUTHOR_DESCRIPTION, SITE_TITLE, X_URL } from '../consts';
 import { personJsonLd } from '../utils/jsonld';
 
 const personLd = personJsonLd();
@@ -74,7 +74,8 @@ const aboutDescription =
 				<section>
 					<h2>リンク</h2>
 					<ul>
-							<li><a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a></li>
+						<li><a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a></li>
+						<li><a href={X_URL} target="_blank" rel="noopener noreferrer">X（@fufu_phoenix）</a></li>
 						<li><a href="/contact">お問い合わせ</a></li>
 						<li><a href="/privacy">プライバシーポリシー</a></li>
 					</ul>

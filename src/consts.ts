@@ -6,6 +6,7 @@ export const SITE_URL = 'https://ai-ubawaretai.com';
 export const SITE_LANGUAGE = 'ja';
 export const SITE_LOCALE = 'ja_JP';
 export const GITHUB_URL = 'https://github.com/FUFU222';
+export const X_URL = 'https://x.com/fufu_phoenix';
 export const ADSENSE_ACCOUNT = 'ca-pub-5853088582174174';
 export const NEWS_LABEL = 'ニュース';
 export const BLOG_PAGE_SIZE = 12;

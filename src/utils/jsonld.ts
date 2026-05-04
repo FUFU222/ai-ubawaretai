@@ -6,6 +6,7 @@ import {
 	SITE_LANGUAGE,
 	SITE_TITLE,
 	SITE_URL,
+	X_URL,
 } from '../consts';
 
 export function personJsonLd() {
@@ -21,7 +22,7 @@ export function personJsonLd() {
 			name: SITE_TITLE,
 			url: SITE_URL,
 		},
-		sameAs: [GITHUB_URL],
+		sameAs: [GITHUB_URL, X_URL],
 	};
 }
 
