@@ -15,3 +15,13 @@ test('publisher automation contract includes durable title hook guidance', () =>
 	assert.match(contract, /具体フック/);
 	assert.match(contract, /数字.*期限.*具体ツール.*職種.*導入シナリオ.*比較軸/);
 });
+
+test('publisher automation contract documents origin-first sync with local mirror fallback', () => {
+	const contract = readFileSync(join(rootDir, 'docs', 'automations', 'publisher-system.md'), 'utf8');
+
+	assert.match(contract, /GitHub `origin` .*先に.*fetch/);
+	assert.match(contract, /local mirror .*fallback/);
+	assert.match(contract, /local publish commit.*rebase/);
+	assert.doesNotMatch(contract, /GitHub への fetch は常用しない/);
+	assert.doesNotMatch(contract, /local mirror を primary/);
+});

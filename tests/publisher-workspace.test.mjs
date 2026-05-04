@@ -466,6 +466,73 @@ test('preflight falls back to an explicit local fetch target when the primary re
 	}
 });
 
+test('preflight refreshes from origin and rebases a local publish commit when the local mirror is stale', async () => {
+	const { root, workerDir } = setupRepos();
+	const staleMirrorDir = join(root, 'stale-mirror.git');
+	const statePath = join(root, 'shared', 'publisher-state.jsonl');
+
+	try {
+		git(root, ['init', '--bare', staleMirrorDir]);
+		git(workerDir, ['push', staleMirrorDir, 'HEAD:main']);
+		git(workerDir, ['config', 'user.name', 'Codex Test']);
+		git(workerDir, ['config', 'user.email', 'codex@example.com']);
+		writeFileSync(join(workerDir, 'LOCAL_ARTICLE.md'), 'pending publish\n');
+		git(workerDir, ['add', 'LOCAL_ARTICLE.md']);
+		git(workerDir, ['commit', '-m', 'article: pending-local']);
+
+		const { preflight } = await import(moduleUrl);
+		const report = preflight({
+			cwd: workerDir,
+			statePath,
+			skipInstall: true,
+			skipChecks: true,
+			fetchTarget: staleMirrorDir,
+			fallbackFetchTarget: 'origin',
+		});
+
+		assert.equal(report.aheadOfOriginMain, true);
+		assert.equal(report.rebasedOntoOriginMain, true);
+		assert.equal(report.fetchSource, 'origin');
+		assert.equal(git(workerDir, ['show', 'HEAD:README.md']).trim(), 'updated upstream');
+		assert.equal(git(workerDir, ['log', '-1', '--format=%s']), 'article: pending-local');
+		assert.equal(git(workerDir, ['rev-parse', 'origin/main']), git(workerDir, ['merge-base', 'HEAD', 'origin/main']));
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test('preflight refreshes a stale local mirror after fast-forwarding from origin', async () => {
+	const { root, workerDir } = setupRepos();
+	const staleMirrorDir = join(root, 'stale-mirror.git');
+	const statePath = join(root, 'shared', 'publisher-state.jsonl');
+
+	try {
+		git(root, ['init', '--bare', staleMirrorDir]);
+		git(workerDir, ['push', staleMirrorDir, 'HEAD:main']);
+
+		const { preflight } = await import(moduleUrl);
+		const report = preflight({
+			cwd: workerDir,
+			statePath,
+			skipInstall: true,
+			skipChecks: true,
+			fetchTarget: staleMirrorDir,
+			fallbackFetchTarget: 'origin',
+		});
+
+		assert.equal(report.aheadOfOriginMain, false);
+		assert.equal(report.fetchSource, 'origin');
+		assert.equal(report.refreshedFetchTarget, true);
+		assert.equal(git(workerDir, ['rev-parse', 'HEAD']), git(workerDir, ['rev-parse', 'origin/main']));
+		assert.equal(
+			git(workerDir, ['ls-remote', staleMirrorDir, 'refs/heads/main']).split(/\s+/)[0],
+			git(workerDir, ['rev-parse', 'origin/main']),
+		);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('preflight prefers an explicit local fetch target over the configured remote', async () => {
 	const { root, remoteDir, workerDir } = setupRepos();
 

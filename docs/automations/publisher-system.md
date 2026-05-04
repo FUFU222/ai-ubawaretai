@@ -44,16 +44,19 @@ automation の専用 clone 内で、次の local path だけを使う。
 ### 1. 同期
 
 - `preflight` を実行する
-- まず `PUBLISHER_SYNC_TARGET` から `origin/main` を更新する
-- `PUBLISHER_SYNC_TARGET` は publisher 自身が更新する local mirror とする
-- GitHub への fetch は常用しない。local mirror が使えないときだけ例外対応にする
+- `node scripts/publisher-workspace.mjs preflight --cwd "$PWD" --state "$PUBLISHER_STATE_PATH" --skip-checks --fetch-target "$PUBLISHER_SYNC_TARGET" --fallback-fetch-target origin` を使う
+- GitHub `origin` を先に fetch し、通常開発で進んだ `main` を automation clone に取り込む
+- `PUBLISHER_SYNC_TARGET` は publisher 自身が更新する local mirror fallback/cache とする
+- GitHub `origin` が network/auth/DNS などで使えないときだけ、local mirror fallback で同期を継続する
+- `origin/main` が進み、automation 側に local publish commit がある場合は preflight が local publish commit rebase を試みる
+- origin 同期で fast-forward できた場合は、preflight が `PUBLISHER_SYNC_TARGET` を更新して stale mirror を残さない
 - `git remote set-url` のような毎回の remote 上書きはしない
 
 ### 2. 復旧
 
 - まず前回の未完了作業を優先する
 - `.publisher-staging/<slug>/` が残っていれば、その候補を再開する
-- `HEAD` が `origin/main` より先に進んでいれば、先に push retry を試す
+- `HEAD` が `origin/main` より先に進んでいれば、preflight 後に先に push retry を試す
 - push retry が失敗した場合は、新規候補を増やさず失敗原因を日本語で記録して終了する
 
 ### 3. 候補選定
@@ -114,6 +117,7 @@ automation の専用 clone 内で、次の local path だけを使う。
 - `git add` / `git commit`
 - まず `git push origin main`
 - 成功したら `PUBLISHER_SYNC_TARGET` にも同じ `main` を push して local mirror を更新する
+- push が origin 先行で rejected された場合は、`git pull --rebase origin main`、`npm run build`、`git push origin main` を 1 回だけ再試行し、成功後に local mirror を更新する
 
 ### 7. 失敗分析
 
@@ -154,6 +158,7 @@ automation の専用 clone 内で、次の local path だけを使う。
 - publish 対象は `src/content/blog/*.md` と `src/content/blog-levels/*/*.md` のみ
 - それ以外の差分が出たら publish 中止
 - push 失敗時は local clone に commit を残し、次回 run で最優先 retry する
+- GitHub `origin` が到達可能な run では、local mirror は authoritative source ではなく fallback/cache として扱う
 - 新規候補は常に 1 run あたり 1 件まで
 
 ## Reporting

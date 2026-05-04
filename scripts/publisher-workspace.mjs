@@ -105,6 +105,56 @@ function normalizeFetchTarget(target, cwd = process.cwd()) {
 	return resolve(cwd, value);
 }
 
+function isLocalFetchTarget(target, cwd = process.cwd()) {
+	const value = String(target || '').trim();
+	if (!value) return false;
+	if (/^(https?|ssh):\/\//.test(value)) return false;
+	if (/^[A-Za-z0-9_.-]+$/.test(value)) return false;
+	return normalizeFetchTarget(value, cwd) !== value || value.startsWith('/');
+}
+
+function buildFetchPlan({
+	cwd = process.cwd(),
+	fetchTarget = null,
+	fallbackFetchTarget = null,
+	execFileSyncImpl = execFileSync,
+} = {}) {
+	const primarySpec = fetchTarget
+		? {
+				target: normalizeFetchTarget(fetchTarget, cwd),
+				refspec: '+main:refs/remotes/origin/main',
+			}
+		: resolveFetchTarget({ cwd, execFileSyncImpl });
+	const fallbackTarget = normalizeFetchTarget(fallbackFetchTarget, cwd);
+
+	if (
+		fetchTarget &&
+		fallbackTarget &&
+		isLocalFetchTarget(fetchTarget, cwd) &&
+		!isLocalFetchTarget(fallbackFetchTarget, cwd)
+	) {
+		return {
+			primary: {
+				target: fallbackTarget,
+				refspec: '+main:refs/remotes/origin/main',
+			},
+			fallback: primarySpec,
+			refreshTarget: primarySpec.target,
+		};
+	}
+
+	return {
+		primary: primarySpec,
+		fallback: fallbackTarget
+			? {
+					target: fallbackTarget,
+					refspec: primarySpec.refspec,
+				}
+			: null,
+		refreshTarget: null,
+	};
+}
+
 function runGitWithRetry(commandArgs, options = {}) {
 	const { retries = 3, retryDelayMs = 1500, cwd } = options;
 	let lastError;
@@ -190,6 +240,33 @@ function isAncestorCommit(ancestor, descendant, { cwd, execFileSyncImpl = execFi
 		cwd,
 		execFileSyncImpl,
 	});
+}
+
+function syncMainToOriginMain(cwd, { execFileSyncImpl = execFileSync } = {}) {
+	let rebasedOntoOriginMain = false;
+	let head = run('git', ['rev-parse', 'HEAD'], { cwd, execFileSyncImpl });
+	let originMain = run('git', ['rev-parse', 'origin/main'], { cwd, execFileSyncImpl });
+
+	if (head === originMain) {
+		return { head, originMain, rebasedOntoOriginMain };
+	}
+
+	if (isAncestorCommit(head, originMain, { cwd, execFileSyncImpl })) {
+		run('git', ['merge', '--ff-only', 'origin/main'], { cwd, execFileSyncImpl });
+		head = run('git', ['rev-parse', 'HEAD'], { cwd, execFileSyncImpl });
+		return { head, originMain, rebasedOntoOriginMain };
+	}
+
+	if (isAncestorCommit(originMain, head, { cwd, execFileSyncImpl })) {
+		return { head, originMain, rebasedOntoOriginMain };
+	}
+
+	run('git', ['rebase', 'origin/main'], { cwd, stdio: 'inherit', execFileSyncImpl });
+	rebasedOntoOriginMain = true;
+	head = run('git', ['rev-parse', 'HEAD'], { cwd, execFileSyncImpl });
+	originMain = run('git', ['rev-parse', 'origin/main'], { cwd, execFileSyncImpl });
+
+	return { head, originMain, rebasedOntoOriginMain };
 }
 
 export function listStagedCandidates({ cwd = process.cwd(), stagingDir = '.publisher-staging' } = {}) {
@@ -306,45 +383,50 @@ export function preflight({
 		memoryPath: resolvedMemoryPath,
 		statePath: resolvedStatePath,
 	} = resolvePublisherContext({ memoryPath, statePath, ensureState: true });
-	const fetchSpec = fetchTarget
-		? {
-				target: normalizeFetchTarget(fetchTarget, cwd),
-				refspec: '+main:refs/remotes/origin/main',
-			}
-		: resolveFetchTarget({ cwd, execFileSyncImpl });
-	const resolvedFallbackFetchTarget = normalizeFetchTarget(fallbackFetchTarget, cwd);
-	let fetchSource = fetchSpec.target;
+	const fetchPlan = buildFetchPlan({
+		cwd,
+		fetchTarget,
+		fallbackFetchTarget,
+		execFileSyncImpl,
+	});
+	let fetchSource = fetchPlan.primary.target;
+	let refreshedFetchTarget = false;
 
 	ensureCleanWorktree(cwd, { execFileSyncImpl });
 	try {
-		runGitWithRetry(['fetch', fetchSpec.target, fetchSpec.refspec], {
+		runGitWithRetry(['fetch', fetchPlan.primary.target, fetchPlan.primary.refspec], {
 			cwd,
 			stdio: 'inherit',
 			execFileSyncImpl,
 			retryDelayMs,
 		});
 	} catch (error) {
-		if (!resolvedFallbackFetchTarget) {
+		if (!fetchPlan.fallback) {
 			throw error;
 		}
 		process.stderr.write(
-			`primary fetch failed in ${cwd}: ${errorText(error)}\nfalling back to local fetch target: ${resolvedFallbackFetchTarget}\n`,
+			`primary fetch failed in ${cwd}: ${errorText(error)}\nfalling back to local fetch target: ${fetchPlan.fallback.target}\n`,
 		);
-		run('git', ['fetch', resolvedFallbackFetchTarget, fetchSpec.refspec], {
+		run('git', ['fetch', fetchPlan.fallback.target, fetchPlan.fallback.refspec], {
 			cwd,
 			stdio: 'inherit',
 			execFileSyncImpl,
 		});
-		fetchSource = resolvedFallbackFetchTarget;
+		fetchSource = fetchPlan.fallback.target;
 	}
 	ensureOnMain(cwd, { execFileSyncImpl });
-	run('git', ['merge', '--ff-only', 'origin/main'], { cwd, execFileSyncImpl });
+	const syncReport = syncMainToOriginMain(cwd, { execFileSyncImpl });
 
-	const head = run('git', ['rev-parse', 'HEAD'], { cwd, execFileSyncImpl });
-	const originMain = run('git', ['rev-parse', 'origin/main'], { cwd, execFileSyncImpl });
+	const head = syncReport.head;
+	const originMain = syncReport.originMain;
 	const aheadOfOriginMain = head !== originMain && isAncestorCommit(originMain, head, { cwd, execFileSyncImpl });
 	if (head !== originMain && !aheadOfOriginMain) {
 		throw new Error(`workspace base mismatch: HEAD=${head} origin/main=${originMain}`);
+	}
+
+	if (fetchPlan.refreshTarget && fetchSource === fetchPlan.primary.target && !aheadOfOriginMain) {
+		run('git', ['push', fetchPlan.refreshTarget, 'main'], { cwd, stdio: 'inherit', execFileSyncImpl });
+		refreshedFetchTarget = true;
 	}
 
 	run('npm', ['--version'], { cwd, execFileSyncImpl });
@@ -362,7 +444,9 @@ export function preflight({
 			statePath: resolvedStatePath,
 		}),
 		aheadOfOriginMain,
+		rebasedOntoOriginMain: syncReport.rebasedOntoOriginMain,
 		fetchSource,
+		refreshedFetchTarget,
 		installedDependencies: installed,
 	};
 }
