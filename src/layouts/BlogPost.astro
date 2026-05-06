@@ -50,6 +50,8 @@ const allPublishedPosts = await getCollection('blog', ({ data }) => !data.draft)
 const currentPost = id ? allPublishedPosts.find((post) => post.id === id) : undefined;
 const currentSeries = currentPost ? getSeriesForPost(currentPost, allPublishedPosts) : undefined;
 const hasSeriesNav = Boolean(currentSeries && currentSeries.posts.length > 1);
+const hasArticleLevelControl = Boolean(showArticleLevelSwitcher && id);
+const hasRightRail = hasArticleLevelControl || hasSeriesNav;
 
 const articleLd = articleJsonLd({
 	title,
@@ -111,9 +113,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 					<GenerativeHero seed={title} alt={title} loading="eager" />
 				</div>
 
-				{showArticleLevelSwitcher && id && <ArticleLevelSwitcher articleId={id} availability={articleLevels} />}
-
-				<div class="article-shell">
+				<div class:list={['article-shell', { 'has-right-rail': hasRightRail }]}>
 					<div class="article-primary">
 						{headings && headings.length > 0 && <TOC headings={headings} />}
 
@@ -177,6 +177,14 @@ const breadcrumbLd = breadcrumbJsonLd([
 					}
 
 					{
+						hasArticleLevelControl && id && (
+							<aside class="article-level-rail" aria-label="解説レベル">
+								<ArticleLevelSwitcher articleId={id} availability={articleLevels} placement="rail" />
+							</aside>
+						)
+					}
+
+					{
 						id && hasSeriesNav && (
 							<aside class="article-right-rail" aria-label="シリーズ記事">
 								<SeriesNav currentId={id} placement="sidebar" posts={allPublishedPosts} />
@@ -200,8 +208,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 	}
 
 	.article-header,
-	.hero-image,
-	:global(.article-level-shell) {
+	.hero-image {
 		width: min(var(--max-width), 100%);
 		margin-left: auto;
 		margin-right: auto;
@@ -215,9 +222,12 @@ const breadcrumbLd = breadcrumbJsonLd([
 	.article-shell {
 		display: grid;
 		grid-template-areas:
+			'left main level'
 			'left main right';
-		grid-template-columns: minmax(11.5rem, 14rem) minmax(0, var(--max-width)) minmax(12rem, 15rem);
-		gap: 1.35rem;
+		grid-template-columns: minmax(12rem, 14.5rem) minmax(0, var(--max-width)) minmax(13rem, 16rem);
+		grid-template-rows: auto 1fr;
+		column-gap: 1.55rem;
+		row-gap: 1.1rem;
 		align-items: start;
 		width: 100%;
 		margin: 0 auto;
@@ -236,12 +246,37 @@ const breadcrumbLd = breadcrumbJsonLd([
 		grid-area: right;
 	}
 
+	.article-level-rail {
+		grid-area: level;
+	}
+
 	.article-left-rail,
+	.article-level-rail,
 	.article-right-rail {
-		position: sticky;
-		top: calc(var(--header-height) + 1.2rem);
 		min-width: 0;
 		align-self: start;
+	}
+
+	.article-left-rail,
+	.article-level-rail {
+		position: sticky;
+		top: calc(var(--header-height) + 1.2rem);
+	}
+
+	.article-left-rail {
+		padding-right: 1.1rem;
+		border-right: 1px solid color-mix(in srgb, var(--color-border) 74%, transparent);
+	}
+
+	.article-level-rail,
+	.article-right-rail {
+		padding-left: 1.1rem;
+		border-left: 1px solid color-mix(in srgb, var(--color-border) 74%, transparent);
+	}
+
+	.article-right-rail {
+		position: sticky;
+		top: calc(var(--header-height) + 9.5rem);
 	}
 
 	.hero-image :global(img) {
@@ -476,6 +511,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 		.article-shell {
 			grid-template-areas:
+				'level'
 				'main'
 				'left'
 				'right';
@@ -484,8 +520,11 @@ const breadcrumbLd = breadcrumbJsonLd([
 		}
 
 		.article-left-rail,
+		.article-level-rail,
 		.article-right-rail {
 			position: static;
+			padding: 0;
+			border: 0;
 		}
 	}
 

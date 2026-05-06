@@ -10,9 +10,10 @@ import {
 type Props = {
 	articleId: string;
 	availability: ArticleLevelAvailability;
+	placement?: 'inline' | 'rail';
 };
 
-const { articleId, availability } = Astro.props;
+const { articleId, availability, placement = 'inline' } = Astro.props;
 const routes = Object.fromEntries(
 	Object.entries(availability).map(([level]) => [level, getArticleLevelPath(articleId, level as ArticleLevelVariant)]),
 );
@@ -22,13 +23,14 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 ---
 
 <div
-	class="article-level-shell"
+	class:list={['article-level-shell', { 'is-rail': placement === 'rail' }]}
 	data-article-level-switcher
 	data-article-level-behavior="dock-on-read"
 	data-article-default-level="standard"
 	data-article-level-routes={JSON.stringify(routes)}
 	data-article-level-storage-key="preferred-article-level"
-	data-article-level-placement="inline"
+	data-article-level-placement={placement}
+	data-article-level-placement-mode={placement}
 >
 	<button
 		class="article-level-scrim"
@@ -328,6 +330,69 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 		filter: saturate(0.92);
 	}
 
+	.article-level-shell.is-rail {
+		position: static;
+		z-index: auto;
+		display: block;
+		margin: 0;
+		pointer-events: auto;
+	}
+
+	.article-level-shell.is-rail .article-level-card {
+		width: 100%;
+		padding: 0.95rem;
+		border: 1px solid color-mix(in srgb, var(--color-primary-light) 24%, var(--color-border));
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--color-bg-card) 88%, transparent);
+		box-shadow: none;
+		transform: none;
+		transform-origin: center;
+		will-change: auto;
+	}
+
+	.article-level-shell.is-rail .article-level-eyebrow {
+		padding: 0;
+		border-radius: 0;
+		color: #f59e0b;
+		background: transparent;
+		box-shadow: none;
+		letter-spacing: 0.08em;
+		opacity: 1;
+		transform: none;
+		max-height: none;
+	}
+
+	.article-level-shell.is-rail .article-level-trigger {
+		min-height: 42px;
+		padding: 0.65rem 0.75rem;
+		border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+		border-radius: 8px;
+		background: var(--color-bg);
+		color: var(--color-text-heading);
+		box-shadow: none;
+	}
+
+	.article-level-shell.is-rail .article-level-trigger:hover {
+		transform: none;
+		box-shadow: none;
+		filter: none;
+		border-color: color-mix(in srgb, var(--color-primary-light) 42%, var(--color-border));
+	}
+
+	.article-level-shell.is-rail .article-level-current {
+		color: var(--color-text-heading);
+		font-size: 0.9rem;
+	}
+
+	.article-level-shell.is-rail .article-level-chevron {
+		color: var(--color-text-muted);
+	}
+
+	.article-level-shell.is-rail .article-level-menu {
+		top: calc(100% + 0.45rem);
+		border-radius: 8px;
+	}
+
 	@keyframes article-level-menu-in {
 		from {
 			opacity: 0;
@@ -433,6 +498,8 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			let tocDocumentBottom = 0;
 
 			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			const placementMode = root.dataset.articleLevelPlacementMode || 'inline';
+			const dockEnabled = placementMode !== 'rail';
 			const dockGap = 24;
 			const dockViewportPadding = 20;
 			const dockViewportMinWidth = 1200;
@@ -664,6 +731,22 @@ const supportedLevels = ARTICLE_LEVEL_SEQUENCE.filter(
 			};
 
 			const updateMotion = () => {
+				if (!dockEnabled) {
+					root.classList.remove('is-dock-disabled', 'is-compact');
+					root.style.setProperty('--article-level-progress', '0');
+					root.style.setProperty('--article-level-scale', '1');
+					root.style.setProperty('--article-level-shift-y', '0px');
+					root.style.setProperty('--article-level-shift-x', '0px');
+					root.setAttribute('data-article-level-placement', placementMode);
+
+					if (root.classList.contains('is-open') && Math.abs(window.scrollY - lastScrollY) > 3) {
+						setOpen(false);
+					}
+
+					lastScrollY = window.scrollY;
+					return;
+				}
+
 				const railMetrics = getDesktopRailMetrics();
 				const desktopRailEnabled = Boolean(railMetrics);
 				const desktopDockDisabled = window.innerWidth >= 769 && !desktopRailEnabled;

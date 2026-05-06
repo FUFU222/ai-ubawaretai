@@ -42,6 +42,7 @@ test('build exposes article level switcher for every article', () => {
 	assert.match(supportedArticle, /data-article-level-switcher/);
 	assert.match(supportedArticle, /data-article-level-scrim/);
 	assert.match(supportedArticle, /data-article-level-behavior="dock-on-read"/);
+	assert.match(supportedArticle, /data-article-level-placement-mode="rail"/);
 	assert.match(supportedArticle, /data-article-level-target/);
 	assert.match(supportedArticle, /data-article-level-article/);
 	assert.match(supportedArticle, /data-article-level-toc/);
@@ -61,7 +62,9 @@ test('build exposes article level switcher for every article', () => {
 	assert.match(switcherSource, /backdrop-filter: blur\(3px\) saturate\(0\.92\)/);
 	assert.match(switcherSource, /-webkit-backdrop-filter: blur\(3px\) saturate\(0\.92\)/);
 	assert.match(supportedCss, /--article-level-progress/);
+	assert.match(switcherSource, /\.article-level-shell\.is-rail/);
 	assert.match(switcherSource, /scrim\.addEventListener\('click'/);
+	assert.match(switcherSource, /placementMode !== 'rail'/);
 	assert.match(switcherSource, /getDesktopRailMetrics/);
 	assert.match(switcherSource, /preferredLeft > maxLeft/);
 	assert.match(switcherSource, /is-dock-disabled/);
@@ -69,6 +72,7 @@ test('build exposes article level switcher for every article', () => {
 	assert.match(supportedNewsArticle, /解説レベル/);
 	assert.match(supportedNewsArticle, /data-article-level-switcher/);
 	assert.match(supportedNewsArticle, /data-article-level-behavior="dock-on-read"/);
+	assert.match(supportedNewsArticle, /data-article-level-placement-mode="rail"/);
 	assert.equal(existsSync(childFragmentPath), true, 'expected child fragment build output');
 	assert.equal(existsSync(expertFragmentPath), true, 'expected expert fragment build output');
 	assert.equal(existsSync(childNewsFragmentPath), true, 'expected child news fragment build output');

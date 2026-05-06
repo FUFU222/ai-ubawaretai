@@ -15,20 +15,25 @@ test('article pages render blog navigation rails without leading with series nav
 		'utf8',
 	);
 
-	const shellIndex = articleHtml.indexOf('class="article-shell"');
+	const shellIndex = articleHtml.indexOf('class="article-shell');
 	const primaryIndex = articleHtml.indexOf('class="article-primary"');
 	const leftRailIndex = articleHtml.indexOf('class="article-left-rail"');
+	const levelRailIndex = articleHtml.indexOf('class="article-level-rail"');
 	const rightRailIndex = articleHtml.indexOf('class="article-right-rail"');
+	const switcherIndex = articleHtml.indexOf('data-article-level-placement-mode="rail"');
 	const seriesNavIndex = articleHtml.indexOf('class="series-nav');
 	const proseIndex = articleHtml.indexOf('data-article-level-target');
 
 	assert.notEqual(shellIndex, -1, 'expected article shell layout');
 	assert.notEqual(primaryIndex, -1, 'expected primary article column');
 	assert.notEqual(leftRailIndex, -1, 'expected blog navigation left rail');
+	assert.notEqual(levelRailIndex, -1, 'expected article level control rail');
 	assert.notEqual(rightRailIndex, -1, 'expected series right rail');
+	assert.notEqual(switcherIndex, -1, 'expected article level switcher in rail placement');
 	assert.notEqual(seriesNavIndex, -1, 'expected series nav in a side rail');
 	assert.notEqual(proseIndex, -1, 'expected article body target');
 	assert.ok(primaryIndex < leftRailIndex, 'primary content should stay first in DOM order');
+	assert.ok(switcherIndex > levelRailIndex, 'article level switcher should render inside the control rail');
 	assert.ok(seriesNavIndex > rightRailIndex, 'series nav should render inside the right rail');
 	assert.ok(proseIndex < seriesNavIndex, 'series nav should no longer sit before the article body');
 	assert.match(articleHtml, /ブログ内を移動/);
