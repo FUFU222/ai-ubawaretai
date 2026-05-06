@@ -16,7 +16,8 @@ test('build presents the home page as an editorial news radar', () => {
 	assert.match(homeHtml, /AI News Radar/);
 	assert.match(homeHtml, /最初に読む/);
 	assert.match(homeHtml, /おすすめ記事/);
-	assert.match(homeHtml, /カテゴリ \/ トピック/);
+	assert.match(homeHtml, /カテゴリ/);
+	assert.match(homeHtml, /タグ一覧/);
 	assert.match(homeHtml, /最新記事を読む/);
 	assert.match(homeHtml, /class="home-shell"/);
 	assert.match(homeSource, /--home-desktop-width: 1280px/);

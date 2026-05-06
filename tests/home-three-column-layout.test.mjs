@@ -24,7 +24,8 @@ test('home page renders as a three-column blog layout on desktop', () => {
 	assert.notEqual(rightRailIndex, -1, 'expected right recommendation rail');
 	assert.ok(mainIndex < leftRailIndex, 'main content should remain first in DOM order');
 	assert.ok(leftRailIndex < rightRailIndex, 'left rail should render before right rail after main content');
-	assert.match(homeHtml, /カテゴリ \/ トピック/);
+	assert.match(homeHtml, /カテゴリ/);
+	assert.match(homeHtml, /タグ一覧/);
 	assert.match(homeHtml, /おすすめ記事/);
 	assert.match(homeHtml, /最新記事/);
 	assert.match(homeSource, /grid-template-areas:\s*'left main right'/);
