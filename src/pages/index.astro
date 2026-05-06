@@ -11,12 +11,12 @@ import { personJsonLd, websiteJsonLd } from '../utils/jsonld';
 import { getPrimaryTag, getTagPath, getTagSummaries } from '../utils/tags';
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const posts = [...allPosts]
+const posts = allPosts
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 8);
+	.slice(0, 6);
 const featuredPost = posts[0];
-const nextPosts = posts.slice(1, 5);
-const latestPosts = posts.slice(0, 6);
+const nextPosts = posts.slice(1, 4);
+const latestPosts = posts.slice(1, 6);
 const tagSummaries = getTagSummaries(allPosts)
 	.filter((tag) => tag.isIndexable)
 	.slice(0, 12);
@@ -51,66 +51,58 @@ const websiteLd = websiteJsonLd();
 				</div>
 			</section>
 
-			<div class="home-shell">
-				<div class="home-main-column">
-					{
-						featuredPost && (
-							<section class="radar-board" aria-labelledby="first-read-title">
-								<div class="section-heading">
-									<p class="section-eyebrow">First Read</p>
-									<h2 id="first-read-title">最初に読む</h2>
-								</div>
-								<div class="lead-layout">
-									<a href={`/blog/${featuredPost.id}/`} class="featured-story">
-										<div class="featured-image">
-											<GenerativeHero seed={featuredPost.data.title} alt={featuredPost.data.title} />
-										</div>
-									</a>
-									<div class="featured-copy">
-										<CategoryBadge label={`#${getPrimaryTag(featuredPost.data.tags)}`} class="post-category-badge" />
-										<h3>
-											<a href={`/blog/${featuredPost.id}/`}>{featuredPost.data.title}</a>
-										</h3>
-										<p>{featuredPost.data.description}</p>
-										<span>
-											<FormattedDate date={featuredPost.data.pubDate} />
-										</span>
-									</div>
-								</div>
-							</section>
-						)
-					}
-
-					<section class="latest-dispatch">
-						<div class="section-heading with-link">
-							<div>
-								<p class="section-eyebrow">Latest</p>
-								<h2>最新記事</h2>
-							</div>
-							<a href="/blog">記事一覧へ</a>
+			{
+				featuredPost && (
+					<section class="radar-board" aria-labelledby="first-read-title">
+						<div class="section-heading">
+							<p class="section-eyebrow">First Read</p>
+							<h2 id="first-read-title">最初に読む</h2>
 						</div>
-						<div class="dispatch-list">
-							{
-								latestPosts.map((post) => (
-									<a href={`/blog/${post.id}/`} class="dispatch-row">
-										<span>
-											<FormattedDate date={post.data.pubDate} />
-										</span>
-										<strong>{post.data.title}</strong>
-									</a>
-								))
-							}
+						<div class="lead-layout">
+							<a href={`/blog/${featuredPost.id}/`} class="featured-story">
+								<div class="featured-image">
+									<GenerativeHero seed={featuredPost.data.title} alt={featuredPost.data.title} />
+								</div>
+							</a>
+							<div class="featured-copy">
+								<CategoryBadge label={`#${getPrimaryTag(featuredPost.data.tags)}`} class="post-category-badge" />
+								<h3>
+									<a href={`/blog/${featuredPost.id}/`}>{featuredPost.data.title}</a>
+								</h3>
+								<p>{featuredPost.data.description}</p>
+								<span>
+									<FormattedDate date={featuredPost.data.pubDate} />
+								</span>
+							</div>
+							<aside class="next-reads" aria-labelledby="next-reads-title">
+								<div class="section-heading compact">
+									<p class="section-eyebrow">Next Reads</p>
+									<h2 id="next-reads-title">次に読む</h2>
+								</div>
+								<div class="next-list">
+									{nextPosts.map((post) => (
+										<a href={`/blog/${post.id}/`} class="next-item">
+											<span>
+												<FormattedDate date={post.data.pubDate} />
+											</span>
+											<strong>{post.data.title}</strong>
+										</a>
+									))}
+								</div>
+							</aside>
 						</div>
 					</section>
-				</div>
+				)
+			}
 
-				<aside class="home-left-rail" aria-label="カテゴリとトピック">
+			<div class="home-secondary-grid">
+				<section class="topic-radar">
 					<div class="section-heading with-link">
 						<div>
 							<p class="section-eyebrow">Topics</p>
-							<h2>カテゴリ</h2>
+							<h2>注目テーマ</h2>
 						</div>
-						<a href="/category">タグ一覧</a>
+						<a href="/category">すべてのタグ</a>
 					</div>
 					<div class="topic-list">
 						{
@@ -122,34 +114,29 @@ const websiteLd = websiteJsonLd();
 							))
 						}
 					</div>
-					<nav class="rail-shortcuts" aria-label="ブログ主要導線">
-						<a href="/blog">記事一覧</a>
-						<a href="/category">タグ一覧</a>
-						<a href="/rss.xml">RSS</a>
-					</nav>
-				</aside>
+				</section>
 
-				<aside class="home-right-rail" aria-label="おすすめ記事">
-					<section class="next-reads" aria-labelledby="next-reads-title">
-						<div class="section-heading compact">
-							<p class="section-eyebrow">Recommended</p>
-							<h2 id="next-reads-title">おすすめ記事</h2>
+				<section class="latest-dispatch">
+					<div class="section-heading with-link">
+						<div>
+							<p class="section-eyebrow">Latest</p>
+							<h2>最新</h2>
 						</div>
-						<div class="next-list">
-							{nextPosts.map((post, index) => (
-								<a href={`/blog/${post.id}/`} class="next-item">
-									<span class="next-rank">{String(index + 1).padStart(2, '0')}</span>
-									<span class="next-copy">
-										<small>
-											<FormattedDate date={post.data.pubDate} />
-										</small>
-										<strong>{post.data.title}</strong>
+						<a href="/blog">記事一覧へ</a>
+					</div>
+					<div class="dispatch-list">
+						{
+							latestPosts.map((post) => (
+								<a href={`/blog/${post.id}/`} class="dispatch-row">
+									<span>
+										<FormattedDate date={post.data.pubDate} />
 									</span>
+									<strong>{post.data.title}</strong>
 								</a>
-							))}
-						</div>
-					</section>
-				</aside>
+							))
+						}
+					</div>
+				</section>
 			</div>
 		</main>
 		<Footer />
@@ -221,44 +208,9 @@ const websiteLd = websiteJsonLd();
 		color: var(--home-accent);
 	}
 
-	.home-shell {
+	.radar-board,
+	.home-secondary-grid {
 		margin-top: 2.25rem;
-	}
-
-	.home-shell {
-		display: grid;
-		grid-template-areas: 'left main right';
-		grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr) minmax(15rem, 19rem);
-		gap: 2rem;
-		align-items: start;
-	}
-
-	.home-main-column {
-		grid-area: main;
-		min-width: 0;
-	}
-
-	.home-left-rail {
-		grid-area: left;
-	}
-
-	.home-right-rail {
-		grid-area: right;
-	}
-
-	.home-left-rail,
-	.home-right-rail {
-		position: sticky;
-		top: calc(var(--header-height) + 1.2rem);
-		display: grid;
-		gap: 1.45rem;
-		min-width: 0;
-	}
-
-	.home-left-rail,
-	.next-reads {
-		padding-top: 0.95rem;
-		border-top: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
 	}
 
 	.section-heading {
@@ -287,8 +239,8 @@ const websiteLd = websiteJsonLd();
 
 	.lead-layout {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		gap: 1rem;
+		grid-template-columns: minmax(0, 1.15fr) minmax(22rem, 0.85fr);
+		gap: 1.35rem;
 		align-items: start;
 	}
 
@@ -314,7 +266,8 @@ const websiteLd = websiteJsonLd();
 	}
 
 	.featured-copy {
-		padding-top: 0.2rem;
+		grid-column: 1;
+		padding-top: 0.95rem;
 	}
 
 	:global(.post-category-badge) {
@@ -352,7 +305,19 @@ const websiteLd = websiteJsonLd();
 	}
 
 	.next-reads {
-		margin: 0;
+		grid-column: 2;
+		grid-row: 1 / span 2;
+		padding: 1.15rem;
+		border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--color-bg-card) 70%, transparent);
+	}
+
+	.home-secondary-grid {
+		display: grid;
+		grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
+		gap: 2rem;
+		align-items: start;
 	}
 
 	.next-list,
@@ -365,14 +330,9 @@ const websiteLd = websiteJsonLd();
 	.dispatch-row {
 		display: grid;
 		gap: 0.3rem;
-		padding: 0.9rem 0;
+		padding: 0.85rem 0;
 		border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
 		text-decoration: none;
-	}
-
-	.next-item {
-		grid-template-columns: 2ch minmax(0, 1fr);
-		gap: 0.65rem;
 	}
 
 	.next-item:first-child,
@@ -381,35 +341,28 @@ const websiteLd = websiteJsonLd();
 		padding-top: 0;
 	}
 
-	.next-rank,
-	.dispatch-row span,
-	.next-copy small {
+	.next-item span,
+	.dispatch-row span {
 		color: var(--color-text-muted);
 		font-size: 0.75rem;
 	}
 
-	.next-copy {
-		display: grid;
-		gap: 0.25rem;
-		min-width: 0;
-	}
-
-	.next-copy strong,
+	.next-item strong,
 	.dispatch-row strong {
 		color: var(--color-text-heading);
 		font-size: 0.92rem;
 		line-height: 1.55;
 	}
 
-	.next-item:hover .next-copy strong,
+	.next-item:hover strong,
 	.dispatch-row:hover strong {
 		color: var(--color-primary-light);
 	}
 
 	.topic-list {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		gap: 0;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: 1rem;
 	}
 
 	.topic-link {
@@ -441,50 +394,6 @@ const websiteLd = websiteJsonLd();
 		align-items: baseline;
 	}
 
-	.rail-shortcuts {
-		display: grid;
-		gap: 0.45rem;
-		padding-top: 0.95rem;
-		border-top: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
-	}
-
-	.rail-shortcuts a {
-		color: var(--color-text-heading);
-		font-size: 0.86rem;
-		font-weight: 700;
-		text-decoration: none;
-	}
-
-	.rail-shortcuts a::after {
-		content: ' ->';
-		color: var(--home-accent);
-	}
-
-	.rail-shortcuts a:hover {
-		color: var(--color-primary-light);
-		text-decoration: none;
-	}
-
-	@media (max-width: 1100px) {
-		.home-shell {
-			grid-template-areas:
-				'main'
-				'left'
-				'right';
-			grid-template-columns: minmax(0, 1fr);
-		}
-
-		.home-left-rail,
-		.home-right-rail {
-			position: static;
-		}
-
-		.home-left-rail {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			align-items: start;
-		}
-	}
-
 	@media (max-width: 768px) {
 		main {
 			width: var(--max-width);
@@ -494,8 +403,7 @@ const websiteLd = websiteJsonLd();
 
 		.radar-hero-grid,
 		.lead-layout,
-		.home-shell,
-		.home-left-rail,
+		.home-secondary-grid,
 		.dispatch-row {
 			grid-template-columns: 1fr;
 		}
@@ -503,6 +411,11 @@ const websiteLd = websiteJsonLd();
 		.radar-actions {
 			display: flex;
 			flex-wrap: wrap;
+		}
+
+		.next-reads {
+			grid-column: auto;
+			grid-row: auto;
 		}
 
 		.topic-list {

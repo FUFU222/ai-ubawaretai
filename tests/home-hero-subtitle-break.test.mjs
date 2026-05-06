@@ -15,11 +15,10 @@ test('build presents the home page as an editorial news radar', () => {
 
 	assert.match(homeHtml, /AI News Radar/);
 	assert.match(homeHtml, /最初に読む/);
-	assert.match(homeHtml, /おすすめ記事/);
-	assert.match(homeHtml, /カテゴリ/);
-	assert.match(homeHtml, /タグ一覧/);
+	assert.match(homeHtml, /次に読む/);
+	assert.match(homeHtml, /注目テーマ/);
 	assert.match(homeHtml, /最新記事を読む/);
-	assert.match(homeHtml, /class="home-shell"/);
+	assert.match(homeHtml, /class="home-secondary-grid"/);
 	assert.match(homeSource, /--home-desktop-width: 1280px/);
 	assert.match(homeSource, /width: min\(var\(--home-desktop-width\), calc\(100% - 3rem\)\)/);
 	assert.doesNotMatch(homeHtml, /class="hero-sub-break"/);
