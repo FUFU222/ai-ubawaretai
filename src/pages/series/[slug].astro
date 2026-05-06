@@ -3,8 +3,8 @@ import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
-import GenerativeHero from '../../components/GenerativeHero.astro';
 import Header from '../../components/Header.astro';
+import PostThumbnail from '../../components/PostThumbnail.astro';
 import { SITE_TITLE } from '../../consts';
 import { getSeriesPath, getSeriesSummaries, type SeriesSummary } from '../../utils/series';
 
@@ -62,9 +62,13 @@ const canonical = new URL(getSeriesPath(summary.slug), Astro.site).href;
 				<section class="pillar-section" aria-labelledby="pillar-heading">
 					<h2 id="pillar-heading">まずはこの記事から</h2>
 					<a href={`/blog/${summary.pillar.id}/`} class="pillar-card">
-						<div class="pillar-thumb">
-							<GenerativeHero seed={summary.pillar.data.title} alt={summary.pillar.data.title} />
-						</div>
+						<PostThumbnail
+							post={summary.pillar}
+							context="series-pillar"
+							class="pillar-thumb"
+							width={320}
+							height={168}
+						/>
 						<div class="pillar-info">
 							<span class="pillar-badge">ピラー記事</span>
 							<h3>{summary.pillar.data.title}</h3>
@@ -84,9 +88,13 @@ const canonical = new URL(getSeriesPath(summary.slug), Astro.site).href;
 						<li class="series-list-item">
 							<a href={`/blog/${post.id}/`} class="series-list-link">
 								<span class="series-list-index">{String(index + 1).padStart(2, '0')}</span>
-								<div class="series-list-thumb">
-									<GenerativeHero seed={post.data.title} alt={post.data.title} loading="lazy" />
-								</div>
+								<PostThumbnail
+									post={post}
+									context="series-list-page"
+									class="series-list-thumb"
+									width={200}
+									height={105}
+								/>
 								<div class="series-list-info">
 									{post.data.pillar && <span class="series-list-pillar-badge">ピラー</span>}
 									<h3>{post.data.title}</h3>
@@ -197,16 +205,9 @@ const canonical = new URL(getSeriesPath(summary.slug), Astro.site).href;
 		text-decoration: none;
 	}
 
-	.pillar-thumb {
+	:global(.pillar-thumb) {
 		aspect-ratio: 1200 / 630;
-		overflow: hidden;
 		border-radius: 10px;
-	}
-
-	.pillar-thumb :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
 	}
 
 	.pillar-info {
@@ -289,16 +290,9 @@ const canonical = new URL(getSeriesPath(summary.slug), Astro.site).href;
 		min-width: 2ch;
 	}
 
-	.series-list-thumb {
+	:global(.series-list-thumb) {
 		aspect-ratio: 1200 / 630;
-		overflow: hidden;
 		border-radius: 8px;
-	}
-
-	.series-list-thumb :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
 	}
 
 	.series-list-info {
@@ -348,11 +342,9 @@ const canonical = new URL(getSeriesPath(summary.slug), Astro.site).href;
 		}
 
 		.series-list-link {
-			grid-template-columns: auto 1fr;
-		}
-
-		.series-list-thumb {
-			display: none;
+			grid-template-columns: auto 5.8rem minmax(0, 1fr);
+			gap: 0.7rem;
+			align-items: start;
 		}
 	}
 </style>

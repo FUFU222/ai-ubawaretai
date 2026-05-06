@@ -2,7 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
 import FormattedDate from './FormattedDate.astro';
-import GenerativeHero from './GenerativeHero.astro';
+import PostThumbnail from './PostThumbnail.astro';
 
 interface Props {
 	currentId: string;
@@ -76,9 +76,13 @@ const relatedPosts = picks;
 			<div class="related-grid">
 				{relatedPosts.map((post) => (
 					<a href={`/blog/${post.id}/`} class="related-card">
-						<div class="related-thumb">
-							<GenerativeHero seed={post.data.title} alt={post.data.title} loading="lazy" />
-						</div>
+						<PostThumbnail
+							post={post}
+							context="related-posts"
+							class="related-thumb"
+							width={320}
+							height={168}
+						/>
 						<div class="related-info">
 							<span class="related-date">
 								<FormattedDate date={post.data.pubDate} />
@@ -126,16 +130,10 @@ const relatedPosts = picks;
 		text-decoration: none;
 	}
 
-	.related-thumb {
+	:global(.related-thumb) {
 		aspect-ratio: 1200 / 630;
-		overflow: hidden;
-	}
-
-	.related-thumb :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		display: block;
+		border: 0;
+		border-radius: 0;
 	}
 
 	.related-info {

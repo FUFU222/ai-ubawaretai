@@ -1,0 +1,61 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import GenerativeHero from './GenerativeHero.astro';
+
+interface Props {
+	post: CollectionEntry<'blog'>;
+	context: string;
+	width?: number;
+	height?: number;
+	loading?: 'eager' | 'lazy';
+	class?: string;
+}
+
+const {
+	post,
+	context,
+	width = 320,
+	height = 180,
+	loading = 'lazy',
+	class: className,
+} = Astro.props;
+const image = post.data.heroImage;
+---
+
+<span
+	class:list={['post-thumbnail', className]}
+	data-post-thumbnail
+	data-post-thumbnail-context={context}
+>
+	{
+		image ? (
+			<img src={image} alt="" width={width} height={height} loading={loading} decoding="async" />
+		) : (
+			<GenerativeHero
+				seed={post.data.title}
+				alt=""
+				width={width}
+				height={height}
+				loading={loading}
+			/>
+		)
+	}
+</span>
+
+<style>
+	.post-thumbnail {
+		display: block;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--color-bg-card) 78%, transparent);
+	}
+
+	.post-thumbnail :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+</style>

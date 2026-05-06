@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
 import { getSeriesForPost, getSeriesPath } from '../utils/series';
 import FormattedDate from './FormattedDate.astro';
+import PostThumbnail from './PostThumbnail.astro';
 
 interface Props {
 	currentId: string;
@@ -34,6 +35,13 @@ const series = currentPost ? getSeriesForPost(currentPost, allPosts) : undefined
 					return (
 						<li class:list={['series-item', { 'is-current': isCurrent }]}>
 							<span class="series-index">{String(index + 1).padStart(2, '0')}</span>
+							<PostThumbnail
+								post={post}
+								context="series-nav"
+								class="series-thumb"
+								width={88}
+								height={50}
+							/>
 							{isCurrent ? (
 								<span class="series-link is-current-link">
 									<span class="series-item-title">{post.data.title}</span>
@@ -118,7 +126,7 @@ const series = currentPost ? getSeriesForPost(currentPost, allPosts) : undefined
 
 	.series-item {
 		display: grid;
-		grid-template-columns: auto minmax(0, 1fr);
+		grid-template-columns: auto 4.4rem minmax(0, 1fr);
 		align-items: center;
 		gap: 0.65rem;
 		padding: 0.5rem 0.65rem;
@@ -138,6 +146,11 @@ const series = currentPost ? getSeriesForPost(currentPost, allPosts) : undefined
 		color: var(--color-text-muted);
 		font-variant-numeric: tabular-nums;
 		min-width: 2ch;
+	}
+
+	:global(.series-thumb) {
+		width: 100%;
+		border-radius: 6px;
 	}
 
 	.series-link {
@@ -229,6 +242,7 @@ const series = currentPost ? getSeriesForPost(currentPost, allPosts) : undefined
 	}
 
 	.series-nav.is-sidebar .series-item {
+		grid-template-columns: 2ch 3.9rem minmax(0, 1fr);
 		align-items: start;
 		padding: 0.48rem 0;
 		border: 0;
@@ -265,6 +279,11 @@ const series = currentPost ? getSeriesForPost(currentPost, allPosts) : undefined
 	}
 
 	@media (max-width: 600px) {
+		.series-item {
+			grid-template-columns: auto 4.25rem minmax(0, 1fr);
+			gap: 0.55rem;
+		}
+
 		.series-item-title {
 			white-space: normal;
 		}

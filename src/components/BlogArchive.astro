@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import CategoryBadge from './CategoryBadge.astro';
 import FormattedDate from './FormattedDate.astro';
+import PostThumbnail from './PostThumbnail.astro';
 import { BLOG_PAGE_SIZE } from '../consts';
 import { getPrimaryTag } from '../utils/tags';
 
@@ -47,6 +48,13 @@ const endIndex = startIndex + posts.length - 1;
 				<div class="dispatch-date">
 					<FormattedDate date={post.data.pubDate} />
 				</div>
+				<PostThumbnail
+					post={post}
+					context="archive-list"
+					class="dispatch-thumb"
+					width={176}
+					height={99}
+				/>
 				<div class="dispatch-main">
 					<CategoryBadge label={`#${getPrimaryTag(post.data.tags)}`} class="post-category-badge" />
 					<h2>{post.data.title}</h2>
@@ -129,7 +137,8 @@ const endIndex = startIndex + posts.length - 1;
 
 	.dispatch-item {
 		display: grid;
-		grid-template-columns: 7.5rem minmax(0, 1fr);
+		grid-template-columns: 7rem minmax(8.5rem, 10rem) minmax(0, 1fr);
+		align-items: center;
 		gap: 1rem;
 		padding: 1rem 0;
 		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
@@ -145,7 +154,6 @@ const endIndex = startIndex + posts.length - 1;
 	}
 
 	.dispatch-date {
-		padding-top: 0.2rem;
 		color: var(--color-text-muted);
 		font-size: 0.78rem;
 		font-variant-numeric: tabular-nums;
@@ -228,8 +236,25 @@ const endIndex = startIndex + posts.length - 1;
 
 	@media (max-width: 768px) {
 		.dispatch-item {
-			grid-template-columns: 1fr;
-			gap: 0.35rem;
+			grid-template-columns: 6.5rem minmax(0, 1fr);
+			gap: 0.35rem 0.8rem;
+			align-items: start;
+		}
+
+		.dispatch-date {
+			grid-column: 2;
+			grid-row: 1;
+		}
+
+		:global(.dispatch-thumb) {
+			grid-column: 1;
+			grid-row: 1 / span 2;
+			width: 100%;
+		}
+
+		.dispatch-main {
+			grid-column: 2;
+			grid-row: 2;
 		}
 
 		.pagination {
