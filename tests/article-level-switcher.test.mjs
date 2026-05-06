@@ -68,6 +68,11 @@ test('build exposes article level switcher for every article', () => {
 	assert.match(switcherSource, /getDesktopRailMetrics/);
 	assert.match(switcherSource, /preferredLeft > maxLeft/);
 	assert.match(switcherSource, /is-dock-disabled/);
+	assert.match(switcherSource, /\.article-level-shell\.is-rail \.article-level-card::before/);
+	assert.match(switcherSource, /\.article-level-shell\.is-rail \.article-level-scrim/);
+	assert.match(switcherSource, /\.article-level-shell\.is-rail \.article-level-scrim[\s\S]*backdrop-filter: none/);
+	assert.match(switcherSource, /\.article-level-shell\.is-rail \.article-level-menu/);
+	assert.match(switcherSource, /\.article-level-shell\.is-rail \.article-level-menu[\s\S]*position: static/);
 	assert.doesNotMatch(switcherSource, /transform 0\.14s linear/);
 	assert.match(supportedNewsArticle, /解説レベル/);
 	assert.match(supportedNewsArticle, /data-article-level-switcher/);
