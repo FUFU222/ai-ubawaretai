@@ -1,22 +1,25 @@
 ---
+import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
 import { getSeriesForPost, getSeriesPath } from '../utils/series';
 import FormattedDate from './FormattedDate.astro';
 
 interface Props {
 	currentId: string;
+	placement?: 'inline' | 'sidebar';
+	posts?: CollectionEntry<'blog'>[];
 }
 
-const { currentId } = Astro.props;
+const { currentId, placement = 'inline', posts } = Astro.props;
 
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const allPosts = posts ?? (await getCollection('blog', ({ data }) => !data.draft));
 const currentPost = allPosts.find((post) => post.id === currentId);
 const series = currentPost ? getSeriesForPost(currentPost, allPosts) : undefined;
 ---
 
 {
 	series && series.posts.length > 1 && (
-		<nav class="series-nav" aria-label={`シリーズ: ${series.title}`}>
+		<nav class:list={['series-nav', `is-${placement}`]} aria-label={`シリーズ: ${series.title}`}>
 			<header class="series-header">
 				<span class="series-eyebrow">📚 シリーズ</span>
 				<h2 class="series-title">
@@ -194,6 +197,71 @@ const series = currentPost ? getSeriesForPost(currentPost, allPosts) : undefined
 	.series-badge-current {
 		background: color-mix(in srgb, var(--color-primary, #3b82f6) 22%, transparent);
 		color: var(--color-primary, #3b82f6);
+	}
+
+	.series-nav.is-sidebar {
+		margin: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+	}
+
+	.series-nav.is-sidebar .series-header {
+		display: grid;
+		gap: 0.35rem;
+		margin-bottom: 0.8rem;
+		padding-bottom: 0.85rem;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+	}
+
+	.series-nav.is-sidebar .series-title {
+		font-size: 0.98rem;
+		line-height: 1.45;
+	}
+
+	.series-nav.is-sidebar .series-meta {
+		font-size: 0.75rem;
+	}
+
+	.series-nav.is-sidebar .series-list {
+		gap: 0.45rem;
+	}
+
+	.series-nav.is-sidebar .series-item {
+		align-items: start;
+		padding: 0.48rem 0;
+		border: 0;
+		border-bottom: 1px solid color-mix(in srgb, var(--color-border) 44%, transparent);
+		border-radius: 0;
+		background: transparent;
+	}
+
+	.series-nav.is-sidebar .series-item.is-current {
+		padding: 0.52rem 0.55rem;
+		border: 1px solid color-mix(in srgb, var(--color-primary, #3b82f6) 35%, var(--color-border));
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--color-primary, #3b82f6) 10%, transparent);
+	}
+
+	.series-nav.is-sidebar .series-link {
+		display: grid;
+		justify-content: start;
+		gap: 0.35rem;
+	}
+
+	.series-nav.is-sidebar .series-item-title {
+		font-size: 0.8rem;
+		line-height: 1.55;
+		white-space: normal;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.series-nav.is-sidebar .series-badges {
+		font-size: 0.68rem;
 	}
 
 	@media (max-width: 600px) {

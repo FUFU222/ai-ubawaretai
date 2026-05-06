@@ -1,6 +1,8 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
+import BlogSidebar from '../components/BlogSidebar.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import GenerativeHero from '../components/GenerativeHero.astro';
@@ -18,6 +20,7 @@ import { hasArticleLevelSwitcher, type ArticleLevelAvailability } from '../utils
 import { getCategoryLabel } from '../utils/categories';
 import { getPrimaryTag, getTagPath } from '../utils/tags';
 import { extractSourceLinks } from '../utils/source-links';
+import { getSeriesForPost } from '../utils/series';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	id?: string;
@@ -43,6 +46,10 @@ const taxonomyBadgeLabel = hasPrimaryTag ? `#${primaryTag}` : categoryLabel;
 const showArticleLevelSwitcher = id ? hasArticleLevelSwitcher(articleLevels) : false;
 const displayUpdatedDate = updatedDate ?? pubDate;
 const sourceLinks = extractSourceLinks(rawContent ?? '');
+const allPublishedPosts = await getCollection('blog', ({ data }) => !data.draft);
+const currentPost = id ? allPublishedPosts.find((post) => post.id === id) : undefined;
+const currentSeries = currentPost ? getSeriesForPost(currentPost, allPublishedPosts) : undefined;
+const hasSeriesNav = Boolean(currentSeries && currentSeries.posts.length > 1);
 
 const articleLd = articleJsonLd({
 	title,
@@ -106,59 +113,77 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 				{showArticleLevelSwitcher && id && <ArticleLevelSwitcher articleId={id} availability={articleLevels} />}
 
-				{id && <SeriesNav currentId={id} />}
+				<div class="article-shell">
+					<div class="article-primary">
+						{headings && headings.length > 0 && <TOC headings={headings} />}
 
-				{headings && headings.length > 0 && <TOC headings={headings} />}
+						<AdSense label="記事上" format="horizontal" />
 
-				<AdSense label="記事上" format="horizontal" />
-
-				<div class="prose" data-article-level-target>
-					<slot />
-				</div>
-
-				<AdSense label="記事下" format="rectangle" />
-
-				<section class="article-info-box" aria-label="記事情報">
-					<p class="info-eyebrow">Article Info</p>
-					<h2>記事情報</h2>
-					<dl class="article-facts">
-						<div>
-							<dt>著者</dt>
-							<dd><a href="/about">{SITE_AUTHOR}</a></dd>
+						<div class="prose" data-article-level-target>
+							<slot />
 						</div>
-						<div>
-							<dt>公開日</dt>
-							<dd><FormattedDate date={pubDate} /></dd>
-						</div>
-						<div>
-							<dt>更新日</dt>
-							<dd><FormattedDate date={displayUpdatedDate} /></dd>
-						</div>
-					</dl>
-					{
-						sourceLinks.length > 0 && (
-							<div class="source-section">
-								<h3>出典リンク</h3>
-								<ul class="source-link-list">
-									{sourceLinks.map((source) => (
-										<li>
-											<a href={source.url} target="_blank" rel="noopener noreferrer">
-												{source.label}
-											</a>
-										</li>
-									))}
-								</ul>
+
+						<AdSense label="記事下" format="rectangle" />
+
+						<section class="article-info-box" aria-label="記事情報">
+							<p class="info-eyebrow">Article Info</p>
+							<h2>記事情報</h2>
+							<dl class="article-facts">
+								<div>
+									<dt>著者</dt>
+									<dd><a href="/about">{SITE_AUTHOR}</a></dd>
+								</div>
+								<div>
+									<dt>公開日</dt>
+									<dd><FormattedDate date={pubDate} /></dd>
+								</div>
+								<div>
+									<dt>更新日</dt>
+									<dd><FormattedDate date={displayUpdatedDate} /></dd>
+								</div>
+							</dl>
+							{
+								sourceLinks.length > 0 && (
+									<div class="source-section">
+										<h3>出典リンク</h3>
+										<ul class="source-link-list">
+											{sourceLinks.map((source) => (
+												<li>
+													<a href={source.url} target="_blank" rel="noopener noreferrer">
+														{source.label}
+													</a>
+												</li>
+											))}
+										</ul>
+									</div>
+								)
+							}
+							<div class="info-links">
+								<a href="/about">About</a>
+								<a href="/contact">訂正・お問い合わせ</a>
+								<a href="/privacy">プライバシーポリシー</a>
 							</div>
+						</section>
+
+						<RelatedPosts currentId={id ?? ''} tags={tags ?? []} category={category} />
+					</div>
+
+					{
+						id && (
+							<aside class="article-left-rail" aria-label="ブログ内を移動">
+								<BlogSidebar currentId={id} tags={tags ?? []} category={category} posts={allPublishedPosts} />
+							</aside>
 						)
 					}
-					<div class="info-links">
-						<a href="/about">About</a>
-						<a href="/contact">訂正・お問い合わせ</a>
-						<a href="/privacy">プライバシーポリシー</a>
-					</div>
-				</section>
 
-				<RelatedPosts currentId={id ?? ''} tags={tags ?? []} category={category} />
+					{
+						id && hasSeriesNav && (
+							<aside class="article-right-rail" aria-label="シリーズ記事">
+								<SeriesNav currentId={id} placement="sidebar" posts={allPublishedPosts} />
+							</aside>
+						)
+					}
+				</div>
 			</article>
 		</main>
 		<BackToTop />
@@ -168,14 +193,55 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 <style>
 	main {
-		width: var(--max-width);
-		max-width: calc(100% - 2rem);
+		width: min(var(--wide-width), calc(100% - 2rem));
+		max-width: none;
 		margin: 0 auto;
-		padding: 2rem 1rem;
+		padding: 2rem 0;
+	}
+
+	.article-header,
+	.hero-image,
+	:global(.article-level-shell) {
+		width: min(var(--max-width), 100%);
+		margin-left: auto;
+		margin-right: auto;
 	}
 
 	.hero-image {
-		margin: 0 0 2rem;
+		margin-top: 0;
+		margin-bottom: 2rem;
+	}
+
+	.article-shell {
+		display: grid;
+		grid-template-areas:
+			'left main right';
+		grid-template-columns: minmax(11.5rem, 14rem) minmax(0, var(--max-width)) minmax(12rem, 15rem);
+		gap: 1.35rem;
+		align-items: start;
+		width: 100%;
+		margin: 0 auto;
+	}
+
+	.article-primary {
+		grid-area: main;
+		min-width: 0;
+	}
+
+	.article-left-rail {
+		grid-area: left;
+	}
+
+	.article-right-rail {
+		grid-area: right;
+	}
+
+	.article-left-rail,
+	.article-right-rail {
+		position: sticky;
+		top: calc(var(--header-height) + 1.2rem);
+		min-width: 0;
+		align-self: start;
 	}
 
 	.hero-image :global(img) {
@@ -399,6 +465,27 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 		.article-info-box {
 			padding: 1rem;
+		}
+	}
+
+	@media (max-width: 1139px) {
+		main {
+			width: var(--max-width);
+			max-width: calc(100% - 2rem);
+		}
+
+		.article-shell {
+			grid-template-areas:
+				'main'
+				'left'
+				'right';
+			grid-template-columns: minmax(0, 1fr);
+			gap: 2.2rem;
+		}
+
+		.article-left-rail,
+		.article-right-rail {
+			position: static;
 		}
 	}
 
