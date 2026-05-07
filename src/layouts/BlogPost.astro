@@ -248,6 +248,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 
 	.article-level-rail {
 		grid-area: level;
+		z-index: 3;
 	}
 
 	.article-left-rail,
@@ -277,6 +278,7 @@ const breadcrumbLd = breadcrumbJsonLd([
 	.article-right-rail {
 		position: sticky;
 		top: calc(var(--header-height) + 9.5rem);
+		z-index: 1;
 	}
 
 	.hero-image :global(img) {

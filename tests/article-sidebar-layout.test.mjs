@@ -40,4 +40,8 @@ test('article pages render blog navigation rails without leading with series nav
 	assert.match(articleHtml, /カテゴリ/);
 	assert.match(articleHtml, /おすすめ記事/);
 	assert.match(articleHtml, /最新記事/);
+
+	const layoutSource = readFileSync(join(rootDir, 'src', 'layouts', 'BlogPost.astro'), 'utf8');
+	assert.match(layoutSource, /\.article-level-rail[\s\S]*z-index: 3/);
+	assert.match(layoutSource, /\.article-right-rail[\s\S]*z-index: 1/);
 });
