@@ -1,6 +1,6 @@
 ---
 title: 'Anthropic RSP 3.3改定、AI安全審査の新基準'
-description: 'Anthropic RSP 3.3は、バイオリスク閾値と個別モデルのリスク更新を改定。日本企業がClaude導入時に確認すべきAI安全審査の実務論点を整理する。'
+description: 'Anthropic RSP 3.3は、バイオリスク閾値と個別モデルのリスク更新を改定。日本企業がClaude導入時に、ベンダー評価とAI安全審査で確認すべき実務論点と再審査条件を整理する。'
 pubDate: '2026-05-28'
 category: 'news'
 tags: ['Anthropic', 'AIガバナンス', 'RSP', 'AI安全性', '企業導入']
