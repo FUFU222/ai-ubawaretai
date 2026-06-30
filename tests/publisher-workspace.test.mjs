@@ -395,6 +395,36 @@ test('preflight can initialize structured state without legacy memory file', asy
 	}
 });
 
+test('preflight CLI accepts --skip-checks with state path and no memory file', () => {
+	const { root, workerDir } = setupRepos();
+	const statePath = join(root, 'shared', 'publisher-state.jsonl');
+
+	try {
+		const report = JSON.parse(
+			execFileSync(
+				process.execPath,
+				[
+					new URL('../scripts/publisher-workspace.mjs', import.meta.url).pathname,
+					'preflight',
+					'--cwd',
+					workerDir,
+					'--state',
+					statePath,
+					'--skip-install',
+					'--skip-checks',
+				],
+				{ encoding: 'utf8' },
+			),
+		);
+
+		assert.equal(report.branch, 'main');
+		assert.equal(report.statePath, statePath);
+		assert.equal(readFileSync(statePath, 'utf8'), '');
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test('preflight reports a local commit ahead of origin/main without failing', async () => {
 	const { root, workerDir } = setupRepos();
 	const statePath = join(root, 'shared', 'publisher-state.jsonl');

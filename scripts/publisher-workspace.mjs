@@ -536,7 +536,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 			printJson(
 				preflight({
 					cwd: args.cwd || process.cwd(),
-					memoryPath: args.memory,
+					memoryPath: typeof args.memory === 'string' ? args.memory : null,
 					statePath: args.state,
 					skipInstall: Boolean(args['skip-install']),
 					skipChecks: Boolean(args['skip-checks']),
