@@ -3,65 +3,40 @@ article: 'anthropic-claude-cmek-preserve-access-transparency-2026'
 level: 'child'
 ---
 
-Anthropic は **2026年7月10日**、Claude Platform の release notes で、Access Transparency logging と CMEK content preservation の更新を案内しました。
+Anthropic は 2026年7月10日、Claude Platform の Access Transparency と CMEK に関する説明を更新しました。少し難しい言葉が並びますが、要点は「Claude に入れたデータを、誰が見たのか、なぜ残されたのか、どの鍵で守るのかを、企業が説明しやすくする更新」です。
 
-これは新しい AI モデルの発表ではありません。どちらかというと、会社が Claude Platform を安全に使うための管理機能です。特に、ベンダー側のサポート担当者が顧客コンテンツにアクセスしたときの記録と、顧客管理鍵を使う環境で問題のあるコンテンツをどう保全するかがテーマです。
+ここで出てくる言葉は2つあります。Access Transparency は、Anthropic の担当者が対象データを人間として見た場合、その記録を残す仕組みです。CMEK は Customer-managed encryption key の略で、企業が AWS KMS、Google Cloud KMS、Azure Key Vault などで用意した鍵を使って、Claude の一部データを保存時に暗号化する仕組みです。ただし、どちらも全部を自動で安全にする魔法ではありません。対象になる製品、対象にならない製品、ログが出る場所、鍵を止めた時の影響を分けて理解する必要があります。
 
-以前の [Claude Compliance API統合](/blog/anthropic-claude-compliance-api-integrations-2026/) では、Claude の活動を DLP や SIEM などに流す話を扱いました。今回の更新はそれより細かく、サポートアクセスと鍵管理に関係します。
+## 何が変わったのか
 
-## Access Transparencyとは何か
+今回の更新では、`cmek_preserve` というイベントの説明が詳しくなりました。これは、CMEK で守られた内容が、調査や安全対応のために保全されたことを示す記録です。Anthropic の release notes では、`cmek_preserve` event の filter 例、event payload 例、保全理由のコードが追加されたと説明されています。保全理由には、ポリシー違反調査や CSAE 報告に関わるものがあります。
 
-Access Transparency は、Anthropic のサポート担当者が顧客コンテンツにアクセスした場合、そのアクセスを管理者が確認できるようにする仕組みです。
+また、人間の reviewer が保全を始めた場合だけでなく、自動の safety pipeline が始めた場合にも event が書かれることが明確になりました。ここが大事です。人が内容を見た記録と、内容が保全された記録は同じではありません。Access Transparency では、Anthropic の人間が対象データを見た時に `anthropic_access` という記録が残ります。一方、`cmek_preserve` は、見たかどうかではなく、調査や安全対応のために保全されたことを示します。
 
-会社で SaaS やクラウドを使うとき、社内の人が何をしたかだけでなく、ベンダー側の担当者がデータに触れたかどうかも問題になることがあります。障害調査や問い合わせ対応のためにサポート担当者がデータを見る場合、その記録を後から説明できるかが重要です。
+## Access Transparencyの対象は限られる
 
-日本企業では、金融、医療、公共、製造、通信、専門サービスなどで特に重要になります。内部監査や委託先管理では、「誰が、いつ、どの目的で、どのデータに触れたか」を確認されることがあるからです。
+Access Transparency は、Claude Messages API や Claude Code sessions など、決められた対象に対する仕組みです。Claude の名前が付いていれば何でも対象になるわけではありません。たとえば、claude.ai の Enterprise seat、Claude for Work、Cowork、Claude in Chrome、Claude Free / Pro / Max、Amazon Bedrock や Google Cloud 経由の Claude、Files API や Batch API などは対象外として説明されています。
 
-ただし、Access Transparency はすべての AI 利用ログを取る機能ではありません。自社アプリが Claude API に送ったプロンプトや応答を全部見るには、アプリ側ログ、DLP、SIEM、Compliance API などを別に設計する必要があります。
+これは日本企業では重要です。社内で Claude Code を使う部署、API を使う開発チーム、Bedrock 経由で使うシステム、業務アプリとして Claude を使う部門が混ざることがあります。その場合、「Claude のログは取れる」とまとめて言うと危険です。どの入口のログが取れるのかを表にしておく必要があります。以前の [Claude Compliance API統合](/blog/anthropic-claude-compliance-api-integrations-2026/) では、Claude の利用状況を SIEM や DLP へ流す話を扱いました。今回の更新は、その中でも Anthropic 側の人間アクセスや、CMEK で守られた内容の保全をより細かく見る話です。
 
-## CMEK content preservationとは何か
+## CMEKは鍵の運用まで含めて考える
 
-CMEK は Customer-managed encryption keys の略で、顧客が管理する鍵でコンテンツを暗号化する仕組みです。会社側が鍵を管理できるため、クラウドや AI 基盤のデータ統制を強めたい企業に向いています。
+CMEK を使うと、企業は自分たちの cloud key management service で鍵を管理できます。鍵の rotation、audit、revocation を自社側で扱えるので、規制産業や内部監査では説明しやすくなります。しかし、注意点もあります。CMEK は有効化後に書かれたデータを守る仕組みで、過去の chats、files、sessions が自動で再暗号化されるわけではありません。また、現在は US regions が前提で、multi-region keys や EU key residency はまだサポートされていないと説明されています。
 
-一方で、鍵を顧客が止めると、ベンダー側からもコンテンツを読めなくなる場合があります。これはプライバシーやデータ主権の面では強いですが、ポリシー違反調査や安全上の報告が必要な場面では問題になることがあります。
+そのため、日本企業が「CMEK を入れたので全データが国内要件を満たす」と説明するのは危険です。鍵を誰が持つか、データがどの地域で扱われるか、過去データはどう扱うかを分けて確認する必要があります。
 
-今回の CMEK content preservation は、CMEK を使う顧客が、フラグされたコンテンツを特定の調査目的で保全できるようにする更新です。Anthropic は、policy violation investigation や child safety report のような用途を挙げています。
+## まず決めること
 
-つまり、CMEK は「何でもすぐ消せる鍵」ではなく、削除、保全、調査、報告のルールとセットで使うべきものです。
+最初に、Claude の使い方を一覧にします。Messages API、Claude Code、Claude Enterprise、Bedrock、Google Cloud、Files API、Batch API を並べ、Access Transparency と CMEK の対象かどうかを確認します。次に、ログの見方を決めます。`anthropic_access` は人間アクセスの記録、`cmek_preserve` は保全の記録、cloud provider の KMS log は鍵操作の記録です。すべてを同じアラートとして扱うのではなく、担当者と確認手順を分けます。
 
-## 日本企業が注意すべきこと
-
-日本企業が見るべきポイントは三つあります。
-
-一つ目は、監査です。Anthropic 側のサポートアクセス、自社管理者の操作、API キー作成、ワークスペース変更、アプリ側の利用ログをどうつなげるかを決める必要があります。
-
-二つ目は、鍵管理です。CMEK の鍵を誰が作り、どこで管理し、いつローテーションし、どの条件で止めるのかを決めます。さらに、content preservation を有効にする場合、どのような調査目的でコンテンツが保全される可能性があるかを確認します。
-
-三つ目は、個人情報対応です。Access Transparency のログや保全対象のデータには、個人情報や機密情報が含まれる可能性があります。ログを誰が見られるか、どこに保存するか、どれくらい残すかを決めなければなりません。
-
-[Claude containment](/blog/anthropic-claude-containment-agent-security-2026/) で扱ったように、AI エージェントや AI 基盤は便利になるほど、権限とログの設計が重要になります。今回の更新も同じで、機能をオンにするだけではなく、運用ルールを作ることが大切です。
-
-## まず確認すること
-
-まず、Claude Platform をどこで使っているかを確認します。どのワークスペースで CMEK を使うのか、どのアプリが Claude API を呼んでいるのか、誰が管理者なのかを棚卸しします。
-
-次に、Access Transparency のログを見る担当者を決めます。サポートアクセスがあった場合に、誰が確認し、どの部署へ共有し、どの条件でインシデント扱いにするかを決めます。
-
-さらに、CMEK preservation の方針を決めます。ポリシー違反調査や安全報告が必要な事業なのか、保全対象が発生したときに法務、セキュリティ、個人情報保護担当の誰が判断するのかを決めます。
-
-最後に、SIEM や DLP との接続を考えます。ログを取るだけでは不十分です。検知したあとに、誰が、どの期限で、どの権限で対応するかが必要です。
+最後に、鍵を止める手順を決めます。CMEK は強い統制ですが、鍵を誤って止めるとデータを読めなくなる可能性があります。誰が承認し、いつ止め、どのログで確認するかを先に決めておくべきです。
 
 ## まとめ
 
-Claude の Access Transparency と CMEK content preservation は、企業が Claude Platform を本番利用するときの監査と鍵管理に関係する更新です。
-
-Access Transparency は、Anthropic サポート側の顧客コンテンツアクセスを見える化するためのものです。CMEK content preservation は、顧客管理鍵を使いながら、ポリシー違反調査や安全報告に必要なコンテンツを保全するための制御です。
-
-日本企業は、この更新を「ログが増えた」とだけ見るのではなく、AI 利用の監査、鍵管理、個人情報対応、DLP/SIEM 連携を見直すきっかけにするべきです。AI を本番業務で使うなら、便利さと同じくらい、あとから説明できることが重要になります。
+今回の Claude Access Transparency と CMEK の更新は、便利機能というより、企業が Claude Platform を本番利用するための監査部品です。日本企業は、ログが取れるかだけでなく、どの製品が対象か、どの event が何を意味するか、鍵をどう運用するかを確認しましょう。[Claude containment](/blog/anthropic-claude-containment-agent-security-2026/) や [Claude Codeの監査ログ設計](/blog/claude-code-otel-agents-mcp-security-2026/) と合わせて読むと、AI の安全運用は「使わせない」ではなく、「使う範囲、ログ、鍵、例外処理を説明できるようにする」ことだと分かります。
 
 ## 出典
 
-- [Claude Platform release notes](https://docs.anthropic.com/en/release-notes/api) - Anthropic Docs, 2026-07-10
-- [Access Transparency](https://docs.anthropic.com/en/manage-claude/access-transparency) - Anthropic Docs
-- [Customer-managed encryption keys](https://docs.anthropic.com/en/manage-claude/cmek) - Anthropic Docs
-
+- [API release notes](https://docs.anthropic.com/en/release-notes/api)
+- [Access Transparency](https://docs.anthropic.com/en/manage-claude/access-transparency)
+- [Customer-managed encryption keys](https://docs.anthropic.com/en/manage-claude/cmek)
