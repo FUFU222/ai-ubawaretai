@@ -3,81 +3,79 @@ article: 'google-conductor-plugin-antigravity-sdd-2026'
 level: 'expert'
 ---
 
-Google の Conductor Plugin 更新は、AI コーディングエージェントの運用設計を考えるうえで地味に重要だ。モデル性能、IDE 統合、CLI 操作、リモート実行環境のニュースに比べると派手ではない。しかし、企業導入で最後に問題になるのは「AI がコードを書けるか」より、「AI がどの仕様と計画に基づいて書いたかを、チームが継続的に管理できるか」である。
+Google の **2026年7月16日**の Conductor Plugin 更新は、AI coding agent の実装力そのものより、作業状態をどこに置くかを問うものだ。Conductor は Gemini CLI extension から plugin へ移行し、Antigravity CLI でも利用できるようになった。Google は、Conductor が ephemeral chat logs から persistent, version-controlled Markdown files へ project awareness を移すことで、開発者が実装前に architecture を計画しやすくしてきたと説明している。
 
-Google Developers Blog は 2026年7月16日、Conductor が Gemini CLI extension から **Conductor Plugin** へ進化し、Antigravity CLI など複数の AI coding agent 環境で使えるようになると説明した。公式説明では、Conductor は project awareness を ephemeral chat logs から persistent, version-controlled markdown files へ移す発想で始まり、今回の plugin 化によって厳密な command sequence に依存しない conversational な体験へ寄せる。
+この文脈は、Google の developer agent platform 系の更新と連続している。[Google Antigravity移行、Code Assist開発の再設計](/blog/google-antigravity-code-assist-migration-2026/)では、開発者の AI 作業面が Antigravity へ移る意味を扱った。[Gemini API Managed Agents、運用設計の実務](/blog/google-gemini-api-managed-agents-2026/)では、agent 実行と運用責任を整理した。[Google ADK/A2A多言語化、エージェント連携の設計点](/blog/google-adk-a2a-cross-language-agents-2026/)では、エージェント間連携の設計を見た。
 
-このサイトではすでに [Gemini Code Assist の Antigravity 移行](/blog/google-antigravity-code-assist-migration-2026/)、[Gemini API Managed Agents](/blog/google-gemini-api-managed-agents-2026/)、[Google ADK と A2A](/blog/google-adk-a2a-cross-language-agents-2026/) を扱ってきた。これらはそれぞれ、開発者の操作面、API 側の実行基盤、agent 間通信の境界を扱う話だった。Conductor Plugin は、その間にある「人間と coding agent の作業契約」を扱う層として見ると位置づけが分かりやすい。
+Conductor Plugin は、その上に「仕様と計画をどの tool でも読める repository artifact にする」という layer を置く。これは、日本企業が AI コーディングを本番開発へ入れるときに避けられない、再現性、レビュー責任、監査、委託先管理の問題に近い。
 
-## 事実: extensionからpluginへ移った意味
+## Fact: plugin化でskills、rules、MCP、hooksを束ねる
 
-Google の発表では、Conductor Plugin は skills、rules、MCP servers、hooks を一つの package として扱える plugin へ移行したと説明されている。Gemini CLI 専用の extension ではなくなることで、Antigravity CLI、Claude、その他の tools へ workflow を広げられる。公式ブログは、どの tool を選んでも foundational documents、architecture、guidelines、goals を agent が理解し、shared configuration と development tracks が継続すると説明している。
+Google Developers Blog は、Conductor が Gemini CLI extension から Conductor Plugin へ進化すると説明している。plugin は skills、rules、MCP servers、hooks を single package に含められる。つまり、Conductor は単なる command collection ではなく、agent の振る舞い、外部連携、実行前後の処理をまとめて配布できる単位になる。
 
-ここで重要なのは、plugin 化が単なる packaging の話ではないことだ。Conductor は、AI と自然言語で話しながら context、spec、plan を作れるようになり、必要なときに context 更新や plan の task completion を背後で管理する。つまり、ユーザーが毎回 slash command の順序を守るより、agent が Conductor protocol を認識して作業状態を更新する方向へ寄っている。
+この変更により、Conductor は strict command sequences から、より conversational な操作へ寄る。Google は、feature requirements を話し合う中で context、spec、plan を動的に生成し、更新できると説明している。一方で、`spec.md` と `plan.md` は残る。会話体験が柔らかくなっても、spec-driven development の procedural rigor は artifact として維持されるという設計である。
 
-一方で、`spec.md` と `plan.md` が消えるわけではない。公式ブログは、persistent Markdown artifacts の利点は維持するとしている。これは設計上かなり大事だ。会話の UX は柔らかくしても、成果物はリポジトリ内に残す。チャット主体の AI 開発が抱えやすい「会話は便利だが証跡が弱い」という問題に対し、Conductor は会話と version control の間に橋を架ける。
+Conductor Plugin は Antigravity CLI に対応する。Google は Antigravity CLI へ導入するコマンドとして `agy plugins install https://github.com/gemini-cli-extensions/conductor` を示している。GitHub repository の README では、Conductor は Antigravity や Claude Code を含む AI coding agents 向け plugin とされ、Context、Spec & Plan、Implement の lifecycle を管理すると説明されている。
 
-README 側を見ると、Conductor は Context、Spec & Plan、Implement という lifecycle を持つ。初回 setup では product、product guidelines、tech stack、workflow を定義し、new track では spec、plan、metadata を生成する。implement では agent が `plan.md` に沿って作業し、status、review、revert も扱える。これは prompt 集ではなく、AI 作業の状態管理モデルである。
+この portability は重要だ。これまで Conductor は Gemini CLI extension としての色が強かった。plugin 化により、特定の CLI だけでなく、複数の coding agent environment から同じ spec と plan を参照しやすくなる。ツールが変わっても repository に残る artifact が作業の基準になる、という方向である。
 
-## 分析: AI codingの失敗は実装前に始まる
+## Fact: repository artifactがAI作業の状態を持つ
 
-AI コーディングエージェントの失敗は、生成されたコードのバグとして表面化することが多い。しかし根本原因は、その前にあることが多い。要件が曖昧だった。既存設計を読んでいなかった。禁止された依存を使った。レビュー観点を知らなかった。タスクを小さく分けず、一度に大きな変更をした。これらは実装後の lint や test だけでは拾いにくい。
+Conductor の README は、context を managed artifact として code と並べることで、repository を single source of truth に変えると説明している。これは、AI agent の state management を chat transcript から repository へ移す発想だ。
 
-Conductor の Spec-Driven Development は、この問題を実装前に戻す。まず context を持ち、spec を作り、plan を立て、その計画に沿って実装する。これ自体は人間の開発では当たり前に見えるが、AI エージェントでは意識的に設計しないと失われやすい。モデルは即座にコードを書けるため、曖昧な依頼でも実装へ進んでしまうからだ。
+具体的には、setup 時に product、product guidelines、tech stack、workflow などの project context を定義し、feature や bug fix の track では spec と plan を生成する。README は、track が high-level unit of work であり、spec は何をなぜ作るか、plan は phases、tasks、sub-tasks を含む actionable list として位置づけている。
 
-日本企業では、この「すぐ書ける」ことがリスクになる。受託開発や社内基幹システムでは、要件定義、基本設計、詳細設計、テスト仕様、レビュー記録が契約や監査と結びつく。AI が Slack や IDE chat で受けた依頼から直接コードを作り、根拠がチャットにしか残らないなら、あとから説明できない。Conductor は、AI を速く動かす前に、何を作るかを残す仕組みとして評価できる。
+この構造は、AI agent の作業を human reviewable にする。レビュー担当者は、最終 diff だけでなく、agent が前提にした product context、workflow、spec、plan を確認できる。plan の task がどの PR に対応するかを決めておけば、AI がどこまで完了したか、人間がどこを承認したかを追いやすい。
 
-この点は [Google Jules のプロアクティブ評価](/blog/google-jules-proactive-coding-agent-eval-2026/) の論点ともつながる。Jules の評価では、agent が何を重要と判断し、どの根拠で通知するかを見る必要があった。Conductor でも、agent が plan に対して何を完了したか、どの task を戻したか、どの review fix を追加したかが重要になる。AI 作業の品質は、最終 diff だけでは測れない。
+ただし、artifact があるだけで正確性が保証されるわけではない。spec が古い、plan が大きすぎる、workflow が現実に合っていない、MCP や hooks の権限が過剰、といった状態なら、Conductor はむしろ誤った前提を強く固定する可能性がある。artifact を作ることと、artifact を運用することは別である。
 
-## 企業導入での設計論点
+## Analysis: SDDはAI codingの承認境界を前倒しする
 
-第一の論点は、Conductor artifacts の所有者だ。`conductor/product.md`、`product-guidelines.md`、`tech-stack.md`、`workflow.md` は、AI が判断に使う operating context になる。これを各開発者が自由に書き換えると、AI の行動規範がブレる。プロダクト責任者、アーキテクト、セキュリティ、QA、デザインシステム担当のどこがどの文書を approve するかを決める必要がある。
+ここからは分析だ。
 
-第二の論点は、track 粒度だ。AI エージェントには大きな作業を任せたくなるが、plan が巨大になるほどレビューしにくく、失敗時の revert も重くなる。Conductor の track は feature や bug fix の単位として扱えるため、組織として「1 track は 1 PR に対応させる」「DB migration を含む track は別承認にする」「認証や権限変更は phase を分ける」といった運用ルールを置くとよい。
+AI coding agent の典型的な失敗は、実装が先に進みすぎることだ。人間が「調べて」と言ったつもりでも、agent は変更案を作り、ファイルを編集し、テストを走らせ、PR まで進める場合がある。スピードは出るが、要求定義、設計判断、影響範囲、セキュリティ、運用責任が後追いになる。
 
-第三の論点は、plugin trust である。Conductor Plugin は、Antigravity では GitHub URL から install でき、workspace-level isolation も可能と README にある。これは便利だが、企業では supply chain と設定管理の対象になる。どの repository から plugin を入れてよいか、global install を許すか、workspace の `.agents/plugins/` をレビュー対象にするか、plugin update を誰が検証するかを決めるべきだ。
+Spec-driven development は、この承認境界を前倒しする。実装前に spec を作り、plan を作り、どの task をどの順に進めるかを可視化する。Conductor Plugin は、この流れを会話の中で自然に進めつつ、成果物を repository に残す。日本企業では、これは開発スピードよりもレビュー責任に効く。
 
-第四の論点は、MCP と hooks の扱いだ。Google の blog は plugin package に MCP servers や hooks を含められると説明している。Conductor 自体の価値は spec と plan だとしても、plugin という形式は agent の行動範囲を広げられる。社内 API、issue tracker、CI、クラウド、ドキュメント、ファイルシステムへつながる MCP を許す場合、Conductor の track だけでなく接続先の認可も設計対象になる。
+たとえば、業務システムの権限変更を agent に任せる場合、いきなり code diff を見るより、先に spec で対象ユーザー、権限境界、監査ログ、移行手順、ロールバック条件を確認するほうが安全だ。plan では、テスト追加、実装、migration、ドキュメント更新、レビュー観点を分ける。AI はその plan に沿って作業し、人間は plan の単位で承認できる。
 
-第五の論点は、token と latency である。README は、spec-driven approach が context、spec、plan を読み分析するため token consumption を増やし得ると注意している。大規模 repository で全 context を毎回読むと、コストが増え、応答も遅くなる。project context を何に絞るか、track ごとにどの directories を対象にするか、古い plans をどう archive するかが実務上の運用課題になる。
+Conductor の portability は、この構造を複数 tool に持ち込める可能性を持つ。Antigravity で spec を作り、別の agent で実装を続けても、repository artifact が基準になる。ただし、モデル、tool permission、sandbox、ログ、承認 UI は tool ごとに違う。したがって、portability は無条件の自由ではなく、artifact を中心にした統制設計と一緒に使うべきである。
 
-## レビュー工程へどう組み込むか
+## Governance: pluginをソフトウェア部品として管理する
 
-Conductor を企業で使うなら、PR 前の見え方を設計したい。たとえば、feature track を開始したら、まず `spec.md` と `plan.md` だけを draft PR か design review に出す。実装前レビューで合格したら `/conductor:conductor-implement` 相当の実装へ進む。実装後は、plan の task checkbox、生成された code diff、test result、review notes をまとめて確認する。
+Conductor Plugin は、開発者が便利に入れる補助 tool としてだけ扱うべきではない。plugin は skills、rules、MCP servers、hooks を含められるため、組織の AI coding policy に直接影響する。導入時には、通常の dependency や CI tool に近い管理が必要になる。
 
-この運用では、AI の出力をそのまま信じない。むしろ、AI が作った spec と plan をレビュー対象にする。レビュー担当者は、要件の欠落、設計の過剰さ、既存規約との不整合、リスクの高い task、テスト不足を実装前に指摘する。実装後レビューでは、plan と diff が対応しているかを見る。こうすると、AI による大きな暴走を早く止められる。
+第一に、installation scope を決める。Antigravity の end-user install、developer の live-sync global link、workspace-level isolation は、それぞれリスクが違う。個人が global に入れると使い始めやすいが、version と設定がばらつく。workspace-level に閉じれば repository ごとに管理しやすいが、運用負荷は増える。
 
-レビュー後の修正も、Conductor の `conductor-review` の考え方に合わせられる。README では、完了後に問題が見つかった場合、review command が変更を監査し、plan に Review Fixes の tracking phase を追加して解決すると説明されている。これは、レビュー指摘をチャットで消費せず、plan 上の修正作業として残す発想である。
+第二に、CODEOWNERS と review rule を決める。`conductor/` 配下の product、workflow、track spec、plan、rules、hooks は agent の行動を左右する。これらを一般の application code と同じ承認ルールに置くと、仕様や agent 権限を意図せず変更できる。重要 repository では、product owner、architect、security、platform owner の承認を分けたほうがよい。
 
-revert も同じだ。AI エージェントの失敗を戻すとき、単純に git revert だけでなく、どの track、phase、task を pending に戻すかが重要になる。Conductor の safe state reversion は、git history と plan state を結びつける発想を持つ。日本企業の監査では、戻した事実だけでなく、なぜ戻し、どの計画状態へ戻ったかも残したい。
+第三に、MCP と hooks の allowlist を作る。Conductor が MCP servers や hooks を package できるなら、外部 API、filesystem、git、issue tracker、deployment system への接続をどこまで許すかが問題になる。spec-driven development は作業順序を制御するが、tool 権限を制限するものではない。権限は別に設計する必要がある。
 
-## 既存ツールとの役割分担
+第四に、artifact retention と audit を決める。spec と plan は repository に残るため、監査には有利だ。一方で、機密仕様、顧客名、個人情報、未公開戦略が Markdown artifact に残る可能性もある。private repository でも、閲覧権限、branch protection、archive policy、削除方針を確認する必要がある。
 
-Conductor は ticketing system の代替ではない。Jira、GitHub Issues、Linear、Backlog のようなチケットは、優先度、担当者、期限、ビジネス上の承認を持つ。一方、Conductor の spec と plan は、AI agent が実装するための作業契約に近い。チケットを Conductor track へ落とすときに、どの情報を写し、どの情報をチケット側に残すかを決める必要がある。
+## Operations: PRとtrackを対応させる
 
-Conductor は CI の代替でもない。plan に test task があっても、実際の build、unit test、integration test、security scan は CI で実行するべきだ。Conductor の plan は「何を確認すべきか」を書く場所であり、CI は「確認が実際に通ったか」を証明する場所である。この役割を混ぜると、plan にチェックが付いているだけで合格したように見える。
+Conductor を実務に入れるなら、track、plan task、PR の対応を決めるとよい。1 track 1 PR にこだわる必要はないが、1つの plan task が複数の大きな PR に散るとレビューが難しくなる。逆に、巨大な track を1 PRで完了させると、AI も reviewer も失敗しやすい。
 
-Conductor は architecture decision record の代替にもならない。track ごとの spec は短期作業の文脈に向くが、長期的な設計判断、技術選定、セキュリティ例外、データ保持方針は ADR や design doc に残すべきだ。Conductor の product context や tech stack がそれらを参照する形にすれば、AI agent は最新の判断を読みやすくなる。
+現実的には、調査 track、設計 track、テスト追加 track、実装 track、migration track、documentation track を分ける。AI に任せる task と、人間が先に見る task も分ける。たとえば、既存仕様の棚卸しやテスト追加は AI に進めさせやすい。一方、認可境界、課金、個人情報、DB schema、公開 API は、人間の設計承認後に実装させる。
 
-最後に、Conductor は agent 実行基盤そのものでもない。Managed Agents、Antigravity CLI、Claude Code、Codex のような実行面と組み合わせて使うものだ。実行権限、sandbox、network、secrets、approval は別途設計する必要がある。Conductor が plan を持っていても、危険な command を止める仕組みがなければ企業利用としては弱い。
+レビューでは、diff だけでなく spec と plan を見る。PR template に track id、spec file、plan task、未完了 task、AI tool、model、MCP / hook 使用有無を書く。これにより、AI がどの前提で作業したかを reviewer が追える。これは [Google Jules評価、proactive coding agentの見極め方](/blog/google-jules-proactive-coding-agent-eval-2026/) で扱った agent 評価ともつながる。
 
-## 30日で試す導入手順
+失敗時の運用も決める。agent が plan task を完了扱いにしたが CI が落ちた場合、task を戻すのか、新しい task を作るのか、人間が引き取るのかを決める。Conductor の artifact は状態を見せるが、状態遷移の責任は組織が持つ。
 
-最初の 1 週は、既存の小さな repository を一つ選ぶ。顧客データを含まず、テストがあり、機能追加や bug fix の流れが分かりやすいものがよい。Conductor setup で product、tech stack、workflow を作り、既存の README、coding standards、test command を context に反映する。
+## Risk: SDDを導入しても仕様の質は自動では上がらない
 
-2 週目は、1 つの bug fix track を作る。spec には再現条件、期待動作、非対象範囲を書く。plan には調査、修正、テスト、レビュー観点を分ける。実装に入る前に、人間が spec と plan だけをレビューし、足りない前提を直す。ここで AI の計画品質を測る。
+Conductor Plugin は spec-driven development を扱いやすくするが、仕様の質を自動で保証しない。曖昧な spec、矛盾した plan、古い product context を AI に渡せば、AI はその前提をもっともらしく実装してしまう。
 
-3 週目は、実装後の trace を見る。plan の task と git diff が対応しているか、不要なファイル変更がないか、test が plan に沿って実行されたか、レビュー指摘が plan に戻ったかを確認する。失敗したら、chat で口頭修正するだけでなく Review Fixes のような追加 phase として残す。
+そのため、導入初期は spec review を厚くするべきだ。実装前に、背景、非目標、受け入れ条件、テスト観点、セキュリティ、運用、ロールバックを確認する。plan review では、task が PR サイズとして妥当か、依存関係が順序化されているか、人間承認が必要な task が明示されているかを見る。
 
-4 週目は、運用ルールを文書化する。どの track は自動実装可、どの track は plan 承認必須、どの plugin source を許すか、workspace-level install を許すか、MCP と hooks をどう承認するかを決める。PoC の評価は、生成コードの量ではなく、レビュー前の手戻り、説明しやすさ、差分の読みやすさ、token cost で見る。
+また、Conductor が複数 tool で使えることは、tool drift のリスクも持つ。同じ spec を読んでも、Antigravity、Claude Code、その他 agent で tool permission、model behavior、hook handling が違えば結果は変わる。portable artifact を使うほど、tool ごとの差分を run report や PR template に残すべきである。
 
 ## まとめ
 
-Conductor Plugin は、Google の agent platform 戦略の中で、作業状態管理の役割を持つ更新だ。Antigravity CLI などの開発者向け agent 面が広がるほど、AI が何を前提に、どの計画で、どの task を完了したかを残す仕組みが必要になる。Conductor は、その証跡を `spec.md`、`plan.md`、tracks、project context として repository に置く。
+Conductor Plugin の Antigravity 対応は、AI coding agent を単発の chat から、repository に残る spec と plan を中心にした作業へ寄せる更新である。plugin 化により、skills、rules、MCP servers、hooks を束ね、Antigravity CLI など複数の tool で spec-driven development を扱いやすくなる。
 
-日本企業が見るべき価値は、AI が速く実装することだけではない。要件、設計、計画、レビュー、revert をチームの管理対象へ戻せるかである。Conductor を入れるなら、plugin trust、MCP、hooks、track 粒度、plan 承認、CI、ADR との役割分担を同時に決める必要がある。
-
-この更新は `google-gemini-api-agent-platform-2026` シリーズの pillar 候補になり得る。理由は、Managed Agents や Antigravity が実行面を扱うのに対し、Conductor は作業状態と仕様管理を扱い、シリーズ全体の「Google の agent 基盤をどう企業運用へ落とすか」という軸を補強するからだ。ただし、pillar 指定は人間判断に委ねる。
+日本企業にとっての価値は、AI 実装の速度だけではない。仕様承認、計画レビュー、権限管理、委託先との責任分界、監査証跡を前倒しできることだ。Conductor を導入するなら、plugin、artifact、MCP / hooks、CODEOWNERS、PR template、失敗時の状態遷移をまとめて設計する必要がある。AI コーディングの標準化は、どのモデルを使うかから、どの作業状態を正とするかへ移っている。
 
 ## 出典
 
