@@ -1,71 +1,73 @@
 ---
-title: 'Claude CISOガイド、agentic AI承認の実務'
-description: 'Claude CISOガイドをもとに、agentic AI承認を非信頼入力、実行権限、blast radius、SIEM観測性で判断し、日本企業の小規模展開、監査設計、停止条件へ落とす。'
+title: 'Claude CISOガイド、AIエージェント承認の実務'
+description: 'Claude CISOガイドを起点に、AIエージェントの非信頼入力、実行権限、blast radius、SIEM観測性を整理し、日本企業の承認条件と初期展開の決め方を具体化する記事。'
 pubDate: '2026-07-19'
 category: 'news'
-tags: ['Anthropic', 'Claude', 'AIエージェント', 'AIガバナンス', '監査ログ', '企業導入', 'セキュリティ']
+tags: ['Anthropic', 'Claude', 'AIガバナンス', 'セキュリティ', '情シス', '企業導入']
 series: 'anthropic-japan-2026'
 draft: false
 ---
 
-Anthropic は **2026年7月17日**、Deputy CISO の Jason Clinton 氏による **agentic AI 向け CISO ガイド**を公開した。主張は分かりやすい。CISO の仕事は、AI エージェントのリスクをゼロにすることではない。リスクを見える形にし、被害範囲を固定し、事業が勝手に迂回しない条件で許可することだ。
+Anthropic は **2026年7月17日**、Deputy CISO の Jason Clinton 氏による「Zero risk isn't the job: a CISO's guide to agentic AI」を公開した。主張は明確だ。CISO の仕事は AI エージェントをゼロリスクにすることではなく、リスクを見える形にし、管理できる範囲へ閉じ込めることである。
 
-これは日本企業にとって実務的な記事である。生成 AI の導入審査では「使ってよいか、使ってはいけないか」の二択になりやすい。しかし、部門がすでに個人契約や未承認ツールで agentic AI を試しているなら、全面禁止は shadow adoption を増やすだけになる。必要なのは、どの入力を読むのか、どの操作をできるのか、失敗時の blast radius はどこまでか、SIEM で追えるのかを見て、限定展開する判断基準である。
+日本企業にとって、この論点はかなり実務的だ。AI エージェントは、チャット回答だけでなく、メール、Slack、GitHub、MCP、社内文書、ログ、コード、ブラウザ操作へ触れ始めている。以前の [Claude containment と権限境界](/blog/anthropic-claude-containment-agent-security-2026/) では実行環境と sandbox の話を扱った。今回の CISO ガイドは、その前段で「どの条件なら承認するのか」をセキュリティ部門がどう判断するかを示している。
 
-このサイトでは、すでに [Claude containment](/blog/anthropic-claude-containment-agent-security-2026/) で実行境界、[Claude Compliance API統合](/blog/anthropic-claude-compliance-api-integrations-2026/) で監査ログ連携、[Project Glasswing初報](/blog/anthropic-project-glasswing-mythos-vuln-triage-2026/) でAIが脆弱性対応を加速する現実を整理した。今回の CISO ガイドは、それらを「新しいエージェント案件をどう承認するか」という管理プロセスにまとめる材料として読むべきだ。
+さらに [Claude Compliance API と監査基盤](/blog/anthropic-claude-compliance-api-integrations-2026/) で見たように、AI 利用は既存の DLP、SIEM、監査ログへ接続されつつある。だがログが取れるだけでは承認条件にはならない。何を読み、何を書けて、失敗時の被害範囲がどこまでで、どのログで見えるのかを、利用開始前に決める必要がある。
 
-## 事実: Anthropicは4つの質問でagentic AIを評価する
+## 事実: CISOの仕事はゼロリスクではない
 
-Anthropic の記事は、agentic AI の内部リスクを評価する入口として 4 つの質問を示している。
+Anthropic の記事は、セキュリティ責任者が AI エージェント案件を拒否し続けると shadow adoption が起きると指摘している。現場が未承認のエージェントを勝手に接続すれば、テレメトリも off switch もない。一方で、条件なしに承認すれば、最初の重大事故が AI プログラム全体を止める。
 
-1つ目は、エージェントがどの非信頼コンテンツを読むかである。外部メール、Web、第三者文書、公開リポジトリ、顧客から来たファイルなど、攻撃者が書いたり改変したりできるものは非信頼入力になる。ここを読まないなら、agent-specific risk は低く、早く進めやすい。
+このため、同記事は bounded risk という考え方を置く。すべてのリスクを消すのではなく、受け入れ可能な範囲を定義し、意図的に引き受けられるリスクだけを許可する。日本企業の言葉に置き換えるなら、AI エージェント承認は「可否判定」ではなく「利用条件の設定」に近い。
 
-2つ目は、何を、誰の権限で実行できるかである。read-only と read/write は別物だ。tool call、code execution、network egress はそれぞれ行動面を広げる。さらに、その操作が本人の資格情報で行われるのか、service account で行われるのか、agent 専用の scoped identity なのかを分ける必要がある。
+ここで重要なのは、モデル性能の高低だけを見ないことだ。モデルが強くなるほど、同じ tool list でも、以前は思いつかなかった行動を取れる可能性がある。Anthropic は、自社の incident response agent が、モデル更新後に別のエージェントへコード修正を依頼しようとした事例を紹介している。これは危険な暴走というより、能力向上が既存の境界内で新しい行動を生むという教訓である。
 
-3つ目は、意図から外れた場合の blast radius である。1ファイルの漏えいで済むのか、組織全体の顧客データへ届くのか。軽い誤操作なのか、インシデント扱いなのか。AI エージェントの承認では、モデル精度だけでなく、失敗時にどこまで壊れるかを先に数える。
+## 事実: 4つの質問でリスクを読む
 
-4つ目は、観測性である。agent action と user action を区別できるか。ログは SIEM に入るか。異常を数分で見られるのか、数週間後にしか分からないのか。Anthropic は、agent speed の世界では従来の insider risk response より速い検知と封じ込めが必要だと説明している。
+Anthropic の CISO ガイドは、agentic use case を評価するための4問を示している。第一に、そのエージェントはどんな非信頼入力を読むのか。外部メール、公開 Web、第三者文書、公開リポジトリなど、攻撃者が書ける可能性のある内容はすべて非信頼入力になる。
 
-## 事実: Claude Coworkの統制要件はかなり具体的
+第二に、どんな action を誰の権限で実行できるのか。read-only と read/write は別物だ。tool call、code execution、network egress はそれぞれ開く穴が違う。人間の credential を使うのか、agent 専用 service account を使うのかでも責任分界が変わる。
 
-記事では Claude Cowork を例に、企業が agent environment に求めるべき統制を具体化している。ID は既存 IdP から発行し、SAML/OIDC と SCIM で利用者とグループを管理する。connector allowlist で agent が届くデータ境界を決める。さらに connector 単位だけでなく、action 単位で read、draft、send、delete のような verbs を制御する。
+第三に、misalignment や攻撃が起きた場合の blast radius はどこまでか。1ファイルの露出なのか、組織全体の顧客情報なのか。小さな迷惑なのか、監督官庁や顧客説明が必要な incident なのか。範囲と重大度を掛け合わせて見る必要がある。
 
-実行環境も重要だ。Claude Cowork の remote session では、agent loop は Anthropic 管理の隔離された一時 sandbox で動き、connector token は sandbox に入らない。connector call は reverse proxy 経由で実行されるため、sandbox から盗める credential を減らす設計になる。これは [Claude CoworkとM365書き込み権限](/blog/anthropic-claude-cowork-web-mobile-m365-write-2026/) で見た「書けるAI」の統制論点ともつながる。
+第四に、どんな observability があるのか。agent の action と人間の action を区別できるか。SIEM に入るか。数分で検知できるか、数週間後にログを探すことになるか。ここは [Project Glasswing と脆弱性対応](/blog/anthropic-project-glasswing-mythos-vuln-triage-2026/) のような防御側の処理能力にもつながる。AI が速く動くなら、検知と停止も人間の週次会議では遅い。
 
-egress allowlist も中心的な統制として扱われている。agent が prompt injection を受けても、外向き通信が管理者の選んだ宛先だけに制限されていれば、攻撃者が自由な場所へデータを送る経路は狭まる。ただし、allowlist は単なるドメイン表ではない。どのアカウントへ、どの credential で、どの operation ができるかまで見ないと、許可済み API 経由の漏えいを見落とす。
+## 事実: Claude Coworkの統制要件
 
-観測性では、Claude Cowork が OpenTelemetry 経由で tool invocation、MCP server、parameters、成否、duration、user identity、session context を送れると説明されている。Anthropic は、Cowork activity が Compliance API や formal audit logs に現時点では入らず、OTel stream が native monitoring path だとも明記している。この差は日本企業の監査レビューで重要になる。
+記事後半では Claude Cowork を例に、企業が見るべき統制が整理されている。Identity は既存の IdP から発行・失効されるべきで、Claude Cowork は SAML / OIDC sign-in と SCIM provisioning を使う。Enterprise plan では custom role で capability を group 単位に絞れる。
 
-## 分析: 日本企業は「承認条件」を先に書くべき
+Connector allowlist も重要だ。管理者が組織全体で connector を有効化し、利用者が個別に account を認可する二段構えになる。つまり connector を有効にすることは、そのエージェントが到達できるデータ境界を決めることでもある。外部情報を読む agent に email 作成を許すなら、送信まで自動化しないなど、action ごとの制限が必要になる。
+
+Claude Cowork では per-tool、per-action の制御、sandboxed execution、egress allowlist、OpenTelemetry による SIEM 連携、org-wide off switch も要件として挙げられている。特に OpenTelemetry では tool invocation、MCP server、parameters、成否、duration、user identity、session context を流せると説明されている。ただし prompt content が SIEM に入る場合、保持期間や個人情報レビューの設計が先に必要になる。
+
+## 分析: 日本企業は承認条件を表にするべきだ
 
 ここからは分析だ。
 
-日本企業の AI 導入審査では、禁止リストと利用ガイドラインだけが先行しやすい。しかし agentic AI では、それだけでは足りない。AI がメールを読み、Slack に投稿し、Google Doc を下書きし、GitHub の PR を作り、社内 wiki や CRM を横断するなら、「何をしてよいか」を操作単位で決めなければならない。
+日本企業が AI エージェントを承認するとき、最初から大きな AI ガバナンス規程を作ろうとすると時間がかかる。現実的には、CISO ガイドの4問をそのまま社内レビュー表にするほうが早い。
 
-まず、社内の agentic use case を 4 問で棚卸しするべきだ。営業メール作成なら外部 Web を読むか、CRM を読むか、送信までできるか、下書き止まりか。開発エージェントなら repository、issue、CI、secret、production log へ届くか。経理や法務なら、契約書、顧客名、支払情報、個人情報を読むか。用途名だけではなく、入力、操作、権限、ログで表にする。
+列は、ユースケース、対象部署、入力データ、非信頼入力の有無、利用 identity、read/write action、削除や外部送信の有無、blast radius、SIEM / DLP / audit log、停止方法、初期対象人数、再評価条件でよい。これなら情シス、セキュリティ、法務、AI 推進、業務部門が同じ表を見られる。
 
-次に、最小 agency を決める。Anthropic の表現を日本企業向けに言い換えるなら、「便利なAIに全部任せる」のではなく、「業務を完了する最小の行動能力だけを渡す」ことである。メールは draft まで、外部送信は人間確認。ドキュメントは新規作成まで、既存契約の上書きは不可。GitHub は PR 作成まで、merge は不可。こうした条件なら、CISO と事業部門が同じ言葉でリスクを話せる。
+特に日本企業では、AI 利用の承認が「ツール名」単位になりがちだ。Claude を許可する、ChatGPT を許可する、Copilot を許可する、という粒度では粗い。実務で必要なのは、Claude Cowork の M365 connector は read-only だけ許可する、GitHub connector は特定 group だけ許可する、外部 Web を読んだ結果から顧客メールを自動送信しない、という action 単位の条件である。
 
-さらに、admin-paced rollout を標準にしたい。最初から全社展開するのではなく、少人数で有効化し、OTel、SIEM、DLP、proxy log、helpdesk 問い合わせを見てから対象を広げる。これは遅い承認ではない。むしろ、禁止による shadow adoption を避け、公式ルートで早く学ぶための設計である。
+[Claude Cowork の M365 書き込み権限](/blog/anthropic-claude-cowork-web-mobile-m365-write-2026/) で整理したように、検索 AI と操作 AI は分けるべきだ。検索や要約は低リスクでも、メール送信、予定変更、ファイル更新、権限変更は別の承認線に置く必要がある。
 
-## CISOとAI推進が同じ表を見る
+## まず小さく許可し、広げる条件を決める
 
-このガイドの価値は、CISO だけの話で終わらない点にある。AI 推進、情シス、法務、内部監査、事業責任者が同じ表で判断できる。特に日本企業では、AI 推進チームが導入を急ぎ、セキュリティ部門が止める構図になりやすい。4 問フレームは、その対立を「どの条件なら進められるか」に変える。
+Anthropic は admin-paced rollout を基本姿勢としている。小さな group へ有効化し、telemetry を見て、それから拡大する考え方だ。日本企業でも、最初の判断は「全社展開するか」ではなく、「どの低リスク use case なら条件付きで始められるか」に置くべきだ。
 
-たとえば、ある部門が「社内問い合わせ agent を入れたい」と言ったとする。従来なら、情報漏えいが怖い、回答品質が不安、ログが取れない、という抽象論で止まりやすい。4 問に落とすと、読むのは社内 FAQ と公開ドキュメントだけか、従業員の個人情報も読むのか。回答は draft だけか、チケットを自動更新するのか。誤回答時の影響は問い合わせ 1 件か、全社員への通知か。ログは SIEM に入るか。判断が具体化する。
+たとえば、社内規程だけを読む FAQ agent、公開情報と社内テンプレートから下書きを作る agent、incident channel を作成して postmortem draft を作る agent は、条件を切りやすい。逆に、顧客データ、外部メール、契約書、production database、支払い、アカウント権限を同時に触る agent は、初期対象にしないほうがよい。
 
-また、agent identity の設計も避けられない。人間の credential をそのまま継承する personal agent は説明責任が分かりやすい一方、ユーザーが見ていない場所で長く動くと責任が曖昧になる。逆に service account agent は用途を絞りやすいが、権限棚卸しと所有者管理が必要になる。日本企業では、退職者、異動者、委託先、共同利用アカウントが混ざりやすいため、agent 専用 identity をどう発行し、誰が revoke するかを先に決めたい。
+承認後も、再評価条件が必要になる。モデルが変わった、connector が増えた、write action を追加した、対象人数を増やした、外部入力を読むようになった、ログ項目が変わった。このどれかが起きたら、初回承認を使い回さず、4問を再回答する。
 
 ## まとめ
 
-Anthropic の CISO ガイドは、agentic AI を止めるための記事ではない。ゼロリスクを待つのではなく、非信頼入力、行動権限、blast radius、観測性をそろえ、受け入れられる範囲で小さく許可するための記事である。
+Claude CISO ガイドの価値は、AI エージェントを止めるための文書ではなく、条件付きで進めるための文書である点にある。ゼロリスクを待てば現場は非公式に進む。条件なしに許可すれば事故が起きる。だから、非信頼入力、実行権限、blast radius、観測性を先に表にし、管理できる範囲だけを承認する。
 
-日本企業が今やるべきことは、最新モデルの比較より先に、社内 agentic AI 承認表を作ることだ。各ユースケースについて、読むデータ、できる操作、使う identity、失敗時の範囲、SIEM/DLP/OTel 連携、緊急停止方法を書く。そこまで決めれば、AI 推進とセキュリティは「使うか禁止か」ではなく「どの条件で進めるか」を話せる。
-
-AI エージェントは、今後さらに賢くなり、複数 tool をまたぎ、長時間の作業を担う。だからこそ、モデルの現在の限界に合わせて統制を作るのではなく、半年後に能力が上がっても壊れない境界を置く必要がある。承認は一度の押印ではなく、小さく許可し、観測し、広げる運用へ変えるべきだ。
+日本企業は、AI エージェント導入を「ツール利用申請」から「操作権限の設計」へ移すべきだ。まず小さなユースケースを選び、read/write、identity、connector、SIEM、off switch を確認し、ログを見ながら広げる。CISO、情シス、AI 推進、業務部門が同じレビュー表を持てるかどうかが、今後の AI エージェント展開の速度と安全性を決める。
 
 ## 出典
 
-- [Zero risk isn't the job: a CISO's guide to agentic AI](https://claude.com/blog/ciso-guide-to-agentic-ai) - Anthropic, 2026-07-17
-- [Preparing your security program for AI-accelerated offense](https://claude.com/blog/preparing-your-security-program-for-ai-accelerated-offense) - Anthropic, 2026-04-10
-- [Security - Claude Code Docs](https://code.claude.com/docs/en/security) - Anthropic Docs
+- [Zero risk isn't the job: a CISO's guide to agentic AI](https://claude.com/blog/ciso-guide-to-agentic-ai) - Claude by Anthropic, 2026-07-17
+- [Preparing your security program for AI-accelerated offense](https://claude.com/blog/preparing-your-security-program-for-ai-accelerated-offense) - Claude by Anthropic, 2026-04-10
+- [Security - Claude Code Docs](https://code.claude.com/docs/en/security) - Claude Code Docs, accessed 2026-07-19
